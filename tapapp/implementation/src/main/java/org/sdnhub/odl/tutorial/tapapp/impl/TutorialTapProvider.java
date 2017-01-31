@@ -24,6 +24,7 @@ import javax.xml.ws.handler.PortInfo;
 
 
 
+
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.api.DataChangeListener;
 import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
@@ -2872,11 +2873,19 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 					public InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix dstIp,
 							Ipv4Prefix srcIp, NodeId nodeid) {
 						AssociatedActionsBuilder actionBuilder = new AssociatedActionsBuilder();
-						ForwardToPortBuilder forwardBuilder = new ForwardToPortBuilder();
-						forwardBuilder.setOutputNodeConnector(outputPort);
-						
-						actionBuilder.setFlowActions(new ForwardToPortCaseBuilder().
-								setForwardToPort(forwardBuilder.build()).build());
+	
+						if (outputPort.getValue() == "openflow:6:4294967293"){
+							ForwardToControllerBuilder forwardControllerBuilder = new ForwardToControllerBuilder();
+							actionBuilder.setFlowActions(new ForwardToControllerCaseBuilder().
+									setForwardToController(forwardControllerBuilder.build()).build());
+						}
+						else {
+							ForwardToPortBuilder forwardBuilder = new ForwardToPortBuilder();
+							forwardBuilder.setOutputNodeConnector(outputPort);
+							actionBuilder.setFlowActions(new ForwardToPortCaseBuilder().
+									setForwardToPort(forwardBuilder.build()).build());
+						}
+											
 						actionBuilder.setId((long)1);
 						List<AssociatedActions> actionList = Lists.newArrayList();
 						actionList.add(actionBuilder.build());
@@ -2916,8 +2925,10 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 					return RpcResultBuilder.success(output).buildFuture();
 				}
 				int index = 0;
+				LOG.debug("NodeConnectorID {}", input.getInpsectionSwitchPort());
 				try {
 					for (; index < pathNodes.size(); index++){
+						LOG.debug(pathNodes.get(index).getValue() , "=", input.getInspectionSwitchId().getValue());
 						//Future<RpcResult<InstallFlowOutput>> futureOutput = null;
 						//Future<RpcResult<InstallFlowOutput>> futureOutput1 = null;
 						if (index == 0){ // got the first switch
@@ -2929,7 +2940,8 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 										input.getSrcIpAddress(), input.getDstIpAddress(), pathNodes.get(index)));
 							}
 							if (index + 1 < pathNodes.size()){
-								if (pathNodes.get(index) == input.getInspectionSwitchId()){
+								if (pathNodes.get(index).getValue().equals(input.getInspectionSwitchId().getValue())){ //This is the switching node so we have to forward the port
+									//which is now the controller port
 									this.installFlow(func.performFunction(input.getInpsectionSwitchPort(), 
 											input.getDstIpAddress(), input.getSrcIpAddress(), pathNodes.get(index)));
 								}
@@ -2954,11 +2966,12 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 						}/////////////////////////////////////////////////////////////////
 						//we have more than one switch
 						else if (index - 1 >= 0 && index + 1 < pathNodes.size()) {
-							if (pathNodes.get(index) == input.getInspectionSwitchId()) {
+							if (pathNodes.get(index).getValue().equals(input.getInspectionSwitchId().getValue())) {
 								this.installFlow(func.performFunction(
 										input.getInpsectionSwitchPort(),
 										input.getDstIpAddress(),
 										input.getSrcIpAddress(), pathNodes.get(index)));
+								LOG.debug("Installed the switch along the path with switchID {}", input.getInspectionSwitchId());
 							} else {
 								// forwarding direction rule i.e., src -> dst
 								Neighbors neighbor = getPortInformation(

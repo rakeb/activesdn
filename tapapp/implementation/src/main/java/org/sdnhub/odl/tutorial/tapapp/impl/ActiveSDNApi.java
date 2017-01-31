@@ -1522,9 +1522,9 @@ public class ActiveSDNApi implements ActivesdnService, OpendaylightFlowStatistic
 					if (portStatsOutput != null){
 						FloodedLinksBuilder floodedLinkBuilder = new FloodedLinksBuilder();
 						//--------For the time being there is only one link and we assume that is flooded
-						//floodedLinkBuilder.setLinkId(portId);
-						//floodedLinkBuilder.setPacketDropObserved(5);
-						//listOfFloodedLinks.add(floodedLinkBuilder.build());
+						floodedLinkBuilder.setLinkId(portId);
+						floodedLinkBuilder.setPacketDropObserved(5);
+						listOfFloodedLinks.add(floodedLinkBuilder.build());
 						//--------------------------------------------
 						if (portStatsOutput.getReceiveDrops() > 0){
 							LOG.debug("GetReceivedDrops = {} ", portStatsOutput.getReceiveDrops());

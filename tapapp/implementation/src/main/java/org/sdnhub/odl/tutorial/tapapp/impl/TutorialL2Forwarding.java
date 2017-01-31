@@ -518,13 +518,20 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
     public String extractPayload(Ipv4PacketHeader ipv4Packet){
     	boolean tcpHeader = (ipv4Packet.getProtocol().getIntValue() == KnownIpProtocols.Tcp.getIntValue() ? true : false);
     	boolean udpHeader = (ipv4Packet.getProtocol().getIntValue() == KnownIpProtocols.Udp.getIntValue() ? true : false);
-    	int totalLength = ipv4Packet.getPayloadLength();
-    	int headerLength = ipv4Packet.getIpv4Length();
-    	int payloadLength = totalLength - headerLength - (tcpHeader ? 20 : 8);
-    	int payloadOffset = 14 + headerLength + (tcpHeader ? 20 : 8);
+    	LOG.debug(ipv4Packet.getProtocol().getIntValue() == KnownIpProtocols.Tcp.getIntValue() ? "It is TCP Header" : "It is UDP Header");
+    	int totalLength = ipv4Packet.getIpv4Length();
+    	LOG.debug("Total Packet Length {}", totalLength);
+    	int headerLength = ipv4Packet.getPayloadLength();
+    	LOG.debug("IP Header Length {} ", headerLength);
+    	//int payloadLength = totalLength - headerLength - (tcpHeader ? 20 : 8);
+    	int payloadLength = totalLength - 40;
+    	LOG.debug("Payload Length {}", payloadLength);
+    	int payloadOffset = 14 + 40;// headerLength + (tcpHeader ? 20 : 8);
+    	LOG.debug("Payload offset in bytes {}", payloadOffset);
     	payloadOffset *= NetUtils.NumBitsInAByte;
+    	LOG.debug("Payload offset in bits {}", payloadOffset);
     	String payload = "";
-
+    	
     	try {
     		if (payloadLength > 0){
         		LOG.debug("We have some payload {}", payloadLength);
@@ -674,7 +681,12 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
         		eventBuilder.setInPortNumber(Integer.parseInt(ingressNodeConnectorId.getValue().split(":")[2]));
         		eventBuilder.setSwitchId(Integer.parseInt(ingressNodeId.getValue().split(":")[1]));
         		eventBuilder.setPayload(notification.getPayload());
-        		eventBuilder.setStringPayload(extractPayload(ipv4Packet));
+        		if (ipv4Packet.getProtocol().getIntValue() == KnownIpProtocols.Tcp.getIntValue()){
+        			eventBuilder.setStringPayload(extractPayload(ipv4Packet));
+        		}
+        		else {
+        			eventBuilder.setStringPayload("");
+        		}
         		//----------------------------------------------------------
         		if (ipv4Packet.getProtocol().getIntValue() == KnownIpProtocols.Icmp.getIntValue()){
         			IcmpPacketTypeBuilder icmpBuilder = new IcmpPacketTypeBuilder();

@@ -27,7 +27,7 @@ echo " ------------------------------- "
 echo "controller is loaded"
 
 if [ $1 == '' ]; then
-	sleep 5
+	sleep 10
 else
 	sleep $1
 fi
@@ -42,6 +42,7 @@ wait
 echo "Controller is stopped"
 
 cd /home/ubuntu/Downloads/SDNHub_Opendaylight_Tutorial/distribution/opendaylight-karaf/target/assembly/etc/opendaylight/karaf
+#cd /etc/opendaylight/karaf
 echo "Setting Configuration in 52-loopremover.xml"
 while [ ! -f 52-loopremover.xml ]; do
 	sleep 1
@@ -60,8 +61,9 @@ while [ ! -f 58-l2switchmain.xml ]; do
 done
 sudo sed -i.bak "s/<is-learning-only-mode>false<\/is-learning-only-mode>/<is-learning-only-mode>true<\/is-learning-only-mode>/g" 58-l2switchmain.xml &&
 sudo sed -i.bak "s/<is-install-dropall-flow>true<\/is-install-dropall-flow>/<is-install-dropall-flow>false<\/is-install-dropall-flow>/g" 58-l2switchmain.xml &&
+#cd /home/ubuntu/Downloads/SDNHub_Opendaylight_Tutorial/distribution/opendaylight-karaf/target/assembly/etc/opendaylight/karaf
 cd /home/ubuntu/Downloads/SDNHub_Opendaylight_Tutorial &&
-
+#cd ../../../../../../../ &&
 echo "running controller" 
 while timeout 1 bash -c " > /dev/tcp/localhost/5005"; do sleep 2; done
 distribution/opendaylight-karaf/target/assembly/./bin/karaf
