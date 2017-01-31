@@ -1,0 +1,28 @@
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="odl-yangtools-0.8.1-Beryllium-SR1" xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.2.0 http://karaf.apache.org/xmlns/features/v1.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <feature name="odl-yangtools-yang-data" version="0.8.1-Beryllium-SR1" description="OpenDaylight :: Yangtools :: Data Binding">
+    <feature version="0.8.1-Beryllium-SR1">odl-yangtools-yang-parser</feature>
+    <bundle>mvn:org.opendaylight.yangtools/yang-data-api/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/yang-data-impl/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/yang-data-util/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:com.google.code.gson/gson/2.3.1</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/yang-data-codec-gson/0.8.1-Beryllium-SR1</bundle>
+  </feature>
+  <feature name="odl-yangtools-common" version="0.8.1-Beryllium-SR1" description="OpenDaylight :: Yangtools :: Common">
+    <bundle>mvn:com.google.guava/guava/18.0</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/concepts/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/yang-common/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/util/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/object-cache-api/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/object-cache-guava/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/object-cache-noop/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:com.github.romix/java-concurrent-hash-trie-map/0.2.23</bundle>
+  </feature>
+  <feature name="odl-yangtools-yang-parser" version="0.8.1-Beryllium-SR1" description="OpenDaylight :: Yangtools :: YANG Parser">
+    <feature version="0.8.1-Beryllium-SR1">odl-yangtools-common</feature>
+    <bundle>mvn:org.antlr/antlr4-runtime/4.5.1</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/yang-model-api/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/yang-model-util/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/yang-parser-api/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.yangtools/yang-parser-impl/0.8.1-Beryllium-SR1</bundle>
+  </feature>
+</features>

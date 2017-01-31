@@ -7,22 +7,51 @@ module tap {
     import yang-ext {prefix ext; revision-date "2013-07-09";}
     import ietf-yang-types { prefix yang; revision-date 2010-09-24; }
     import ietf-inet-types { prefix inet; }
+    //import opendaylight-meter-types {prefix meter; revision-date "2013-09-18";}
+    //import opendaylight-match-types {prefix match; revision-date "2013-10-26";}
     description "Tap configuration";
 
     revision "2015-06-01" {
         description "Initial version.";
     }
 
+    typedef local-ipv4-prefix {
+        type string {
+          pattern
+            '(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])/(([0-9])|([1-2][0-9])|(3[0-2]))';
+        }
+        description
+          "The ipv4-prefix type represents an IPv4 address prefix.
+        The prefix length is given by the number following the
+        slash character and must be less than or equal to 32.
+
+        A prefix length value of n corresponds to an IP address
+        mask that has n contiguous 1-bits from the most
+        significant bit (MSB) and all other bits set to 0.
+
+        The canonical format of an IPv4 prefix has all bits of
+        the IPv4 address set to zero that are not part of the
+        IPv4 prefix.";
+      }
+    
     typedef port-number {
         type uint32;
     }
-
-
+   
     typedef field-type {
         type enumeration {
             enum source;
             enum destination;
             enum both;
+        }
+    }
+    
+    typedef meter-flags {
+        type enumeration {
+            enum meter-kbps;
+            enum meter-pktps;
+            enum meter-burst;
+            enum meter-stats;
         }
     }
 
@@ -36,9 +65,66 @@ module tap {
             enum UDP;
             enum DHCP;
             enum ICMP;
+            enum CUSTOM;
         }
     }
 
+    grouping event-actions{
+    	choice tap-actions {
+    		case block-case {
+    			description "Blocks the traffic matching event.";
+    			container block-action {
+    			}
+    		}
+    		case notify-case {
+    			description "Notify the occurance of matching event.";
+    			container notify-action {
+    			}
+    		}
+    		case drop-and-notify-case {
+    			description "Start dropping the packets and also notify";
+    			container drop-and-notify{
+    				leaf hold-notification {
+    					type int32;
+    				}
+    			}
+    		}
+    		case set-rate-limit-event-case {
+    			description "Limits the traffic matching event.";
+    			container set-rate-limit-action {
+    				leaf meter-type {
+    					mandatory true;
+    					type meter-flags;
+    				}
+    				leaf band-rate {
+    					mandatory true;
+    					type uint32;
+    				}
+    				leaf band-burst-size {
+    					default 1;
+    					type uint32;
+    				}
+    				leaf drop-rate {
+    					default 1;
+    					type uint32;
+    				}
+    				leaf drop-burst-size {
+    					default 1;
+    					type uint32;
+    				}
+    				leaf egress-port {
+    		        	mandatory true;
+    		            type leafref {
+    		                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+    		            }
+    		        }
+    			}
+    		}
+
+
+    	}
+    }
+    
     grouping tap-grouping {
         leaf node {
             mandatory true;
@@ -46,49 +132,82 @@ module tap {
                 path "/inv:nodes/inv:node/inv:id";
             }
         }
-        leaf-list src-node-connector {
-            min-elements 1;
+        leaf inPortConnector {
+        	mandatory false;
             type leafref {
                 path "/inv:nodes/inv:node/inv:node-connector/inv:id";
             }
         }
-        leaf-list sink-node-connector {
-            min-elements 1;
-            type leafref {
-                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
-            }
+        
+        leaf source-mac-address {
+        	mandatory false;
+        	type yang:mac-address;
         }
-        container mac-address-match {
-            leaf type {
-                type field-type;
-            }
-            leaf value {
-                type yang:mac-address;
-            }
+        
+        leaf dst-mac-address {
+        	mandatory false;
+        	type yang:mac-address;
         }
-        container ip-address-match {
-            leaf type {
-                type field-type;
-            }
-            leaf value {
-                type inet:ipv4-prefix;
-            }
+        
+        leaf source-ip-address {
+        	mandatory false;
+        	type local-ipv4-prefix;
         }
+        
+        leaf dst-ip-address {
+        	mandatory false;
+        	type local-ipv4-prefix;
+        }
+        
         leaf traffic-match {
+        	mandatory false;
             type traffic-type;
         }
     }
-
+     
+    rpc checking {
+    	input {
+    		leaf note {
+    			type string;
+    		}
+    	}
+    	output {
+    		leaf msg {
+    			type string;
+    		}
+    	}
+    }
+    
+    grouping dst-port-info {
+    	leaf dst-node-connector {
+            type leafref {
+                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+            }
+        }
+    }
+    
     container tap-spec {
         list tap {
             key "id";
             leaf id {
                type string;
             }
+            leaf count{
+            	mandatory true;
+            	type uint32;
+            	description "Mandatory field: Provide number of packets.";
+            }
+            leaf duration {
+            	mandatory true;
+            	type uint32;
+            	description "Mandatory Field: Provide the time window for the even.";
+            }
             uses tap-grouping;
+            //----------
+            uses event-actions;
         }
     }
-
+/*
     augment /tap-spec/tap {
         ext:augment-identifier "ProtocolInfo";
         leaf dl-type {
@@ -104,5 +223,1344 @@ module tap {
             type uint16;
         }
     }
-}
+ */
+    //We use this container to insert flow rules in the switches
+    grouping match {
+        leaf in-port {
+        	mandatory true;
+            type leafref {
+                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+            }
+        }
+        leaf src-mac-address {
+        	type yang:mac-address;
+        }
 
+        leaf dst-mac-address {
+        	type yang:mac-address;
+        }
+
+        leaf src-ip-address {
+        	type inet:ipv4-prefix;
+        }
+        leaf dst-ip-address {
+        	type inet:ipv4-prefix;
+        }
+
+        leaf traffic-match {
+            type traffic-type;
+        }
+        leaf flow-priority {
+			default 200;
+			type int32;
+		}
+		leaf idle-timeout {
+			default 0;
+			type int32;
+		}
+		leaf hard-timeout {
+			default 0;
+			type int32;
+		}
+        container custom-info{
+        	when "traffic-match = 'CUSTOM'";
+        	leaf dl-type {
+        		default 0x800;
+                type uint16;
+                description "Ethernet type";
+            }
+            leaf nw-proto {
+            	default 6;
+                type uint8;
+                description "Network protocol";
+            }
+            leaf tp-dst {
+            	default 80;
+                type uint16;
+                description "tcp destination port";
+        	}  	
+        }
+    }
+    
+    grouping flow-actions {
+    	choice flow-actions {
+    		case forward-to-port-case {
+    			description "Foward the packet to any physical port.";
+    			container forward-to-port {
+    				leaf output-node-connector {
+    					type leafref {
+    		                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+    		            }
+    				}
+    			}
+    		}
+    		
+    		case forward-to-controller-case {
+    			description "Forward the packet to Controller port.";
+    			container forward-to-controller {
+    			}
+    		}
+    		
+    		case forward-to-flood-case {
+    			description "Forward the packet to Flood port.";
+    			container forward-to-flood {
+    				
+    			}
+    		}
+    		
+    		case drop-packet-case {
+    			description "This will drop the packet immediately.";
+    			container drop-packet {
+    				
+    			}
+    		}
+    		
+    		case set-source-ipv4-address-case {
+    			description "This sets the IP Source value of the packet to new address.";
+    			container set-source-ipv4-address {
+    				leaf value {
+    					type inet:ipv4-prefix;
+    				}
+    			}
+    		}
+    		
+    		case set-dst-ipv4-address-case {
+    			description "This sets the Destination Source value of the packet to new address.";
+    			container set-dst-ipv4-address {
+    				leaf value {
+    					type inet:ipv4-prefix;
+    				}
+    			}
+    		}
+    		
+    		case set-ipv4-tos-case {
+    			description "This sets the IP TOS value of the packet to change its precedence.";
+    			container set-ipv4-tos {
+    				leaf value {
+    					type int32;
+    				}
+    			}
+    		}
+    		
+    		case set-tcp-src-port-case {
+    			description "This sets the TCP Source Port number of the packet.";
+    			container set-tcp-src-port {
+    				leaf port-number {
+    					type int32;
+    				}
+    			}
+    		}
+    		
+    		case set-tcp-dst-port-case {
+    			description "This sets the TCP Destination Port number of the packet.";
+    			container set-tcp-dst-port {
+    				leaf port-number {
+    					type int32;
+    				}
+    			}
+    		}
+    		
+    		case set-ipv4-ttl-case {
+    			description "This sets the TTL value of the packet.";
+    			container set-ipv4-ttl {
+    				leaf ttl-value {
+    					type uint8;
+    				}
+    			}
+    		}
+    		
+    		case set-rate-limit-case {
+    			description "This limits the rate of the flow by assigning it to a meter.";
+    			container set-rate-limit {
+    				leaf meter-type {
+    					mandatory true;
+    					type meter-flags;
+    				}
+    				leaf band-rate {
+    					mandatory true;
+    					type uint32;
+    				}
+    				leaf band-burst-size {
+    					default 1;
+    					type uint32;
+    				}
+    				leaf drop-rate {
+    					default 1;
+    					type uint32;
+    				}
+    				leaf drop-burst-size {
+    					default 1;
+    					type uint32;
+    				}
+    				leaf egress-port {
+    		        	mandatory true;
+    		            type leafref {
+    		                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+    		            }
+    		        }
+    			}
+    		}
+    		case set-port-queue-case {
+    			container set-queue {
+    				leaf queue {
+    					type string;
+    				}
+    				leaf queue-id {
+    					type uint32;
+    					
+    				}
+    				leaf egress-port {
+    					mandatory true;
+    					type leafref {
+    		                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+    		            }
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    container install-flow-repository{
+    	list new-flow1{
+			key "id";
+			leaf id{
+				type string;
+			}
+			uses match;
+		}
+    }
+    
+    rpc install-flow {
+    	input {
+    		leaf node {
+                mandatory true;
+                type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+            }
+    		leaf flow-id {
+    			type string;
+    		}
+    		container new-flow {
+    			uses match;
+    		}
+    		list associated-actions {
+    			key "id";
+    			leaf id {
+    				type uint32;
+    			}
+    			uses flow-actions;
+    		}
+    	}
+    	output{
+    		leaf status{
+    			type string;
+    		}
+    		leaf flow-id {
+    			type string;
+    		}
+    	}
+    }
+    //We will use this to raise an event where every listener will be focused on one particular event
+    container mal-events {
+    	container mal-event{
+    		leaf id {
+    			type string;
+    		}
+    		leaf count{
+    			type uint32;
+    		}
+    	}
+    }
+    
+    //We use this to find flow associated with event in the learning switch class
+    container cookie-to-flowid {
+    	list cookie {
+            key "id";
+            leaf id {
+        		type string;
+        	}
+            leaf tapid {
+        		type string;
+        	}
+            leaf flowid {
+        		type string;
+        	}
+    	}
+    }
+    ///////////////////////////////
+    rpc add-tap{
+    	input {
+    		list tap1{
+    			key "id";
+    			leaf id{
+    				type string;
+    			}
+    			leaf count{
+                	type uint32;
+                }
+                leaf duration {
+                	type uint32;
+                }
+    			uses tap-grouping;
+    			//----------
+                uses event-actions;
+    		}
+    	}
+    	output{
+    		leaf status{
+    			type string;
+    		}
+    		leaf tap-id {
+    			type string;
+    		}
+    	}
+    }
+  
+    ///////////////////////////////
+    rpc removeAllTapsFromSwitch{
+    	input {
+    		leaf node {
+                type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+            }
+    	}
+    	output{
+    		leaf status{
+    			type string;
+    		}
+    	}
+    }
+    
+    rpc remove-a-tap-from-switch {
+    	input {
+    		leaf node {
+                type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+            }
+    		leaf tap-id {
+    			type string;
+    		}
+    	}
+    	output{
+    		leaf status{
+    			type string;
+    		}
+    	}
+    }
+    ////////////////////////////////////
+    grouping src-dst-pair{
+    	leaf source {
+            mandatory true;
+            type leafref {
+                path "/inv:nodes/inv:node/inv:id";
+            }
+        }
+    	leaf destination {
+            mandatory true;
+            type leafref {
+                path "/inv:nodes/inv:node/inv:id";
+            }
+        }
+    }
+    
+    grouping match-criteria{
+    	 container mac-address {
+             leaf type {
+                 type field-type;
+             }
+             leaf value {
+                 type yang:mac-address;
+             }
+         }
+         container ip-address {
+             leaf type {
+                 type field-type;
+             }
+             leaf value {
+                 type inet:ipv4-prefix;
+             }
+         }
+         leaf traffic-match {
+             type traffic-type;
+         }
+    }
+   
+    grouping network-path{
+    	leaf-list routers {
+            min-elements 1;
+            ordered-by user;
+            type leafref {
+                path "/inv:nodes/inv:node/inv:id";
+            }
+        }
+    }
+    
+    //------------------------------
+    rpc getAllSwitches{
+    	output {
+    		leaf-list nodes{
+    			type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }    			
+    		}
+    	}
+    }
+    
+    rpc getAllLinksOfSwitch{
+    	input {
+    		leaf node {
+    			type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+    		}
+    	}
+    	output {
+    		leaf-list links {
+                type leafref {
+                    path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+                }
+            }
+    	}
+    }
+    
+    grouping network-link {
+    	leaf src-node {
+			type leafref {
+                path "/inv:nodes/inv:node/inv:id";
+            }
+		}
+    	
+    	leaf src-node-connector {
+            type leafref {
+                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+            }
+        }
+    	
+    	leaf dst-node {
+			type leafref {
+                path "/inv:nodes/inv:node/inv:id";
+            }
+		}
+    	
+    	leaf dst-node-connector {
+            type leafref {
+                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+            }
+        }
+    }
+    
+    rpc getNetworkTopology{
+    	output {
+			list network-links {
+				key "id";
+				leaf id {
+					type string;
+				}
+				uses network-link;
+			}   			
+    	}
+    }
+    
+	grouping host-info {
+		leaf host-mac-address {
+			type yang:mac-address;
+		}
+		leaf host-ip-address {
+			type local-ipv4-prefix;
+		}
+		leaf host-last-seen {
+			type string;
+		}
+		leaf host-first-seen {
+			type string;
+		}
+		leaf node-connected-to {
+			type leafref {
+                path "/inv:nodes/inv:node/inv:id";
+            }
+		}
+		leaf node-connector-connected-to {
+			type leafref {
+                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+            }
+		}
+	}
+	
+	rpc getAllHostsOnSwitch {
+		input {
+			leaf node {
+    			type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+    		}
+		}
+		output {
+    		list hosts-info {
+                key "id";
+                leaf id {
+                	type uint32;
+                }
+                uses host-info;
+            }
+    	}
+	}
+	
+	rpc removeFlowsFromSwitch {
+		input {
+			leaf node {
+	            mandatory true;
+	            type leafref {
+	                path "/inv:nodes/inv:node/inv:id";
+	            }
+	        }
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
+	
+	rpc remove-a-flow-from-switch {
+		input {
+			leaf node-id {
+				type leafref {
+					path "/inv:nodes/inv:node/inv:id";
+				}
+			}
+			leaf table-id {
+				type uint8;
+			}
+			leaf flow-key {
+				type string;
+			}
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
+
+	container node-neighbors {
+		list curr-node {
+			key "curr-node-id";
+			leaf curr-node-id {
+    			type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+    		}
+			list neighbors {
+				key "neighbor-node-id";
+				leaf neighbor-node-id {
+	    			type leafref {
+	                    path "/inv:nodes/inv:node/inv:id";
+	                }
+	    		}
+				leaf src-port {
+					type leafref {
+		                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+		            }
+				}
+				leaf neigh-port {
+					type leafref {
+		                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+		            }
+				}
+			}
+		}
+	}
+	
+	rpc install-path {
+		input {
+			leaf src-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf dst-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf-list path-nodes {
+				min-elements 1;
+				type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+			}
+			leaf traffic-match {
+	        	//mandatory false;
+	            type traffic-type;
+	        }
+			leaf flow-priority {
+				type int32;
+			}
+			leaf idle-timeout {
+				type int32;
+			}
+			leaf hard-timeout {
+				type int32;
+			}
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
+	
+	rpc install-inspection-path {
+		input {
+			leaf src-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf dst-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf-list path-nodes {
+				min-elements 1;
+				type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+			}
+			leaf inspection-switch-id {
+				type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+			}
+			leaf inpsection-switch-port {
+				type leafref {
+	                path "/inv:nodes/inv:node/inv:node-connector/inv:id";
+	            }
+			}
+			leaf traffic-match {
+	        	//mandatory false;
+	            type traffic-type;
+	        }
+			leaf flow-priority {
+				type int32;
+			}
+			leaf idle-timeout {
+				type int32;
+			}
+			leaf hard-timeout {
+				type int32;
+			}
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
+	
+	rpc install-path-bw-nodes {
+		input {
+			leaf src-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf dst-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf-list path-nodes {
+				min-elements 1;
+				type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+			}
+			leaf flow-priority {
+				type int32;
+			}
+			leaf idle-timeout {
+				type int32;
+			}
+			leaf hard-timeout {
+				type int32;
+			}
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
+	
+	rpc move-path {
+		input {
+			leaf src-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf dst-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf-list old-path-nodes {
+				min-elements 1;
+				type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+			}
+			leaf-list new-path-nodes {
+				min-elements 1;
+				type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+			}
+			leaf flow-priority {
+				type int32;
+			}
+			leaf idle-timeout {
+				type int32;
+			}
+			leaf hard-timeout {
+				type int32;
+			}
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
+	
+	container connected-hosts {
+		list connected-host {
+			key "host-ip-address";
+			uses host-info;
+		}
+	}
+	
+	rpc mutate-ip {
+		input {
+			leaf src-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf dst-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf-list path-nodes {
+				min-elements 1;
+				type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+			}
+			leaf flow-priority {
+				default 200;
+				type int32;
+			}
+			leaf idle-timeout {
+				default 0;
+				type int32;
+			}
+			leaf hard-timeout {
+				default 0;
+				type int32;
+			}
+			choice mutation-end {
+				case source-only-case {
+					description "only source IP is mutated.";
+					container source-only {
+						leaf new-src-ip-address {
+			                type inet:ipv4-prefix;
+			            }
+					}	
+				}
+				case dst-only-case {
+					container dst-only {
+						leaf new-dst-ip-address {
+			                type inet:ipv4-prefix;
+			            }
+					}	
+				}
+				case both-case {
+					container both {
+						leaf new-src-ip-address {
+			                type inet:ipv4-prefix;
+			            }
+						leaf new-dst-ip-address {
+			                type inet:ipv4-prefix;
+			            }
+					}			
+				}
+			}
+			
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////
+	 typedef known-ether-type {
+	        type enumeration {
+	          enum "ipv4" {
+	            value 2048; // 0x0800
+	            description "Internet Protocol version 4 (IPv4)";
+	          }
+	          enum "arp" {
+	            value 2054; // 0x0806
+	            description "Address Resolution Protocol (ARP)";
+	          }
+	          enum "wake-on-lan" {
+	            value 2114; // 0x0842
+	            description "Wake-on-LAN[3]";
+	          }
+	          enum "ietf-trill" {
+	            value 8947; // 0x22F3
+	            description "IETF TRILL Protocol";
+	          }
+	          enum "decnet-phase-iv" {
+	            value 24579; // 0x6003
+	            description "DECnet Phase IV";
+	          }
+	          enum "reverse-arp" {
+	            value 32821; // 0x8035
+	            description "Reverse Address Resolution Protocol";
+	          }
+	          enum "apple-talk" {
+	            value 32923; // 0x809B
+	            description "AppleTalk (Ethertalk)";
+	          }
+	          enum "apple-talk-arp" {
+	            value 33011; // 0x80F3
+	            description "AppleTalk Address Resolution Protocol (AARP)";
+	          }
+	          enum "vlan-tagged" {
+	            value 33024; // 0x8100
+	            description "VLAN-tagged frame (IEEE 802.1Q) & Shortest Path Bridging IEEE 802.1aq[4]";
+	          }
+	          enum "ipx" {
+	            value 33079; // 0x8137
+	            description "IPX";
+	          }
+	          enum "ipx2" {
+	            value 33080; // 0x8138
+	            description "IPX";
+	          }
+	          enum "qnx-qnet" {
+	            value 33284; // 0x8204
+	            description "QNX Qnet";
+	          }
+	          enum "ipv6" {
+	            value 34525; // 0x86DD
+	            description "Internet Protocol Version 6 (IPv6)";
+	          }
+	          enum "ethernet-flow-control" {
+	            value 34824; // 0x8808
+	            description "Ethernet flow control";
+	          }
+	          enum "slow-protocols" {
+	            value 34825; // 0x8809
+	            description "Slow Protocols (IEEE 802.3)";
+	          }
+	          enum "cobra-net" {
+	            value 34841; // 0x8819
+	            description "CobraNet";
+	          }
+	          enum "mpls-unicast" {
+	            value 34887; // 0x8847
+	            description "MPLS unicast";
+	          }
+	          enum "mpls-multicast" {
+	            value 34888; // 0x8848
+	            description "MPLS multicast";
+	          }
+	          enum "PPP-over-ethernet-discovery" {
+	            value 34915; // 0x8863
+	            description "PPPoE Discovery Stage";
+	          }
+	          enum "PPP-over-ethernet-session" {
+	            value 34916; // 0x8864
+	            description "PPPoE Session Stage";
+	          }
+	          enum "jumbo" {
+	            value 34928; // 0x8870
+	            description "Jumbo Frames[2]";
+	          }
+	          enum "homeplug" {
+	            value 34939; // 0x887B
+	            description "HomePlug 1.0 MME";
+	          }
+	          enum "eap-over-lan" {
+	            value 34958; // 0x888E
+	            description "EAP over LAN (IEEE 802.1X)";
+	          }
+	          enum "profinet" {
+	            value 34962; // 0x8892
+	            description "PROFINET Protocol";
+	          }
+	          enum "hyper-scsi" {
+	            value 34970; // 0x889A
+	            description "HyperSCSI (SCSI over Ethernet)";
+	          }
+	          enum "ata-over-ethernet" {
+	            value 34978; // 0x88A2
+	            description "ATA over Ethernet";
+	          }
+	          enum "ethercat" {
+	            value 34980; // 0x88A4
+	            description "EtherCAT Protocol";
+	          }
+	          enum "provider-bridging" {
+	            value 34984; // 0x88A8
+	            description "Provider Bridging (IEEE 802.1ad) & Shortest Path Bridging IEEE 802.1aq[5]";
+	          }
+	          enum "ethernet-powerlink" {
+	            value 34987; // 0x88AB
+	            description "Ethernet Powerlink[citation needed]";
+	          }
+	          enum "lldp" {
+	            value 35020; // 0x88CC
+	            description "Link Layer Discovery Protocol (LLDP)";
+	          }
+	          enum "sercos-3" {
+	            value 35021; // 0x88CD
+	            description "SERCOS III";
+	          }
+	          enum "homeplug-av-mme" {
+	            value 35041; // 0x88E1
+	            description "HomePlug AV MME[citation needed]";
+	          }
+	          enum "media-redudancy-protocol" {
+	            value 35043; // 0x88E3
+	            description "Media Redundancy Protocol (IEC62439-2)";
+	          }
+	          enum "mac-security" {
+	            value 35045; // 0x88E5
+	            description "MAC security (IEEE 802.1AE)";
+	          }
+	          enum "precision-time-protocol" {
+	            value 35063; // 0x88F7
+	            description "Precision Time Protocol (IEEE 1588)";
+	          }
+	          enum "connectivity-fault-management" {
+	            value 35074; // 0x8902
+	            description "IEEE 802.1ag Connectivity Fault Management (CFM) Protocol / ITU-T Recommendation Y.1731 (OAM)";
+	          }
+	          enum "fibre-channel-over-ethernet" {
+	            value 35078; // 0x8906
+	            description "Fibre Channel over Ethernet (FCoE)";
+	          }
+	          enum "fibre-channel-over-ethernet-initialization" {
+	            value 35092; // 0x8914
+	            description "FCoE Initialization Protocol";
+	          }
+	          enum "rmda-over-converged-ethernet" {
+	            value 35093; // 0x8915
+	            description "RDMA over Converged Ethernet (RoCE)";
+	          }
+	          enum "high-availability-seamless-redudancy" {
+	            value 35119; // 0x892F
+	            description "High-availability Seamless Redundancy (HSR)";
+	          }
+	          enum "ethernet-configuration-testing-protocol" {
+	            value 36864; // 0x9000
+	            description "Ethernet Configuration Testing Protocol[6]";
+	          }
+	          enum "q-in-q" {
+	            value 37120; // 0x9100
+	            description "Q-in-Q";
+	          }
+	          enum "veritas-low-latency" {
+	            value 51966; // 0xCAFE
+	            description "Veritas Low Latency Transport (LLT)[7] for Veritas Cluster Server";
+	          }
+	        }
+	     }
+	    
+	 typedef header8021q-type {
+		 type enumeration {
+			 enum "vlan-tagged" {
+				 value 33024; // 0x8100
+            	description "VLAN-tagged frame (IEEE 802.1Q) & Shortest Path Bridging IEEE 802.1aq[4]";
+			 }
+			 enum "q-in-q" {
+            	value 37120; // 0x9100
+            	description "Q-in-Q";
+          	}
+          	enum "provider-bridging" {
+            	value 34984; // 0x88A8
+            	description "802.1ad provider bridging";
+          	}
+        }
+     }
+	    
+	    typedef known-hardware-type {
+	        type enumeration {
+	          enum "reserved" {
+	            value 0;
+	          }
+	          enum "ethernet" {
+	            value 1;
+	          }
+	        }
+	      }
+
+	     typedef known-operation {
+	        type enumeration {
+	          enum "reserved" {
+	            value 0;
+	          }
+	          enum "request" {
+	            value 1;
+	          }
+	          enum "reply" {
+	            value 2;
+	          }
+	          enum "request reverse" {
+	            value 3;
+	          }
+	          enum "reply reverse" {
+	            value 4;
+	          }
+	        }
+	      }
+	    
+	     grouping packet-fields {
+	    	    leaf payload-offset {
+	    	      type int32;
+	    	    }
+	    	    leaf payload-length {
+	    	      type int32;
+	    	    }
+	    	  }
+	     
+	     grouping arp-packet-fields {
+	    	    leaf hardware-type {
+	    	      type known-hardware-type;
+	    	      description "Network protocol type";
+	    	    }
+
+	    	    leaf protocol-type {
+	    	      type known-ether-type;
+	    	      description "Higher layer protocol for which the ARP request is intended.  This corresponds to EtherType.";
+	    	    }
+
+	    	    leaf hardware-length {
+	    	      type uint8;
+	    	      description "Length (in octets) of a hardware address.  Ethernet address size is 6.";
+	    	    }
+
+	    	    leaf protocol-length {
+	    	      type uint8;
+	    	      description "Length (in octets) of addresses used in the higher layer protocol.  IPv4 address size is 4.";
+	    	    }
+
+	    	    leaf operation {
+	    	      type known-operation;
+	    	      description "Specifies the operation that the sender is performing: 1 for request, 2 for reply.";
+	    	    }
+
+	    	    leaf source-hardware-address {
+	    	      type string;
+	    	      description "Media address of the sender.";
+	    	    }
+
+	    	    leaf source-protocol-address {
+	    	      type string;
+	    	      description "Internet address of the sender.";
+	    	    }
+
+	    	    leaf destination-hardware-address {
+	    	      type string;
+	    	      description "Media address of the destination/target.";
+	    	    }
+
+	    	    leaf destination-protocol-address {
+	    	      type string;
+	    	      description "Internet address of the destination/target.";
+	    	    }
+
+	    	    uses packet-fields;
+	    	  }
+
+	     container arp-packet {
+	    	 uses arp-packet-fields;
+	     }
+	////////////////////////////////////////////////////////////////
+	     //////////////////////////////////
+	     /////////////////////////////////////////////////////////////
+	     typedef known-ip-protocols {
+	    	    type enumeration {
+	    	      enum "hopopt" {
+	    	        value 0;
+	    	        description "IPv6 Hop-by-Hop Option";
+	    	      }
+	    	      enum "icmp" {
+	    	        value 1;
+	    	        description "Internet Control Message Protocol";
+	    	      }
+	    	      enum "igmp" {
+	    	        value 2;
+	    	        description "Internet Group Management Protocol";
+	    	      }
+	    	      enum "ggp" {
+	    	        value 3;
+	    	        description "Gateway-to-Gateway Protocol";
+	    	      }
+	    	      enum "ip-in-ip" {
+	    	        value 4;
+	    	        description "IP-in-IP Encapsulation";
+	    	      }
+	    	      enum "st" {
+	    	        value 5;
+	    	        description "Internet Stream Protocol";
+	    	      }
+	    	      enum "tcp" {
+	    	        value 6;
+	    	        description "Transmisson Control Protocol";
+	    	      }
+	    	      enum "cbt" {
+	    	        value 7;
+	    	        description "Core-based trees";
+	    	      }
+	    	      enum "egp" {
+	    	        value 8;
+	    	        description "Exterior Gateway Protocol";
+	    	      }
+	    	      enum "igp" {
+	    	        value 9;
+	    	        description "Interior Gateway Protocol";
+	    	      }
+	    	      enum "nvp" {
+	    	        value 11;
+	    	        description "Network Voice Protocol";
+	    	      }
+	    	      enum "udp" {
+	    	        value 17;
+	    	        description "User Datagram Protocol";
+	    	      }
+	    	      enum "hmp" {
+	    	        value 20;
+	    	        description "Host Monitoring Protocol";
+	    	      }
+	    	      enum "rdp" {
+	    	        value 27;
+	    	        description "Reliable Datagram Protocol";
+	    	      }
+	    	      enum "dccp" {
+	    	        value 33;
+	    	        description "Datagram Congestion Control Protocol";
+	    	      }
+	    	      enum "encap" {
+	    	        value 41;
+	    	        description "IPv6 Encapsulation";
+	    	      }
+	    	      enum "ipv6-route" {
+	    	        value 43;
+	    	        description "IPv6 Routing Header";
+	    	      }
+	    	      enum "ipv6-frag" {
+	    	        value 44;
+	    	        description "IPv6 Fragment Header";
+	    	      }
+	    	      enum "rsvp" {
+	    	        value 46;
+	    	        description "Resource Reservation Protocol";
+	    	      }
+	    	      enum "gre" {
+	    	        value 47;
+	    	        description "Generic Routing Encapsulation";
+	    	      }
+	    	      enum "esp" {
+	    	        value 50;
+	    	        description "Encapsulating Security Payload";
+	    	      }
+	    	      enum "ah" {
+	    	        value 51;
+	    	        description "Authentication Header";
+	    	      }
+	    	      enum "ipv6-icmp" {
+	    	        value 58;
+	    	        description "IPv6 ICMP";
+	    	      }
+	    	      enum "ipv6-no-next" {
+	    	        value 59;
+	    	        description "IPv6 No Next Header";
+	    	      }
+	    	      enum "ipv6-opts" {
+	    	        value 60;
+	    	        description "IPv6 Destination Options";
+	    	      }
+	    	      enum "ospf" {
+	    	        value 89;
+	    	        description "Open Shortest Path First";
+	    	      }
+	    	      enum "sctp" {
+	    	        value 132;
+	    	        description "Stream Control Transmission Protocol";
+	    	      }
+	    	      enum "fibre-channel" {
+	    	        value 133;
+	    	        description "Fibre Channel";
+	    	      }
+	    	      enum "ipv6-mobility" {
+	    	        value 135;
+	    	        description "IPv6 Mobility Header";
+	    	      }
+	    	      enum "experimentation1" {
+	    	        value 253;
+	    	        description "Use for experimentation and testing, RFC3692";
+	    	      }
+	    	      enum "experimentation2" {
+	    	        value 254;
+	    	        description "Use for experimentation and testing, RFC3692";
+	    	      }
+	    	    }
+	    	  }
+
+	    	  grouping ipv4-packet-fields {
+	    	    leaf version {
+	    	      type uint8;
+	    	    }
+
+	    	    leaf ihl {
+	    	      type uint8;
+	    	      description "Internal Header Length";
+	    	    }
+
+	    	    leaf dscp {
+	    	    	type uint8;
+	    	      //type inet:dscp;
+	    	    
+	    	      description "Differentiated Code Services Point";
+	    	    }
+
+	    	    leaf ecn {
+	    	      type uint8;
+	    	      description "Explicit Congestion Notification";
+	    	    }
+
+	    	    leaf ipv4-length {
+	    	      type uint16;
+	    	      description "Packet size, including header and data, in bytes";
+	    	    }
+
+	    	    leaf id {
+	    	      type uint16;
+	    	      description "Identification";
+	    	    }
+
+	    	    leaf reserved-flag {
+	    	      type boolean;
+	    	      description "First bit in the flags, must be 0";
+	    	    }
+
+	    	    leaf df-flag {
+	    	      type boolean;
+	    	      description "Second bit in the flags, Don't Fragment Flag";
+	    	    }
+
+	    	    leaf mf-flag {
+	    	      type boolean;
+	    	      description "Third bit in the flags, More Fragments Flag";
+	    	    }
+
+	    	    leaf fragment-offset {
+	    	      type uint16;
+	    	      description "Specifies the offset of a particular fragment relative to the beginning of the original unfragmented IP datagram";
+	    	    }
+
+	    	    leaf ttl {
+	    	      type uint8;
+	    	      description "Time to live";
+	    	    }
+
+	    	    leaf protocol {
+	    	      type known-ip-protocols;
+	    	      description "Protocol for the data";
+	    	    }
+
+	    	    leaf checksum {
+	    	      type uint16;
+	    	      description "Header Checksum";
+	    	    }
+
+	    	    leaf source-ipv4 {
+	    	      type string;
+	    	    }
+
+	    	    leaf destination-ipv4 {
+	    	      //type inet:ipv4-address;
+	    	    	type string;
+	    	    }
+
+	    	    leaf ipv4-options {
+	    	      type binary;
+	    	    }
+
+	    	    uses packet-fields;
+	    	  }
+
+	    	  grouping icmp-packet-fields {
+	    	      leaf type {
+	    	          type uint8;
+	    	      }
+
+	    	      leaf code {
+	    	          type uint8;
+	    	      }
+
+	    	      leaf crc {
+	    	          type uint16;
+	    	      }
+
+	    	      leaf identifier {
+	    	          type uint16;
+	    	      }
+
+	    	      leaf sequence-number {
+	    	          type uint16;
+	    	      }
+
+	    	      uses packet-fields;
+	    	  }
+	    		//////////////////////////////////////////////////////
+	    	  grouping tcp-packet-fields {
+	    	        leaf source-port {
+	    	          type int16;
+	    	        }
+
+	    	        leaf dest-port {
+	    	            type int16;
+	    	        }
+
+	    	        leaf sequence-number {
+	    	            type int32;
+	    	        }
+	    	        
+	    	        leaf syn-flag {
+	    	            type boolean;
+	    	        }
+	    	        
+	    	        leaf rst-flag {
+	    	            type boolean;
+	    	        }
+	    	        
+	    	        leaf ack-flag {
+	    	            type boolean;
+	    	        }
+	    	        
+	    	        leaf fin-flag {
+	    	            type boolean;
+	    	        }
+	    	    }
+
+
+	  container ipv4-packet-header {
+		  uses ipv4-packet-fields;
+		  leaf payload {
+			  type binary;
+		  } 
+	  }
+	    	  
+	  container icmp-packet-header {
+		  uses icmp-packet-fields;
+	  }
+	    	  
+	  container tcp-packet-header {
+		  uses tcp-packet-fields;
+	  }
+}

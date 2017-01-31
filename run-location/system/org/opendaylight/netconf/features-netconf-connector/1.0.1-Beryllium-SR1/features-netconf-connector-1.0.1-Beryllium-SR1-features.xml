@@ -1,0 +1,44 @@
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="odl-controller-1.0.1-Beryllium-SR1" xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.2.0 http://karaf.apache.org/xmlns/features/v1.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <repository>mvn:org.opendaylight.mdsal.model/features-mdsal-model/0.8.1-Beryllium-SR1/xml/features</repository>
+  <repository>mvn:org.opendaylight.controller/features-mdsal/1.3.1-Beryllium-SR1/xml/features</repository>
+  <repository>mvn:org.opendaylight.yangtools/features-yangtools/0.8.1-Beryllium-SR1/xml/features</repository>
+  <repository>mvn:org.opendaylight.netconf/features-netconf/1.0.1-Beryllium-SR1/xml/features</repository>
+  <feature name="odl-netconf-connector-all" version="1.0.1-Beryllium-SR1" description="OpenDaylight :: Netconf Connector :: All">
+    <feature version="1.0.1-Beryllium-SR1">odl-netconf-connector</feature>
+    <feature version="1.0.1-Beryllium-SR1">odl-netconf-connector-ssh</feature>
+  </feature>
+  <feature name="odl-message-bus" version="1.0.1-Beryllium-SR1">
+    <feature version="1.0.1-Beryllium-SR1">odl-netconf-connector-all</feature>
+    <feature version="1.3.1-Beryllium-SR1">odl-message-bus-collector</feature>
+    <bundle>mvn:org.opendaylight.netconf/messagebus-netconf/1.0.1-Beryllium-SR1</bundle>
+    <configfile finalname="etc/opendaylight/karaf/06-message-netconf.xml">mvn:org.opendaylight.netconf/messagebus-netconf/1.0.1-Beryllium-SR1/xml/config</configfile>
+  </feature>
+  <feature name="odl-netconf-connector" version="1.0.1-Beryllium-SR1" description="OpenDaylight :: Netconf Connector :: Netconf Connector">
+    <feature version="1.3.1-Beryllium-SR1">odl-mdsal-broker</feature>
+    <feature version="1.0.1-Beryllium-SR1">odl-netconf-notifications-api</feature>
+    <feature version="1.0.1-Beryllium-SR1">odl-netconf-client</feature>
+    <feature version="0.8.1-Beryllium-SR1">odl-mdsal-models</feature>
+    <bundle>mvn:org.opendaylight.netconf/sal-netconf-connector/1.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.controller.model/model-inventory/1.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.netconf/netconf-topology/1.0.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.netconf/abstract-topology/1.0.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.netconf/sal-netconf-connector/1.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.netconf/netconf-config-dispatcher/1.0.1-Beryllium-SR1</bundle>
+    <configfile finalname="etc/opendaylight/karaf/01-netconf.xml">mvn:org.opendaylight.netconf/netconf-config/1.0.1-Beryllium-SR1/xml/config</configfile>
+  </feature>
+  <feature name="odl-netconf-connector-ssh" version="1.0.1-Beryllium-SR1" description="OpenDaylight :: Netconf Connector :: Netconf Connector + Netconf SSH Server + loopback connection configuration">
+    <feature version="1.0.1-Beryllium-SR1">odl-netconf-ssh</feature>
+    <feature version="1.0.1-Beryllium-SR1">odl-netconf-connector</feature>
+    <configfile finalname="etc/opendaylight/karaf/99-netconf-connector.xml">mvn:org.opendaylight.netconf/netconf-connector-config/1.0.1-Beryllium-SR1/xml/config</configfile>
+  </feature>
+  <feature name="odl-netconf-topology" version="1.0.1-Beryllium-SR1" description="OpenDaylight :: Netconf Topology :: Netconf Connector + Netconf SSH Server + Netconf configuration via config topology datastore">
+    <feature version="1.0.1-Beryllium-SR1">odl-netconf-ssh</feature>
+    <feature version="1.0.1-Beryllium-SR1">odl-netconf-connector</feature>
+    <configfile finalname="etc/opendaylight/karaf/02-netconf-topology.xml">mvn:org.opendaylight.netconf/netconf-topology-config/1.0.1-Beryllium-SR1/xml/config</configfile>
+  </feature>
+  <feature name="odl-netconf-clustered-topology" version="1.0.1-Beryllium-SR1" description="OpenDaylight :: Clustered Netconf Topology :: Netconf Connector + Netconf SSH Server + Clustered Netconf configuration via config topology datastore">
+    <feature version="1.0.1-Beryllium-SR1">odl-netconf-ssh</feature>
+    <feature version="1.0.1-Beryllium-SR1">odl-netconf-connector</feature>
+    <configfile finalname="etc/opendaylight/karaf/02-netconf-topology.xml">mvn:org.opendaylight.netconf/netconf-topology-config/1.0.1-Beryllium-SR1/xml/clustered-config</configfile>
+  </feature>
+</features>

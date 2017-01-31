@@ -11,6 +11,7 @@ package org.sdnhub.odl.tutorial.utils.openflow13;
 
 import java.math.BigInteger;
 
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.Dscp;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.Ipv4Prefix;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.PortNumber;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev100924.MacAddress;
@@ -24,13 +25,16 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.EthernetMatch;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.EthernetMatchBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.Icmpv4MatchBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.IpMatch;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.IpMatchBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.Layer3Match;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.MetadataBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.ProtocolMatchFieldsBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.TcpFlagMatchBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.TunnelBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.VlanMatchBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._3.match.ArpMatchBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._3.match.Ipv4Match;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._3.match.Ipv4MatchBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._4.match.TcpMatchBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._4.match.UdpMatchBuilder;
@@ -91,12 +95,22 @@ public class MatchUtils {
      */
     public static MatchBuilder createEtherTypeMatch(MatchBuilder matchBuilder, Long etherType) {
 
-        EthernetMatchBuilder ethernetMatch = new EthernetMatchBuilder();
-        EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
+    	EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
         ethTypeBuilder.setType(new EtherType(etherType));
-        ethernetMatch.setEthernetType(ethTypeBuilder.build());
-        matchBuilder.setEthernetMatch(ethernetMatch.build());
-
+        
+        EthernetMatchBuilder ethBuilder = new EthernetMatchBuilder();
+        if (matchBuilder.getEthernetMatch() != null){
+        	if (matchBuilder.getEthernetMatch().getEthernetSource() != null){
+        		ethBuilder.setEthernetSource(matchBuilder.getEthernetMatch().getEthernetSource());
+        	}
+        	if (matchBuilder.getEthernetMatch().getEthernetDestination() != null){
+        		ethBuilder.setEthernetDestination(matchBuilder.getEthernetMatch().getEthernetDestination());
+        	}
+        }
+        
+        ethBuilder.setEthernetType(ethTypeBuilder.build());
+        matchBuilder.setEthernetMatch(ethBuilder.build());
+    	
         return matchBuilder;
     }
 
@@ -109,11 +123,16 @@ public class MatchUtils {
      */
     public static MatchBuilder createEthSrcMatch(MatchBuilder matchBuilder, MacAddress sMacAddr) {
 
-        EthernetMatchBuilder ethernetMatch = new EthernetMatchBuilder();
+        EthernetMatchBuilder ethernetMatchBuilder = new EthernetMatchBuilder();
         EthernetSourceBuilder ethSourceBuilder = new EthernetSourceBuilder();
+        if (matchBuilder.getEthernetMatch() != null){
+        	if (matchBuilder.getEthernetMatch().getEthernetDestination() != null){
+        		ethernetMatchBuilder.setEthernetDestination(matchBuilder.getEthernetMatch().getEthernetDestination());
+        	}
+        }
         ethSourceBuilder.setAddress(new MacAddress(sMacAddr));
-        ethernetMatch.setEthernetSource(ethSourceBuilder.build());
-        matchBuilder.setEthernetMatch(ethernetMatch.build());
+        ethernetMatchBuilder.setEthernetSource(ethSourceBuilder.build());
+        matchBuilder.setEthernetMatch(ethernetMatchBuilder.build());
 
         return matchBuilder;
     }
@@ -173,14 +192,19 @@ public class MatchUtils {
      */
     public static MatchBuilder createEthDstMatch(MatchBuilder matchBuilder, MacAddress dMacAddr, MacAddress mask) {
 
-        EthernetMatchBuilder ethernetMatch = new EthernetMatchBuilder();
+        EthernetMatchBuilder ethernetMatchBuilder = new EthernetMatchBuilder();
         EthernetDestinationBuilder ethDestinationBuilder = new EthernetDestinationBuilder();
+        if (matchBuilder.getEthernetMatch() != null){
+        	if (matchBuilder.getEthernetMatch().getEthernetSource() != null){
+        		ethernetMatchBuilder.setEthernetSource(matchBuilder.getEthernetMatch().getEthernetSource());
+        	}
+        }
         ethDestinationBuilder.setAddress(new MacAddress(dMacAddr));
         if (mask != null) {
             ethDestinationBuilder.setMask(mask);
         }
-        ethernetMatch.setEthernetDestination(ethDestinationBuilder.build());
-        matchBuilder.setEthernetMatch(ethernetMatch.build());
+        ethernetMatchBuilder.setEthernetDestination(ethDestinationBuilder.build());
+        matchBuilder.setEthernetMatch(ethernetMatchBuilder.build());
 
         return matchBuilder;
     }
@@ -238,16 +262,31 @@ public class MatchUtils {
      */
     public static MatchBuilder createDstL3IPv4Match(MatchBuilder matchBuilder, Ipv4Prefix dstip) {
 
-        EthernetMatchBuilder eth = new EthernetMatchBuilder();
-        EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
+    	EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
         ethTypeBuilder.setType(new EtherType(IPV4_LONG));
-        eth.setEthernetType(ethTypeBuilder.build());
-        matchBuilder.setEthernetMatch(eth.build());
+        EthernetMatchBuilder ethBuilder = new EthernetMatchBuilder();
+        if (matchBuilder.getEthernetMatch() != null){
+        	if (matchBuilder.getEthernetMatch().getEthernetSource() != null){
+        		ethBuilder.setEthernetSource(matchBuilder.getEthernetMatch().getEthernetSource());
+        	}
+        	if (matchBuilder.getEthernetMatch().getEthernetDestination() != null){
+        		ethBuilder.setEthernetDestination(matchBuilder.getEthernetMatch().getEthernetDestination());
+        	}
+        }
+        
+        ethBuilder.setEthernetType(ethTypeBuilder.build());
+        matchBuilder.setEthernetMatch(ethBuilder.build());
 
-        Ipv4MatchBuilder ipv4match = new Ipv4MatchBuilder();
-        ipv4match.setIpv4Destination(dstip);
+        Ipv4MatchBuilder ipv4matchBuilder = new Ipv4MatchBuilder();
+        if (matchBuilder.getLayer3Match() != null){
+        	Ipv4Match ipv4Match = (Ipv4Match) matchBuilder.getLayer3Match();
+        	if (ipv4Match.getIpv4Source() != null){
+        		ipv4matchBuilder.setIpv4Source(ipv4Match.getIpv4Source());
+        	}
+        }
+        ipv4matchBuilder.setIpv4Destination(dstip);
 
-        matchBuilder.setLayer3Match(ipv4match.build());
+        matchBuilder.setLayer3Match(ipv4matchBuilder.build());
 
         return matchBuilder;
 
@@ -273,15 +312,31 @@ public class MatchUtils {
      */
     public static MatchBuilder createSrcL3IPv4Match(MatchBuilder matchBuilder, Ipv4Prefix srcip) {
 
-        EthernetMatchBuilder eth = new EthernetMatchBuilder();
         EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
         ethTypeBuilder.setType(new EtherType(IPV4_LONG));
-        eth.setEthernetType(ethTypeBuilder.build());
-        matchBuilder.setEthernetMatch(eth.build());
+        EthernetMatchBuilder ethBuilder = new EthernetMatchBuilder();
+        if (matchBuilder.getEthernetMatch() != null){
+        	if (matchBuilder.getEthernetMatch().getEthernetSource() != null){
+        		ethBuilder.setEthernetSource(matchBuilder.getEthernetMatch().getEthernetSource());
+        	}
+        	if (matchBuilder.getEthernetMatch().getEthernetDestination() != null){
+        		ethBuilder.setEthernetDestination(matchBuilder.getEthernetMatch().getEthernetDestination());
+        	}
+        }
+        
+        ethBuilder.setEthernetType(ethTypeBuilder.build());
+        matchBuilder.setEthernetMatch(ethBuilder.build());
 
-        Ipv4MatchBuilder ipv4match = new Ipv4MatchBuilder();
-        ipv4match.setIpv4Source(srcip);
-        matchBuilder.setLayer3Match(ipv4match.build());
+        Ipv4MatchBuilder ipv4matchBuilder = new Ipv4MatchBuilder();
+        if (matchBuilder.getLayer3Match() != null){
+        	Ipv4Match ipv4Match = (Ipv4Match) matchBuilder.getLayer3Match();
+        	if (ipv4Match.getIpv4Destination() != null){
+        		ipv4matchBuilder.setIpv4Destination(ipv4Match.getIpv4Destination());
+        	}
+        }
+        
+        ipv4matchBuilder.setIpv4Source(srcip);
+        matchBuilder.setLayer3Match(ipv4matchBuilder.build());
 
         return matchBuilder;
 
@@ -305,6 +360,7 @@ public class MatchUtils {
         IpMatchBuilder ipmatch = new IpMatchBuilder();
         ipmatch.setIpProtocol((short) 6);
         matchBuilder.setIpMatch(ipmatch.build());
+        
 
         TcpMatchBuilder tcpmatch = new TcpMatchBuilder();
         tcpmatch.setTcpSourcePort(tcpport);
@@ -323,11 +379,21 @@ public class MatchUtils {
      */
     public static MatchBuilder createSetDstTcpMatch(MatchBuilder matchBuilder, PortNumber tcpDstPort) {
 
-        EthernetMatchBuilder ethType = new EthernetMatchBuilder();
-        EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
+    	EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
         ethTypeBuilder.setType(new EtherType(IPV4_LONG));
-        ethType.setEthernetType(ethTypeBuilder.build());
-        matchBuilder.setEthernetMatch(ethType.build());
+        
+        EthernetMatchBuilder ethBuilder = new EthernetMatchBuilder();
+        if (matchBuilder.getEthernetMatch() != null){
+        	if (matchBuilder.getEthernetMatch().getEthernetSource() != null){
+        		ethBuilder.setEthernetSource(matchBuilder.getEthernetMatch().getEthernetSource());
+        	}
+        	if (matchBuilder.getEthernetMatch().getEthernetDestination() != null){
+        		ethBuilder.setEthernetDestination(matchBuilder.getEthernetMatch().getEthernetDestination());
+        	}
+        }
+        
+        ethBuilder.setEthernetType(ethTypeBuilder.build());
+        matchBuilder.setEthernetMatch(ethBuilder.build());
 
         IpMatchBuilder ipmatch = new IpMatchBuilder();
         ipmatch.setIpProtocol((short) 6);
@@ -415,11 +481,21 @@ public class MatchUtils {
      */
     public static MatchBuilder createSetDstUdpMatch(MatchBuilder matchBuilder, PortNumber udpDstPort) {
 
-        EthernetMatchBuilder ethType = new EthernetMatchBuilder();
-        EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
+    	EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
         ethTypeBuilder.setType(new EtherType(IPV4_LONG));
-        ethType.setEthernetType(ethTypeBuilder.build());
-        matchBuilder.setEthernetMatch(ethType.build());
+        
+        EthernetMatchBuilder ethBuilder = new EthernetMatchBuilder();
+        if (matchBuilder.getEthernetMatch() != null){
+        	if (matchBuilder.getEthernetMatch().getEthernetSource() != null){
+        		ethBuilder.setEthernetSource(matchBuilder.getEthernetMatch().getEthernetSource());
+        	}
+        	if (matchBuilder.getEthernetMatch().getEthernetDestination() != null){
+        		ethBuilder.setEthernetDestination(matchBuilder.getEthernetMatch().getEthernetDestination());
+        	}
+        }
+        
+        ethBuilder.setEthernetType(ethTypeBuilder.build());
+        matchBuilder.setEthernetMatch(ethBuilder.build());
 
         IpMatchBuilder ipmatch = new IpMatchBuilder();
         ipmatch.setIpProtocol((short) 17);
@@ -458,11 +534,21 @@ public class MatchUtils {
      */
     public static MatchBuilder createIpProtocolMatch(MatchBuilder matchBuilder, short ipProtocol) {
 
-        EthernetMatchBuilder ethType = new EthernetMatchBuilder();
-        EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
+    	EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
         ethTypeBuilder.setType(new EtherType(IPV4_LONG));
-        ethType.setEthernetType(ethTypeBuilder.build());
-        matchBuilder.setEthernetMatch(ethType.build());
+        
+        EthernetMatchBuilder ethBuilder = new EthernetMatchBuilder();
+        if (matchBuilder.getEthernetMatch() != null){
+        	if (matchBuilder.getEthernetMatch().getEthernetSource() != null){
+        		ethBuilder.setEthernetSource(matchBuilder.getEthernetMatch().getEthernetSource());
+        	}
+        	if (matchBuilder.getEthernetMatch().getEthernetDestination() != null){
+        		ethBuilder.setEthernetDestination(matchBuilder.getEthernetMatch().getEthernetDestination());
+        	}
+        }
+        
+        ethBuilder.setEthernetType(ethTypeBuilder.build());
+        matchBuilder.setEthernetMatch(ethBuilder.build());
 
         IpMatchBuilder ipMmatch = new IpMatchBuilder();
         if (ipProtocol == TCP_SHORT) {
@@ -503,7 +589,44 @@ public class MatchUtils {
         matchBuilder.setTcpFlagMatch(tcpFlagMatch.build());
         return matchBuilder;
     }
+    
 
+    /**
+     * Create IP TOS match.
+     *
+     * @param matchBuilder the match builder
+     * @return matchBuilder match builder
+     */
+    public static MatchBuilder createIPv4BestEffortTOSMatch(MatchBuilder matchBuilder, short tos){
+    	Dscp dscp = new Dscp((short)tos);
+    	IpMatchBuilder ipMatchBuilder = new IpMatchBuilder(); // ipv4 version
+    	preserveIPMatchBuilder(matchBuilder, ipMatchBuilder);
+        ipMatchBuilder.setIpDscp(dscp);
+        ipMatchBuilder.setIpEcn((short)0);
+        matchBuilder.setIpMatch(ipMatchBuilder.build());
+
+        return matchBuilder;
+
+    }
+
+    private static IpMatchBuilder preserveIPMatchBuilder(MatchBuilder matchBuilder, IpMatchBuilder ipMatchBuilder){
+    	IpMatch ipmatch = matchBuilder.getIpMatch();
+    	if (ipmatch.getIpProto() != null){
+    		ipMatchBuilder.setIpProto(ipmatch.getIpProto());
+    	}
+    	if (ipmatch.getIpProtocol() != null){
+    		ipMatchBuilder.setIpProtocol(ipmatch.getIpProtocol());
+    	}
+    	if (ipmatch.getIpDscp() != null){
+    		ipMatchBuilder.setIpDscp(ipmatch.getIpDscp());
+    	}
+    	if (ipmatch.getIpEcn() != null){
+    		ipMatchBuilder.setIpEcn(ipmatch.getIpEcn());
+    	}
+    	return ipMatchBuilder;
+    }
+
+    
     /**
      * Create tcp proto syn match.
      *
@@ -511,7 +634,7 @@ public class MatchUtils {
      * @return matchBuilder match builder
      */
     public static MatchBuilder createTcpProtoSynMatch(MatchBuilder matchBuilder) {
-
+    	
         // TCP Protocol Match
         IpMatchBuilder ipMatch = new IpMatchBuilder(); // ipv4 version
         ipMatch.setIpProtocol((short) 6);

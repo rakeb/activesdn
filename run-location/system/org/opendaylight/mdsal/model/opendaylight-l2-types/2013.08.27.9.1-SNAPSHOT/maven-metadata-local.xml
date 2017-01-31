@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>org.opendaylight.mdsal.model</groupId>
+  <artifactId>opendaylight-l2-types</artifactId>
+  <version>2013.08.27.9.1-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <localCopy>true</localCopy>
+    </snapshot>
+    <lastUpdated>20161024024946</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>2013.08.27.9.1-SNAPSHOT</value>
+        <updated>20161024024946</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>2013.08.27.9.1-SNAPSHOT</value>
+        <updated>20161024024946</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>

@@ -1,0 +1,58 @@
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="odl-yangtools-2.0.1-Beryllium-SR1" xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.2.0 http://karaf.apache.org/xmlns/features/v1.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <repository>mvn:org.opendaylight.odlparent/features-odlparent/1.6.1-Beryllium-SR1/xml/features</repository>
+  <repository>mvn:org.opendaylight.yangtools/features-yangtools/0.8.1-Beryllium-SR1/xml/features</repository>
+  <feature name="odl-mdsal-binding" version="2.0.1-Beryllium-SR1" description="OpenDaylight :: MD-SAL :: Binding">
+    <feature version="2.0.1-Beryllium-SR1">odl-mdsal-binding-dom-adapter</feature>
+    <feature version="2.0.1-Beryllium-SR1">odl-mdsal-dom</feature>
+  </feature>
+  <feature name="odl-mdsal-dom" version="2.0.1-Beryllium-SR1" description="OpenDaylight :: MD-SAL :: DOM">
+    <feature version="2.0.1-Beryllium-SR1">odl-mdsal-dom-broker</feature>
+  </feature>
+  <feature name="odl-mdsal-common" version="2.0.1-Beryllium-SR1" description="OpenDaylight :: MD-SAL :: DOM Broker">
+    <feature version="0.8.1-Beryllium-SR1">odl-yangtools-common</feature>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-common-api/2.0.1-Beryllium-SR1</bundle>
+  </feature>
+  <feature name="odl-mdsal-dom-api" version="2.0.1-Beryllium-SR1" description="OpenDaylight :: MD-SAL :: DOM API &amp; SPI">
+    <feature version="2.0.1-Beryllium-SR1">odl-mdsal-common</feature>
+    <feature version="0.8.1-Beryllium-SR1">odl-yangtools-yang-data</feature>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-dom-api/2.0.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-dom-spi/2.0.1-Beryllium-SR1</bundle>
+  </feature>
+  <feature name="odl-mdsal-dom-broker" version="2.0.1-Beryllium-SR1" description="OpenDaylight :: MD-SAL :: DOM Broker">
+    <feature version="0.8.1-Beryllium-SR1">odl-yangtools-yang-parser</feature>
+    <feature version="2.0.1-Beryllium-SR1">odl-mdsal-dom-api</feature>
+    <feature version="[3.3.0,4.0.0)">odl-lmax</feature>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-dom-api/2.0.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-dom-spi/2.0.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-dom-broker/2.0.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-dom-inmemory-datastore/2.0.1-Beryllium-SR1</bundle>
+  </feature>
+  <feature name="odl-mdsal-binding-base" version="2.0.1-Beryllium-SR1" description="OpenDaylight :: MD-SAL :: Binding Base Concepts">
+    <feature version="0.8.1-Beryllium-SR1">odl-yangtools-common</feature>
+    <bundle>mvn:org.opendaylight.mdsal/yang-binding/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.mdsal.model/yang-ext/2013.09.07.8.1-Beryllium-SR1</bundle>
+  </feature>
+  <feature name="odl-mdsal-binding-runtime" version="2.0.1-Beryllium-SR1" description="OpenDaylight :: MD-SAL :: Binding Generator">
+    <feature version="2.0.1-Beryllium-SR1">odl-mdsal-binding-base</feature>
+    <feature version="0.8.1-Beryllium-SR1">odl-yangtools-yang-data</feature>
+    <bundle>mvn:org.javassist/javassist/3.20.0-GA</bundle>
+    <bundle>mvn:org.apache.commons/commons-lang3/3.4</bundle>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-binding-generator-api/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-binding-generator-impl/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-binding-generator-util/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-binding-dom-codec/0.8.1-Beryllium-SR1</bundle>
+  </feature>
+  <feature name="odl-mdsal-binding-api" version="2.0.1-Beryllium-SR1" description="OpenDaylight :: MD-SAL :: Binding Base Concepts">
+    <feature version="2.0.1-Beryllium-SR1">odl-mdsal-common</feature>
+    <feature version="2.0.1-Beryllium-SR1">odl-mdsal-binding-base</feature>
+    <bundle>mvn:org.opendaylight.mdsal.model/general-entity/0.8.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-binding-api/2.0.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-binding-util/2.0.1-Beryllium-SR1</bundle>
+  </feature>
+  <feature name="odl-mdsal-binding-dom-adapter" version="2.0.1-Beryllium-SR1" description="OpenDaylight :: MD-SAL :: Binding Generator">
+    <feature version="2.0.1-Beryllium-SR1">odl-mdsal-binding-runtime</feature>
+    <feature version="2.0.1-Beryllium-SR1">odl-mdsal-binding-api</feature>
+    <feature version="2.0.1-Beryllium-SR1">odl-mdsal-dom-api</feature>
+    <bundle>mvn:org.opendaylight.mdsal/mdsal-binding-dom-adapter/2.0.1-Beryllium-SR1</bundle>
+  </feature>
+</features>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.sdnhub.odl.tutorial</groupId>
+  <artifactId>utils</artifactId>
+  <versioning>
+    <versions>
+      <version>1.0.0-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20161024024947</lastUpdated>
+  </versioning>
+</metadata>

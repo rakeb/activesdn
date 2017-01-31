@@ -1,0 +1,21 @@
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="odl-aaa-0.3.1-Beryllium-SR1" xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.2.0 http://karaf.apache.org/xmlns/features/v1.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <repository>mvn:org.opendaylight.aaa/features-aaa/0.3.1-Beryllium-SR1/xml/features</repository>
+  <feature name="odl-aaa-shiro" description="OpenDaylight :: AAA :: Shiro" version="0.3.1-Beryllium-SR1">
+    <bundle>mvn:org.apache.felix/org.apache.felix.dependencymanager/3.1.0</bundle>
+    <bundle>mvn:org.apache.felix/org.apache.felix.metatype/1.0.10</bundle>
+    <feature version="0.3.1-Beryllium-SR1">odl-aaa-authn</feature>
+    <bundle>mvn:org.apache.shiro/shiro-web/1.2.3</bundle>
+    <bundle>mvn:org.apache.shiro/shiro-core/1.2.3</bundle>
+    <bundle>mvn:com.google.guava/guava/18.0</bundle>
+    <bundle>wrap:mvn:javax.annotation/javax.annotation-api/1.2</bundle>
+    <bundle>wrap:mvn:com.google.code.findbugs/jsr305/3.0.0</bundle>
+    <bundle>wrap:mvn:commons-codec/commons-codec/1.10</bundle>
+    <bundle>wrap:mvn:org.apache.oltu.oauth2/org.apache.oltu.oauth2.resourceserver/1.0.0</bundle>
+    <bundle>wrap:mvn:org.apache.oltu.oauth2/org.apache.oltu.oauth2.authzserver/1.0.0</bundle>
+    <bundle>wrap:mvn:org.apache.oltu.oauth2/org.apache.oltu.oauth2.common/1.0.0</bundle>
+    <bundle>wrap:mvn:org.json/json/20131018</bundle>
+    <bundle>mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.commons-beanutils/1.8.3_2</bundle>
+    <bundle>mvn:org.opendaylight.aaa/aaa-shiro/0.3.1-Beryllium-SR1</bundle>
+    <configfile finalname="/etc/shiro.ini">mvn:org.opendaylight.aaa/aaa-shiro/0.3.1-Beryllium-SR1/cfg/configuration</configfile>
+  </feature>
+</features>

@@ -51,6 +51,12 @@ public abstract class PacketParsingUtils {
      * end position of ethernet type in array
      */
     private static final int ETHER_TYPE_END_POSITION = 14;
+    
+    /**
+     * Position of the Type of Service byte that we use the change DSCP value to 1
+     */
+    private static final int TOS_POSITION = 16;
+    
 
     private PacketParsingUtils() {
         //prohibite to instantiate this class
@@ -70,6 +76,14 @@ public abstract class PacketParsingUtils {
      */
     public static byte[] extractSrcMac(final byte[] payload) {
         return Arrays.copyOfRange(payload, SRC_MAC_START_POSITION, SRC_MAC_END_POSITION);
+    }
+    
+    /**
+     * @param payload
+     * @return Payload with updated TOS field
+     */
+    public void setTOStoPriority(byte[] payload, byte tos) {
+        payload[TOS_POSITION] = tos;
     }
 
     /**

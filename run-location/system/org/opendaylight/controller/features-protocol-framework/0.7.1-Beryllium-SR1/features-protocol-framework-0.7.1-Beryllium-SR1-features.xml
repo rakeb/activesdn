@@ -1,0 +1,9 @@
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="odl-protocol-framework-0.7.1-Beryllium-SR1" xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.2.0 http://karaf.apache.org/xmlns/features/v1.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <repository>mvn:org.opendaylight.controller/features-config/0.4.1-Beryllium-SR1/xml/features</repository>
+  <repository>mvn:org.opendaylight.controller/features-config-netty/0.4.1-Beryllium-SR1/xml/features</repository>
+  <feature name="odl-protocol-framework" version="0.7.1-Beryllium-SR1" description="OpenDaylight :: Protocol Framework">
+    <feature version="0.4.1-Beryllium-SR1">odl-config-api</feature>
+    <feature version="0.4.1-Beryllium-SR1">odl-config-netty-config-api</feature>
+    <bundle>mvn:org.opendaylight.controller/protocol-framework/0.7.1-Beryllium-SR1</bundle>
+  </feature>
+</features>

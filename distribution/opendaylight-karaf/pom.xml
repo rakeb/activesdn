@@ -208,6 +208,10 @@
           <bootFeatures>
               <feature>standard</feature>
               <feature>sdnhub-tutorial-tapapp</feature>
+	      <feature>odl-l2switch-all</feature>
+	    <!--  <feature>odl-dlux-all</feature>
+	      <feature>odl-restconf-all</feature>
+              <feature>jgrapht-core</feature> -->
           </bootFeatures>
           <!-- no installedFeatures -->
         </configuration>

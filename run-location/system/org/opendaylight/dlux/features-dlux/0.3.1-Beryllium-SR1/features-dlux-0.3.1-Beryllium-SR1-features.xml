@@ -1,0 +1,41 @@
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="odl-dlux-0.3.1-Beryllium-SR1" xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.2.0 http://karaf.apache.org/xmlns/features/v1.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <repository>mvn:org.opendaylight.netconf/features-restconf/1.3.1-Beryllium-SR1/xml/features</repository>
+  <feature name="odl-dlux-all" version="0.3.1-Beryllium-SR1" description="Opendaylight dlux all features">
+    <feature>odl-dlux-core</feature>
+    <feature>odl-dlux-node</feature>
+    <feature>odl-dlux-yangui</feature>
+    <feature>odl-dlux-yangvisualizer</feature>
+  </feature>
+  <feature name="odl-dlux-core" version="0.3.1-Beryllium-SR1" description="Opendaylight dlux minimal feature">
+    <feature>http</feature>
+    <feature version="1.3.1-Beryllium-SR1">odl-restconf</feature>
+    <bundle>mvn:com.google.guava/guava/18.0</bundle>
+    <bundle>mvn:org.opendaylight.dlux/loader/0.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.dlux/loader.implementation/0.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.dlux/dlux.core/0.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.dlux/dlux.common.login/0.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.dlux/dlux.common.authentication/0.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.dlux/dlux.common.navigation/0.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.dlux/dlux.common.topbar/0.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.dlux/dlux.common.general/0.3.1-Beryllium-SR1</bundle>
+    <bundle start-level="90">mvn:org.opendaylight.dlux/dlux.common.layout/0.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.dlux/dlux.topology/0.3.1-Beryllium-SR1</bundle>
+  </feature>
+  <feature name="odl-dlux-node" version="0.3.1-Beryllium-SR1" description="Enable nodes in Opendaylight dlux">
+    <feature>odl-dlux-core</feature>
+    <bundle>mvn:org.opendaylight.dlux/dlux.node/0.3.1-Beryllium-SR1</bundle>
+  </feature>
+  <feature name="odl-dlux-yangui" version="0.3.1-Beryllium-SR1" description="Enable Yang UI in Opendaylight dlux">
+    <feature>odl-dlux-core</feature>
+    <feature version="1.3.1-Beryllium-SR1">odl-mdsal-apidocs</feature>
+    <bundle>mvn:org.opendaylight.dlux/dlux.yangui/0.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.dlux/dlux.common.yangutils/0.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.dlux/dlux.common.sigmatopology/0.3.1-Beryllium-SR1</bundle>
+  </feature>
+  <feature name="odl-dlux-yangvisualizer" version="0.3.1-Beryllium-SR1" description="Enable Yang visualizer in Opendaylight dlux">
+    <feature>odl-dlux-core</feature>
+    <bundle>mvn:org.opendaylight.dlux/dlux.yangvisualizer/0.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.dlux/dlux.common.yangutils/0.3.1-Beryllium-SR1</bundle>
+    <bundle>mvn:org.opendaylight.dlux/dlux.common.sigmatopology/0.3.1-Beryllium-SR1</bundle>
+  </feature>
+</features>

@@ -1,0 +1,16 @@
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="odlparent-1.6.1-Beryllium-SR1" xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.2.0 http://karaf.apache.org/xmlns/features/v1.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <feature name="odl-netty" description="OpenDaylight :: Netty" version="4.0.33.Final">
+    <bundle>mvn:io.netty/netty-buffer/4.0.33.Final</bundle>
+    <bundle>mvn:io.netty/netty-common/4.0.33.Final</bundle>
+    <bundle>mvn:io.netty/netty-transport/4.0.33.Final</bundle>
+    <bundle>mvn:io.netty/netty-codec/4.0.33.Final</bundle>
+    <bundle>mvn:io.netty/netty-codec-http/4.0.33.Final</bundle>
+    <bundle>mvn:io.netty/netty-handler/4.0.33.Final</bundle>
+  </feature>
+  <feature name="odl-guava" description="OpenDaylight :: Guava" version="18.0">
+    <bundle>mvn:com.google.guava/guava/18.0</bundle>
+  </feature>
+  <feature name="odl-lmax" description="OpenDaylight :: LMAX Disruptor" version="3.3.2">
+    <bundle>mvn:com.lmax/disruptor/3.3.2</bundle>
+  </feature>
+</features>

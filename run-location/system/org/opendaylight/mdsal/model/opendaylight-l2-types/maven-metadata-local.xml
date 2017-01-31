@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.opendaylight.mdsal.model</groupId>
+  <artifactId>opendaylight-l2-types</artifactId>
+  <versioning>
+    <versions>
+      <version>2013.08.27.9.1-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20161024024946</lastUpdated>
+  </versioning>
+</metadata>
