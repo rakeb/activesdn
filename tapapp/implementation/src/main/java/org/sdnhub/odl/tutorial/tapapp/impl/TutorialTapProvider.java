@@ -2928,7 +2928,8 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 				LOG.debug("NodeConnectorID {}", input.getInpsectionSwitchPort());
 				try {
 					for (; index < pathNodes.size(); index++){
-						LOG.debug(pathNodes.get(index).getValue() , "=", input.getInspectionSwitchId().getValue());
+						String debugMessage = pathNodes.get(index).getValue() + "=" + input.getInspectionSwitchId().getValue();
+						LOG.debug(debugMessage);
 						//Future<RpcResult<InstallFlowOutput>> futureOutput = null;
 						//Future<RpcResult<InstallFlowOutput>> futureOutput1 = null;
 						if (index == 0){ // got the first switch

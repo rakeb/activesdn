@@ -5,13 +5,13 @@ echo "Compipling Active SDN "
 #mvn clean install -pl distribution -am -DskipTests=true -DskipIT -nsu -T 1C &&
 #cd /home/ubuntu/Downloads/SDNHub_Opendaylight_Tutorial/distribution
 mvn clean install -DskipTests -DskipIT -nsu -T 1C -offline &&
-cd /home/ubuntu/Downloads/SDNHub_Opendaylight_Tutorial
+cd /home/ubuntu/Downloads/activesdn
 echo " Starting controller configuration after compilation"
 
 cd distribution/opendaylight-karaf/target/assembly/
 echo "running controller"
 ./bin/start
-
+sleep 5
 COUNTER=0
 while ! timeout 1 bash -c "echo > /dev/tcp/localhost/5005" && [ $COUNTER -lt 5 ]; do
 	echo Attempt Number $COUNTER
@@ -26,8 +26,8 @@ fi
 echo " ------------------------------- "
 echo "controller is loaded"
 
-if [ $1 == '' ]; then
-	sleep 10
+if [ $# -eq 0 ]; then
+	sleep 15
 else
 	sleep $1
 fi
@@ -41,7 +41,8 @@ echo " Stopping controller "
 wait
 echo "Controller is stopped"
 
-cd /home/ubuntu/Downloads/SDNHub_Opendaylight_Tutorial/distribution/opendaylight-karaf/target/assembly/etc/opendaylight/karaf
+sleep 10
+cd /home/ubuntu/Downloads/activesdn/distribution/opendaylight-karaf/target/assembly/etc/opendaylight/karaf
 #cd /etc/opendaylight/karaf
 echo "Setting Configuration in 52-loopremover.xml"
 while [ ! -f 52-loopremover.xml ]; do
@@ -62,7 +63,7 @@ done
 sudo sed -i.bak "s/<is-learning-only-mode>false<\/is-learning-only-mode>/<is-learning-only-mode>true<\/is-learning-only-mode>/g" 58-l2switchmain.xml &&
 sudo sed -i.bak "s/<is-install-dropall-flow>true<\/is-install-dropall-flow>/<is-install-dropall-flow>false<\/is-install-dropall-flow>/g" 58-l2switchmain.xml &&
 #cd /home/ubuntu/Downloads/SDNHub_Opendaylight_Tutorial/distribution/opendaylight-karaf/target/assembly/etc/opendaylight/karaf
-cd /home/ubuntu/Downloads/SDNHub_Opendaylight_Tutorial &&
+cd /home/ubuntu/Downloads/activesdn &&
 #cd ../../../../../../../ &&
 echo "running controller" 
 while timeout 1 bash -c " > /dev/tcp/localhost/5005"; do sleep 2; done

@@ -17,24 +17,24 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
-class LinkInfo {
-	private int leftSwitch;
-	private int rightSwitch;
-	private int leftSwitchPortNumber;
-	private int rightSwitchPortNumber;
-	
-	LinkInfo (int leftSwitch, int rightSwitch, int leftSwitchPortNumber, int rightSwitchPortNumber){
-		this.leftSwitch = leftSwitch;
-		this.rightSwitch = rightSwitch;
-		this.leftSwitchPortNumber =leftSwitchPortNumber;
-		this.rightSwitchPortNumber = rightSwitchPortNumber;
-	}
-	
-	public int getLeftSwitch() { return this.leftSwitch;}
-	public int getRightSwitch() {return this.rightSwitch;}
-	public int getLeftSwitchPortNumber() { return this.leftSwitchPortNumber;}
-	public int getRightSwitchPortNumber() { return this.rightSwitchPortNumber; }
-}
+//class LinkInfo {
+//	private int leftSwitch;
+//	private int rightSwitch;
+//	private int leftSwitchPortNumber;
+//	private int rightSwitchPortNumber;
+//	
+//	LinkInfo (int leftSwitch, int rightSwitch, int leftSwitchPortNumber, int rightSwitchPortNumber){
+//		this.leftSwitch = leftSwitch;
+//		this.rightSwitch = rightSwitch;
+//		this.leftSwitchPortNumber =leftSwitchPortNumber;
+//		this.rightSwitchPortNumber = rightSwitchPortNumber;
+//	}
+//	
+//	public int getLeftSwitch() { return this.leftSwitch;}
+//	public int getRightSwitch() {return this.rightSwitch;}
+//	public int getLeftSwitchPortNumber() { return this.leftSwitchPortNumber;}
+//	public int getRightSwitchPortNumber() { return this.rightSwitchPortNumber; }
+//}
 
 public class NetworkGraph
 {
@@ -131,7 +131,7 @@ public class NetworkGraph
     }
 
     public List<List<String>> findAllPaths(int leftSwitch, int rightSwitch){
-    	List shortestPath = DijkstraShortestPath.findPathBetween(networkTopology, 
+    	List<DefaultEdge> shortestPath = DijkstraShortestPath.findPathBetween(networkTopology, 
     			Integer.toString(leftSwitch), Integer.toString(rightSwitch));
     	int shortestPathLength = 0;
     	try {
@@ -190,7 +190,7 @@ public class NetworkGraph
     }
     
     public List<String> findShortestPath (int leftSwitch, int rightSwitch){
-    	List path = DijkstraShortestPath.findPathBetween(networkTopology, 
+    	List<DefaultEdge> path = DijkstraShortestPath.findPathBetween(networkTopology, 
     			Integer.toString(leftSwitch), Integer.toString(rightSwitch));
     	if (path == null){
     		LOG.debug("     ==================================================================     ");
@@ -232,7 +232,7 @@ public class NetworkGraph
     	return -1;
     }
 
-    public List findNeighbors(int switchId) {
+    public List<String> findNeighbors(int switchId) {
     	if (networkTopology.containsVertex(Integer.toString(switchId)) == false) {
     		return null;
     	}
