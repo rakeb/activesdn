@@ -2276,6 +2276,11 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 				//LOG.debug("         ---------------------------------------------------------------------     ");
        		 	//LOG.debug(newpathNodes.get(index).getValue() + "  index & index+1     " + newpathNodes.get(index + 1));
        		 	//LOG.debug("         ---------------------------------------------------------------------     ");
+				
+				//"Lets say, s1 has a link with s2, output port of s1 is x and input port of s2 is y. 
+				//Then neighbor-node-id means s1, src-port means x and neigh-port means y";
+				//newpathNodes.get(index) == s1
+				//newpathNodes.get(index+1) == s2
 				Neighbors neighbor = getPortInformation(newpathNodes.get(index), newpathNodes.get(index+1));
 				if (neighbor != null){
 					pathRule = true;

@@ -755,6 +755,8 @@ module tap {
     		}
 			list neighbors {
 				key "neighbor-node-id";
+				description "Lets say, s1 has a link with s2, output port of s1 is x and input port of s2 is y. 
+					Then neighbor-node-id means s1, src-port means x and neigh-port means y";
 				leaf neighbor-node-id {
 	    			type leafref {
 	                    path "/inv:nodes/inv:node/inv:id";

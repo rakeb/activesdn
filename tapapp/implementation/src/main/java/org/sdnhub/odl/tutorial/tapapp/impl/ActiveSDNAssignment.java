@@ -324,7 +324,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	public boolean inspectByProxy(EventTriggered notification) {
 
 		LOG.debug("     ==================================================================     ");
-		LOG.debug("     DropBox Login Inspection Starts " );
+		LOG.debug("     DropBox Login: Inspection Starts " );
 		LOG.debug("     ==================================================================     ");
 		
 		TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
@@ -352,7 +352,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			if (payload.contains("malicious")){
 				LOG.debug("We have found malicious string");
 				LOG.debug("     ==================================================================     ");
-				LOG.debug("     DropBox Login Inspection Ends " );
+				LOG.debug("     DropBox Login: Inspection Ends " );
 				LOG.debug("     ==================================================================     ");
 				return true;
 			}
@@ -360,7 +360,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				LOG.debug("We Couldn't find malicious string");
 				
 				LOG.debug("     ==================================================================     ");
-				LOG.debug("     DropBox Login Inspection Ends " );
+				LOG.debug("     DropBox Login: Inspection Ends " );
 				LOG.debug("     ==================================================================     ");
 				return false;
 			}
@@ -369,7 +369,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			LOG.debug("No data available in the payload");
 			
 			LOG.debug("     ==================================================================     ");
-			LOG.debug("     DropBox Login Inspection Ends " );
+			LOG.debug("     DropBox Login: Inspection Ends " );
 			LOG.debug("     ==================================================================     ");
 			return true;
 		}
@@ -378,7 +378,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 
 	public void reRoute(EventTriggered notification) {
 		LOG.debug("     ==================================================================     ");
-		LOG.debug("     DropBox Login Redirect to controller Starts " );
+		LOG.debug("     DropBox Login: Redirect to controller Starts " );
 		LOG.debug("     ==================================================================     ");
 		
 		TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
@@ -400,7 +400,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			packetOutBuilder.setOutputPort(TABLE);
 			this.activeSDNService.sendPacketOut(packetOutBuilder.build());
 			LOG.debug("     ==================================================================     ");
-			LOG.debug("     DropBox Login Redirect to controller Ends " );
+			LOG.debug("     DropBox Login: Redirect to controller Ends " );
 			LOG.debug("     ==================================================================     ");
 			return;
 		}
@@ -445,7 +445,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		this.activeSDNService.sendPacketOut(packetOutBuilder.build());		 
 		
 		LOG.debug("     ==================================================================     ");
-		LOG.debug("     DropBox Login Redirect to controller Ends " );
+		LOG.debug("     DropBox Login: Redirect to controller Ends " );
 		LOG.debug("     ==================================================================     ");
 	}
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -829,14 +829,14 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 
 
 	private void blockIP(EventTriggered notification) {
-		LOG.debug("     ==================================================================     ");
-		LOG.debug("     DropBox Login Block to controller Starts " );
-		LOG.debug("     ==================================================================     ");
-		
 		TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
 		
 		String source = tcpPacketType.getSourceAddress();
 		String destination = tcpPacketType.getDestinationAddress();
+		
+		LOG.debug("     ==================================================================     ");
+		LOG.debug("     DropBox Login: Blocking IP {} Starts ", source);
+		LOG.debug("     ==================================================================     ");
 		
 		ConnectedHostInfo srcHost = hostTable.get(source);
 		ConnectedHostInfo dstHost = hostTable.get(destination);
@@ -855,7 +855,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		this.activeSDNService.installFlowRule(flowRuleInputBuilder.build());
 		
 		LOG.debug("     ==================================================================     ");
-		LOG.debug("     DropBox Login Block to controller Ends " );
+		LOG.debug("     DropBox Login: Blocking IP {} Ends ", source);
 		LOG.debug("     ==================================================================     ");
 		
 	}
