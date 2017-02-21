@@ -28,6 +28,7 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IsLinkFlooded;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.NewHostFound;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SendPacketOutInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForLinkFloodingCheckInputBuilder;
@@ -190,16 +191,16 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	        	LOG.debug("Found Pair {} with critical link along the path.", pair);
 	        	LOG.debug("==============---------------=================----------------------");
 	        	
-				MigrateNetworkPathInputBuilder migratePathInputBuilder = new MigrateNetworkPathInputBuilder();
-				migratePathInputBuilder.setSrcIpAddress(sourceIp);
-				migratePathInputBuilder.setDstIpAddress(dstIp);
-				migratePathInputBuilder.setFlowPriority(300);
+				ReRouteInputBuilder reRouteInputBuilder = new ReRouteInputBuilder();
+				reRouteInputBuilder.setSrcIpAddress(sourceIp);
+				reRouteInputBuilder.setDstIpAddress(dstIp);
+				reRouteInputBuilder.setFlowPriority(300);
 				
 				List<Integer> oldPathNodes = Lists.newArrayList(); //List of switches along the old path
 				for (String node : installedPaths.get(pair)){
 					oldPathNodes.add(Integer.parseInt(node));
 				}
-				migratePathInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
+				reRouteInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
 				
 				List<Integer> newPathNodes = Lists.newArrayList();
 				List<String> path = topology.findShortestPath(
@@ -210,13 +211,13 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 					for (String node : path){
 						newPathNodes.add(Integer.parseInt(node));
 					}
-					migratePathInputBuilder.setSwitchesInNewPath(newPathNodes);
+					reRouteInputBuilder.setSwitchesInNewPath(newPathNodes);
 					LOG.debug("     ==================================================================     ");
 					LOG.debug("   Path of Pair {} is changed from {}  to  {} ", pair, 
 							installedPaths.get(pair).toString(), path.toString());
 					LOG.debug("      ==================================================================     ");
 					installedPaths.put(pair, path);
-					this.activeSDNService.migrateNetworkPath(migratePathInputBuilder.build());
+					this.activeSDNService.reRoute(reRouteInputBuilder.build());
 				}
 				else {
 					LOG.debug("     ==================================================================     ");
@@ -1404,12 +1405,12 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////------------------------------migrateNetworkPath() Function example  ------------------------------------////
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	MigrateNetworkPathInputBuilder migratePathInputBuilder = new MigrateNetworkPathInputBuilder();
-		migratePathInputBuilder.setSrcIpAddress("10.0.0.1/32");
-		migratePathInputBuilder.setDstIpAddress("10.0.0.8/32");
-		migratePathInputBuilder.setFlowPriority(300);
-		migratePathInputBuilder.setIdleTimeout(90);
-		migratePathInputBuilder.setHardTimeout(0);
+		ReRouteInputBuilder reRouteInputBuilder = new ReRouteInputBuilder();
+		reRouteInputBuilder.setSrcIpAddress("10.0.0.1/32");
+		reRouteInputBuilder.setDstIpAddress("10.0.0.8/32");
+		reRouteInputBuilder.setFlowPriority(300);
+		reRouteInputBuilder.setIdleTimeout(90);
+		reRouteInputBuilder.setHardTimeout(0);
 		
 		List<Integer> oldPathNodes = Lists.newArrayList(); //List of switches along the old path
 		oldPathNodes.add(3);
@@ -1417,15 +1418,15 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		oldPathNodes.add(1);
 		oldPathNodes.add(5);
 		oldPathNodes.add(7);
-		migratePathInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
+		reRouteInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
 		
 		List<Integer> newPathNodes = Lists.newArrayList();
 		newPathNodes.add(3);
 		newPathNodes.add(2);
 		newPathNodes.add(5);
 		newPathNodes.add(7);
-		migratePathInputBuilder.setSwitchesInNewPath(oldPathNodes);
-		this.activeSDNService.migrateNetworkPath(migratePathInputBuilder.build());
+		reRouteInputBuilder.setSwitchesInNewPath(oldPathNodes);
+		this.activeSDNService.reRoute(reRouteInputBuilder.build());
 						
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////------------------------------createSrcDstTunnel() Function example  ------------------------------------////
