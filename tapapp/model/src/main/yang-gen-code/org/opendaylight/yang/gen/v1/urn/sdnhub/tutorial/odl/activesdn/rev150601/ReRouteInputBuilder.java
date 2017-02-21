@@ -11,46 +11,42 @@ import java.util.Map;
 
 
 /**
- * Class that builds {@link org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput} instances.
+ * Class that builds {@link org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput} instances.
  *
- * @see org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput
+ * @see org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput
  *
  */
-public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput> {
+public class ReRouteInputBuilder implements Builder <org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput> {
 
+    private java.lang.String _dstIpAddress;
     private java.lang.Integer _flowPriority;
     private java.lang.Integer _hardTimeout;
     private java.lang.Integer _idleTimeout;
-    private java.lang.String _newDstIpAddress;
-    private java.lang.String _newSrcIpAddress;
-    private java.lang.String _oldDstIpAddress;
-    private java.lang.String _oldSrcIpAddress;
+    private java.lang.String _srcIpAddress;
     private List<java.lang.Integer> _switchesInNewPath;
     private List<java.lang.Integer> _switchesInOldPath;
 
-    Map<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>> augmentation = Collections.emptyMap();
+    Map<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>> augmentation = Collections.emptyMap();
 
-    public MigrateNetworkPathInputBuilder() {
+    public ReRouteInputBuilder() {
     }
 
-    public MigrateNetworkPathInputBuilder(MigrateNetworkPathInput base) {
+    public ReRouteInputBuilder(ReRouteInput base) {
+        this._dstIpAddress = base.getDstIpAddress();
         this._flowPriority = base.getFlowPriority();
         this._hardTimeout = base.getHardTimeout();
         this._idleTimeout = base.getIdleTimeout();
-        this._newDstIpAddress = base.getNewDstIpAddress();
-        this._newSrcIpAddress = base.getNewSrcIpAddress();
-        this._oldDstIpAddress = base.getOldDstIpAddress();
-        this._oldSrcIpAddress = base.getOldSrcIpAddress();
+        this._srcIpAddress = base.getSrcIpAddress();
         this._switchesInNewPath = base.getSwitchesInNewPath();
         this._switchesInOldPath = base.getSwitchesInOldPath();
-        if (base instanceof MigrateNetworkPathInputImpl) {
-            MigrateNetworkPathInputImpl impl = (MigrateNetworkPathInputImpl) base;
+        if (base instanceof ReRouteInputImpl) {
+            ReRouteInputImpl impl = (ReRouteInputImpl) base;
             if (!impl.augmentation.isEmpty()) {
                 this.augmentation = new HashMap<>(impl.augmentation);
             }
         } else if (base instanceof AugmentationHolder) {
             @SuppressWarnings("unchecked")
-            AugmentationHolder<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput> casted =(AugmentationHolder<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>) base;
+            AugmentationHolder<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput> casted =(AugmentationHolder<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>) base;
             if (!casted.augmentations().isEmpty()) {
                 this.augmentation = new HashMap<>(casted.augmentations());
             }
@@ -58,6 +54,10 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
     }
 
 
+    public java.lang.String getDstIpAddress() {
+        return _dstIpAddress;
+    }
+    
     public java.lang.Integer getFlowPriority() {
         return _flowPriority;
     }
@@ -70,20 +70,8 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
         return _idleTimeout;
     }
     
-    public java.lang.String getNewDstIpAddress() {
-        return _newDstIpAddress;
-    }
-    
-    public java.lang.String getNewSrcIpAddress() {
-        return _newSrcIpAddress;
-    }
-    
-    public java.lang.String getOldDstIpAddress() {
-        return _oldDstIpAddress;
-    }
-    
-    public java.lang.String getOldSrcIpAddress() {
-        return _oldSrcIpAddress;
+    public java.lang.String getSrcIpAddress() {
+        return _srcIpAddress;
     }
     
     public List<java.lang.Integer> getSwitchesInNewPath() {
@@ -95,7 +83,7 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
     }
     
     @SuppressWarnings("unchecked")
-    public <E extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>> E getAugmentation(java.lang.Class<E> augmentationType) {
+    public <E extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>> E getAugmentation(java.lang.Class<E> augmentationType) {
         if (augmentationType == null) {
             throw new IllegalArgumentException("Augmentation Type reference cannot be NULL!");
         }
@@ -103,60 +91,48 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
     }
 
      
-    public MigrateNetworkPathInputBuilder setFlowPriority(final java.lang.Integer value) {
+    public ReRouteInputBuilder setDstIpAddress(final java.lang.String value) {
+        this._dstIpAddress = value;
+        return this;
+    }
+    
+     
+    public ReRouteInputBuilder setFlowPriority(final java.lang.Integer value) {
         this._flowPriority = value;
         return this;
     }
     
      
-    public MigrateNetworkPathInputBuilder setHardTimeout(final java.lang.Integer value) {
+    public ReRouteInputBuilder setHardTimeout(final java.lang.Integer value) {
         this._hardTimeout = value;
         return this;
     }
     
      
-    public MigrateNetworkPathInputBuilder setIdleTimeout(final java.lang.Integer value) {
+    public ReRouteInputBuilder setIdleTimeout(final java.lang.Integer value) {
         this._idleTimeout = value;
         return this;
     }
     
      
-    public MigrateNetworkPathInputBuilder setNewDstIpAddress(final java.lang.String value) {
-        this._newDstIpAddress = value;
+    public ReRouteInputBuilder setSrcIpAddress(final java.lang.String value) {
+        this._srcIpAddress = value;
         return this;
     }
     
      
-    public MigrateNetworkPathInputBuilder setNewSrcIpAddress(final java.lang.String value) {
-        this._newSrcIpAddress = value;
-        return this;
-    }
-    
-     
-    public MigrateNetworkPathInputBuilder setOldDstIpAddress(final java.lang.String value) {
-        this._oldDstIpAddress = value;
-        return this;
-    }
-    
-     
-    public MigrateNetworkPathInputBuilder setOldSrcIpAddress(final java.lang.String value) {
-        this._oldSrcIpAddress = value;
-        return this;
-    }
-    
-     
-    public MigrateNetworkPathInputBuilder setSwitchesInNewPath(final List<java.lang.Integer> value) {
+    public ReRouteInputBuilder setSwitchesInNewPath(final List<java.lang.Integer> value) {
         this._switchesInNewPath = value;
         return this;
     }
     
      
-    public MigrateNetworkPathInputBuilder setSwitchesInOldPath(final List<java.lang.Integer> value) {
+    public ReRouteInputBuilder setSwitchesInOldPath(final List<java.lang.Integer> value) {
         this._switchesInOldPath = value;
         return this;
     }
     
-    public MigrateNetworkPathInputBuilder addAugmentation(java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>> augmentationType, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput> augmentation) {
+    public ReRouteInputBuilder addAugmentation(java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>> augmentationType, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput> augmentation) {
         if (augmentation == null) {
             return removeAugmentation(augmentationType);
         }
@@ -169,43 +145,39 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
         return this;
     }
     
-    public MigrateNetworkPathInputBuilder removeAugmentation(java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>> augmentationType) {
+    public ReRouteInputBuilder removeAugmentation(java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>> augmentationType) {
         if (this.augmentation instanceof HashMap) {
             this.augmentation.remove(augmentationType);
         }
         return this;
     }
 
-    public MigrateNetworkPathInput build() {
-        return new MigrateNetworkPathInputImpl(this);
+    public ReRouteInput build() {
+        return new ReRouteInputImpl(this);
     }
 
-    private static final class MigrateNetworkPathInputImpl implements MigrateNetworkPathInput {
+    private static final class ReRouteInputImpl implements ReRouteInput {
 
-        public java.lang.Class<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput> getImplementedInterface() {
-            return org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput.class;
+        public java.lang.Class<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput> getImplementedInterface() {
+            return org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput.class;
         }
 
+        private final java.lang.String _dstIpAddress;
         private final java.lang.Integer _flowPriority;
         private final java.lang.Integer _hardTimeout;
         private final java.lang.Integer _idleTimeout;
-        private final java.lang.String _newDstIpAddress;
-        private final java.lang.String _newSrcIpAddress;
-        private final java.lang.String _oldDstIpAddress;
-        private final java.lang.String _oldSrcIpAddress;
+        private final java.lang.String _srcIpAddress;
         private final List<java.lang.Integer> _switchesInNewPath;
         private final List<java.lang.Integer> _switchesInOldPath;
 
-        private Map<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>> augmentation = Collections.emptyMap();
+        private Map<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>> augmentation = Collections.emptyMap();
 
-        private MigrateNetworkPathInputImpl(MigrateNetworkPathInputBuilder base) {
+        private ReRouteInputImpl(ReRouteInputBuilder base) {
+            this._dstIpAddress = base.getDstIpAddress();
             this._flowPriority = base.getFlowPriority();
             this._hardTimeout = base.getHardTimeout();
             this._idleTimeout = base.getIdleTimeout();
-            this._newDstIpAddress = base.getNewDstIpAddress();
-            this._newSrcIpAddress = base.getNewSrcIpAddress();
-            this._oldDstIpAddress = base.getOldDstIpAddress();
-            this._oldSrcIpAddress = base.getOldSrcIpAddress();
+            this._srcIpAddress = base.getSrcIpAddress();
             this._switchesInNewPath = base.getSwitchesInNewPath();
             this._switchesInOldPath = base.getSwitchesInOldPath();
             switch (base.augmentation.size()) {
@@ -213,14 +185,19 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
                 this.augmentation = Collections.emptyMap();
                 break;
             case 1:
-                final Map.Entry<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>> e = base.augmentation.entrySet().iterator().next();
-                this.augmentation = Collections.<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>>singletonMap(e.getKey(), e.getValue());
+                final Map.Entry<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>> e = base.augmentation.entrySet().iterator().next();
+                this.augmentation = Collections.<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>>singletonMap(e.getKey(), e.getValue());
                 break;
             default :
                 this.augmentation = new HashMap<>(base.augmentation);
             }
         }
 
+        @Override
+        public java.lang.String getDstIpAddress() {
+            return _dstIpAddress;
+        }
+        
         @Override
         public java.lang.Integer getFlowPriority() {
             return _flowPriority;
@@ -237,23 +214,8 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
         }
         
         @Override
-        public java.lang.String getNewDstIpAddress() {
-            return _newDstIpAddress;
-        }
-        
-        @Override
-        public java.lang.String getNewSrcIpAddress() {
-            return _newSrcIpAddress;
-        }
-        
-        @Override
-        public java.lang.String getOldDstIpAddress() {
-            return _oldDstIpAddress;
-        }
-        
-        @Override
-        public java.lang.String getOldSrcIpAddress() {
-            return _oldSrcIpAddress;
+        public java.lang.String getSrcIpAddress() {
+            return _srcIpAddress;
         }
         
         @Override
@@ -268,7 +230,7 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
         
         @SuppressWarnings("unchecked")
         @Override
-        public <E extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>> E getAugmentation(java.lang.Class<E> augmentationType) {
+        public <E extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>> E getAugmentation(java.lang.Class<E> augmentationType) {
             if (augmentationType == null) {
                 throw new IllegalArgumentException("Augmentation Type reference cannot be NULL!");
             }
@@ -286,13 +248,11 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
         
             final int prime = 31;
             int result = 1;
+            result = prime * result + Objects.hashCode(_dstIpAddress);
             result = prime * result + Objects.hashCode(_flowPriority);
             result = prime * result + Objects.hashCode(_hardTimeout);
             result = prime * result + Objects.hashCode(_idleTimeout);
-            result = prime * result + Objects.hashCode(_newDstIpAddress);
-            result = prime * result + Objects.hashCode(_newSrcIpAddress);
-            result = prime * result + Objects.hashCode(_oldDstIpAddress);
-            result = prime * result + Objects.hashCode(_oldSrcIpAddress);
+            result = prime * result + Objects.hashCode(_srcIpAddress);
             result = prime * result + Objects.hashCode(_switchesInNewPath);
             result = prime * result + Objects.hashCode(_switchesInOldPath);
             result = prime * result + Objects.hashCode(augmentation);
@@ -310,10 +270,13 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
             if (!(obj instanceof DataObject)) {
                 return false;
             }
-            if (!org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput.class.equals(((DataObject)obj).getImplementedInterface())) {
+            if (!org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput.class.equals(((DataObject)obj).getImplementedInterface())) {
                 return false;
             }
-            org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput other = (org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput)obj;
+            org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput other = (org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput)obj;
+            if (!Objects.equals(_dstIpAddress, other.getDstIpAddress())) {
+                return false;
+            }
             if (!Objects.equals(_flowPriority, other.getFlowPriority())) {
                 return false;
             }
@@ -323,16 +286,7 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
             if (!Objects.equals(_idleTimeout, other.getIdleTimeout())) {
                 return false;
             }
-            if (!Objects.equals(_newDstIpAddress, other.getNewDstIpAddress())) {
-                return false;
-            }
-            if (!Objects.equals(_newSrcIpAddress, other.getNewSrcIpAddress())) {
-                return false;
-            }
-            if (!Objects.equals(_oldDstIpAddress, other.getOldDstIpAddress())) {
-                return false;
-            }
-            if (!Objects.equals(_oldSrcIpAddress, other.getOldSrcIpAddress())) {
+            if (!Objects.equals(_srcIpAddress, other.getSrcIpAddress())) {
                 return false;
             }
             if (!Objects.equals(_switchesInNewPath, other.getSwitchesInNewPath())) {
@@ -343,13 +297,13 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
             }
             if (getClass() == obj.getClass()) {
                 // Simple case: we are comparing against self
-                MigrateNetworkPathInputImpl otherImpl = (MigrateNetworkPathInputImpl) obj;
+                ReRouteInputImpl otherImpl = (ReRouteInputImpl) obj;
                 if (!Objects.equals(augmentation, otherImpl.augmentation)) {
                     return false;
                 }
             } else {
                 // Hard case: compare our augments with presence there...
-                for (Map.Entry<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>> e : augmentation.entrySet()) {
+                for (Map.Entry<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>> e : augmentation.entrySet()) {
                     if (!e.getValue().equals(other.getAugmentation(e.getKey()))) {
                         return false;
                     }
@@ -364,9 +318,18 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
 
         @Override
         public java.lang.String toString() {
-            java.lang.StringBuilder builder = new java.lang.StringBuilder ("MigrateNetworkPathInput [");
+            java.lang.StringBuilder builder = new java.lang.StringBuilder ("ReRouteInput [");
             boolean first = true;
         
+            if (_dstIpAddress != null) {
+                if (first) {
+                    first = false;
+                } else {
+                    builder.append(", ");
+                }
+                builder.append("_dstIpAddress=");
+                builder.append(_dstIpAddress);
+             }
             if (_flowPriority != null) {
                 if (first) {
                     first = false;
@@ -394,41 +357,14 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
                 builder.append("_idleTimeout=");
                 builder.append(_idleTimeout);
              }
-            if (_newDstIpAddress != null) {
+            if (_srcIpAddress != null) {
                 if (first) {
                     first = false;
                 } else {
                     builder.append(", ");
                 }
-                builder.append("_newDstIpAddress=");
-                builder.append(_newDstIpAddress);
-             }
-            if (_newSrcIpAddress != null) {
-                if (first) {
-                    first = false;
-                } else {
-                    builder.append(", ");
-                }
-                builder.append("_newSrcIpAddress=");
-                builder.append(_newSrcIpAddress);
-             }
-            if (_oldDstIpAddress != null) {
-                if (first) {
-                    first = false;
-                } else {
-                    builder.append(", ");
-                }
-                builder.append("_oldDstIpAddress=");
-                builder.append(_oldDstIpAddress);
-             }
-            if (_oldSrcIpAddress != null) {
-                if (first) {
-                    first = false;
-                } else {
-                    builder.append(", ");
-                }
-                builder.append("_oldSrcIpAddress=");
-                builder.append(_oldSrcIpAddress);
+                builder.append("_srcIpAddress=");
+                builder.append(_srcIpAddress);
              }
             if (_switchesInNewPath != null) {
                 if (first) {

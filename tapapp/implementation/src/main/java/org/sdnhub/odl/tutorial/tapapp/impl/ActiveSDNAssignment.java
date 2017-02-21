@@ -50,52 +50,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 @SuppressWarnings("deprecation")
-enum TrafficProtocolType {TCP, UDP, ICMP, IP};
-///////////////////////////////////////////////////////////////////
-//class ConnectedHostInfo {
-//	private String hostMac;
-//	private String hostIP;
-//	private int switchConnectedTo;
-//	private int portConnectedTo;
-//	
-//	ConnectedHostInfo(String hostMac, String hostIP, 
-//			int switchConnectedTo, int portConnectedTo){
-//		this.hostIP = hostIP;
-//		this.hostMac = hostMac;
-//		this.switchConnectedTo = switchConnectedTo;
-//		this.portConnectedTo = portConnectedTo;
-//	}
-//	
-//	public String getHostMac(){
-//		return this.hostMac;
-//	}
-//	public String getHostIP(){
-//		return this.hostIP;
-//	}
-//	public int getSwitchConnectedTo(){
-//		return this.switchConnectedTo;
-//	}
-//	public int getPortConnectedTo(){
-//		return this.portConnectedTo;
-//	}
-//	
-//}
-///////////////////////////////////////
-//class FlowStatsTuple {
-//	public String flowId;
-//	public String srcIPAddress, dstIPAddress;
-//	public long srcPort = -1, dstPort = -1;
-//	public long packetCount, byteCount;
-//	public long duration, timeWindow;
-//	
-//	public TrafficProtocolType traffic;
-//}
-
-//class SwitchStatsSnapshot {
-//	public HashMap<String, FlowStatsTuple> listOfFlows = new HashMap<String, FlowStatsTuple>();
-//	public long snapshotTime;
-//	public int snapshotId;
-//}
+enum TrafficProtocolType {
+	TCP, UDP, ICMP, IP
+};
 
 ///////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -376,7 +333,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		
 	}
 
-	public void reRoute(EventTriggered notification) {
+	//in CLIPS it is reRoute
+	public void reDirect(EventTriggered notification) {
 		LOG.debug("     ==================================================================     ");
 		LOG.debug("     DropBox Login: Redirect to controller Starts " );
 		LOG.debug("     ==================================================================     ");
@@ -622,7 +580,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 							
 							//handle coa
 							if (!inspectByProxy(notification)) {
-								reRoute(notification);
+								reDirect(notification);
 							}
 							else {
 								blockIP(notification);

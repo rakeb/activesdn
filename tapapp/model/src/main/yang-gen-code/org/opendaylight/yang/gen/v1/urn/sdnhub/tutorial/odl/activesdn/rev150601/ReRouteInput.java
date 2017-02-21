@@ -10,16 +10,10 @@ import org.opendaylight.yangtools.yang.binding.Augmentable;
  * <br>(Source path: <i>META-INF/yang/activesdn.yang</i>):
  * <pre>
  * container input {
- *     leaf old-src-ip-address {
+ *     leaf src-ip-address {
  *         type string;
  *     }
- *     leaf new-src-ip-address {
- *         type string;
- *     }
- *     leaf old-dst-ip-address {
- *         type string;
- *     }
- *     leaf new-dst-ip-address {
+ *     leaf dst-ip-address {
  *         type string;
  *     }
  *     leaf-list switches-in-old-path {
@@ -40,16 +34,16 @@ import org.opendaylight.yangtools.yang.binding.Augmentable;
  * }
  * </pre>
  * The schema path to identify an instance is
- * <i>activesdn/migrate-network-path/input</i>
+ * <i>activesdn/re-route/input</i>
  *
- * <p>To create instances of this class use {@link org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInputBuilder}.
- * @see org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInputBuilder
+ * <p>To create instances of this class use {@link org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInputBuilder}.
+ * @see org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInputBuilder
  *
  */
-public interface MigrateNetworkPathInput
+public interface ReRouteInput
     extends
     DataObject,
-    Augmentable<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>
+    Augmentable<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput>
 {
 
 
@@ -57,21 +51,9 @@ public interface MigrateNetworkPathInput
     public static final QName QNAME = org.opendaylight.yangtools.yang.common.QName.create("urn:sdnhub:tutorial:odl:activesdn",
         "2015-06-01", "input").intern();
 
-    /**
-     * It is assumed that this filed must be provided
-     *
-     */
-    java.lang.String getOldSrcIpAddress();
+    java.lang.String getSrcIpAddress();
     
-    /**
-     * This field may left empty
-     *
-     */
-    java.lang.String getNewSrcIpAddress();
-    
-    java.lang.String getOldDstIpAddress();
-    
-    java.lang.String getNewDstIpAddress();
+    java.lang.String getDstIpAddress();
     
     List<java.lang.Integer> getSwitchesInOldPath();
     
