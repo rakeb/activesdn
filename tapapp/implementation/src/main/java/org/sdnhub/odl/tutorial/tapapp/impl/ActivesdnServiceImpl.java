@@ -694,12 +694,15 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			else {
 				mutateIpBuilder.setDstIpAddress(new Ipv4Prefix(input.getCurrentDstIpAddress()));
 				mutateIpBuilder.setSrcIpAddress(new Ipv4Prefix(input.getSrcIpAddress()));
-				List<NodeId> nodeList = Lists.newArrayList();
-				for (int node: input.getSwitchesInPath()){
-					NodeId nodeId = new NodeId("openflow:" + Integer.toString(node));
-					nodeList.add(nodeId);
+				
+				if(input.getSwitchesInPath() != null) {
+					List<NodeId> nodeList = Lists.newArrayList();
+					for (int node: input.getSwitchesInPath()){
+						NodeId nodeId = new NodeId("openflow:" + Integer.toString(node));
+						nodeList.add(nodeId);
+					}
+					mutateIpBuilder.setPathNodes(nodeList);
 				}
-				mutateIpBuilder.setPathNodes(nodeList);
 				
 				DstOnlyBuilder dstOnlyBuilder = new DstOnlyBuilder();
 				dstOnlyBuilder.setNewDstIpAddress(new Ipv4Prefix(input.getNewDstIpAddress()));
@@ -839,7 +842,9 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 				migratePathInputBuilder.setOldDstIpAddress(new Ipv4Prefix(input.getOldDstIpAddress()));
 				migratePathInputBuilder.setNewDstIpAddress(new Ipv4Prefix(input.getNewDstIpAddress()));
 				migratePathInputBuilder.setOldSrcIpAddress(new Ipv4Prefix(input.getOldSrcIpAddress()));
-				migratePathInputBuilder.setNewSrcIpAddress(new Ipv4Prefix(input.getNewSrcIpAddress()));
+				if (input.getNewSrcIpAddress() != null) {
+					migratePathInputBuilder.setNewSrcIpAddress(new Ipv4Prefix(input.getNewSrcIpAddress()));
+				}
 				
 				List<NodeId> oldNodeList = Lists.newArrayList();
 				for (int node: input.getSwitchesInOldPath()){
