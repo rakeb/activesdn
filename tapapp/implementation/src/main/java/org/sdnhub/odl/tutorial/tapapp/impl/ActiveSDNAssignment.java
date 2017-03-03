@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
 import org.opendaylight.controller.sal.binding.api.RpcProviderRegistry;
+import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.Ipv4Prefix;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeId;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ActivesdnListener;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ActivesdnService;
@@ -632,7 +633,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				pathNodes.add(Integer.parseInt(node));
 			}
 			LOG.debug("     ==================================================================     ");
-			LOG.debug("     Path found is ");
+			LOG.debug("     Using path for RHM is ");
 			LOG.debug("		" + path.toString());
 			LOG.debug("     ==================================================================     ");
 		}
@@ -641,11 +642,21 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		LOG.debug("     RHM starts...");
 		LOG.debug("     ==================================================================     ");
 
+//		String rIpSrc = icmpPacket.getSourceAddress();
+//		String rIpDst = "10.0.0.8/32";
+//		String vIpSrc = icmpPacket.getSourceAddress();
+//		String vIpDst = icmpPacket.getDestinationAddress();
+		
+		String rIpSrc = icmpPacket.getSourceAddress();
+		String rIpDst = "10.0.0.8/32";
+		String vIpSrc = icmpPacket.getSourceAddress();
+		String vIpDst = "10.0.0.8/32";
+		
 		CreateSrcDstTunnelInputBuilder srcDstTunnelBuilder = new CreateSrcDstTunnelInputBuilder();
-		srcDstTunnelBuilder.setCurrentSrcIpAddress(icmpPacket.getSourceAddress());
-		srcDstTunnelBuilder.setNewSrcIpAddress("10.0.0.1/32");
-		srcDstTunnelBuilder.setCurrentDstIpAddress(icmpPacket.getDestinationAddress());
-		srcDstTunnelBuilder.setNewDstIpAddress("10.0.0.8/32");
+		srcDstTunnelBuilder.setCurrentSrcIpAddress(vIpSrc); //src vIP -> test case 10.0.0.1
+		srcDstTunnelBuilder.setNewSrcIpAddress(rIpSrc); //src rIP -> test case 10.0.0.1
+		srcDstTunnelBuilder.setCurrentDstIpAddress(vIpDst); // dst vIP -> test case 10.0.0.7
+		srcDstTunnelBuilder.setNewDstIpAddress(rIpDst); //dst rIP  -> test case 10.0.0.8
 		srcDstTunnelBuilder.setFlowPriority(400);
 		srcDstTunnelBuilder.setIdleTimeout(0);
 		srcDstTunnelBuilder.setHardTimeout(0); //if you want the flow to remain forever in the switch
@@ -653,14 +664,19 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		srcDstTunnelBuilder.setSwitchesInPath(pathNodes);
 		
 		this.activeSDNService.createSrcDstTunnel(srcDstTunnelBuilder.build());
+		
 
-//		SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
-//		packetOutBuilder.setSwitchId(notification.getSwitchId());
-//		packetOutBuilder.setInPortNumber(notification.getInPortNumber());
-//		packetOutBuilder.setPayload(notification.getPayload());
-//		packetOutBuilder.setOutputPort(TABLE);
-//
-//		this.activeSDNService.sendPacketOut(packetOutBuilder.build());
+		LOG.debug("     ==================================================================     ");
+		LOG.debug("     Before sending packet, switch {}, inPort{}", notification.getSwitchId(), notification.getInPortNumber());
+		LOG.debug("     ==================================================================     ");
+
+		SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
+		packetOutBuilder.setSwitchId(notification.getSwitchId());
+		packetOutBuilder.setInPortNumber(notification.getInPortNumber());
+		packetOutBuilder.setPayload(notification.getPayload());
+		packetOutBuilder.setOutputPort(TABLE);
+
+		this.activeSDNService.sendPacketOut(packetOutBuilder.build());
 
 	}
 
@@ -668,7 +684,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	public void onEventTriggered(EventTriggered notification) {
 		LOG.debug("     ==================================================================     ");
 		LOG.debug("                    Event Triggered is called.");
-		LOG.debug("      ==================================================================     ");
+		LOG.debug("     ==================================================================     ");
 		
 		
 		//============================================================================================
@@ -677,8 +693,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			if (!(hostTable.containsKey(ipv4Packet.getSourceAddress()) && 
 					hostTable.containsKey(ipv4Packet.getDestinationAddress()))){
 				LOG.debug("     ==================================================================     ");
-				LOG.debug("Some host information is missing so skipping rest of the event trigger.");
-				LOG.debug("      ==================================================================     ");
+				LOG.debug("		Some host information is missing so skipping rest of the event trigger.");
+				LOG.debug("     ==================================================================     ");
 				return;
 			}
 		}
@@ -687,8 +703,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			if (!(hostTable.containsKey(icmpPacket.getSourceAddress()) && 
 					hostTable.containsKey(icmpPacket.getDestinationAddress()))){
 				LOG.debug("     ==================================================================     ");
-				LOG.debug("Some host information is missing so skipping rest of the event trigger.");
-				LOG.debug("      ==================================================================     ");
+				LOG.debug("		Some host information is missing so skipping rest of the event trigger.");
+				LOG.debug("     ==================================================================     ");
 				return;
 			}
 		}
@@ -869,73 +885,127 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				//}
 				//=================
 				
-				
-				/*
-				if (installedPaths.containsKey(forwardPathKey) || installedPaths.containsKey(reversePathKey)){
-					LOG.debug("     ==================================================================     ");
-					LOG.debug("     Path is already installed between nodes     " + srcHost.getHostIP() + " and " + dstHost.getHostIP());
-					LOG.debug("      ==================================================================     ");
-					//int index = installedPaths.get(forwardPathKey).indexOf(Integer.toString(notification.getSwitchId()));
-					//if (index >= 0) {
-						
-					//}
-					SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
-					packetOutBuilder.setSwitchId(dstHost.getSwitchConnectedTo());
-					packetOutBuilder.setInPortNumber(-1);
-					packetOutBuilder.setPayload(notification.getPayload()); //This sets the payload as received during PacketIn
-					packetOutBuilder.setOutputPort(Integer.toString(dstHost.getPortConnectedTo())); 
-				
-					this.activeSDNService.sendPacketOut(packetOutBuilder.build());
-					
-					return;
-					///We need the handle the special case where if the switch receives a packet who it was forwarding before but as 
-					// the path is migrated away due to link failure or attack. Now, there will now path exists for this packet but that 
-					// path doesn't contain currrnet ingress node. So, the packet may stuck in an infinit loop between the controller and switch
-				}
-				
-				InstallNetworkPathInputBuilder pathInputBuilder = new InstallNetworkPathInputBuilder();
-				
-				pathInputBuilder.setSrcIpAddress(icmpPacket.getSourceAddress());
-				pathInputBuilder.setDstIpAddress(icmpPacket.getDestinationAddress());
-				pathInputBuilder.setFlowPriority(234);
-				List<Integer> pathNodes = Lists.newArrayList();
-				
-				List<String> path = topology.findShortestPath(
-						srcHost.getSwitchConnectedTo(), dstHost.getSwitchConnectedTo());
-				if (path != null) {
-					for (String node : path){
-						pathNodes.add(Integer.parseInt(node));
+				/***test***/
+//				if (icmpPacket.getSourceAddress().equals("10.0.0.1/32")
+//						&& icmpPacket.getDestinationAddress().equals(
+//								"10.0.0.7/32")) {
+//
+//					String fPathKey = "10.0.0.1/32" + ":" + "10.0.0.8/32";
+//					String rPathKey = "10.0.0.8/32" + ":" + "10.0.0.8/1";
+//					List<String> alreadyInstalledPath = null;
+//
+//					if (installedPaths.containsKey(fPathKey)) {
+//						alreadyInstalledPath = installedPaths.get(fPathKey);
+//					}
+//					if (installedPaths.containsKey(rPathKey)) {
+//						alreadyInstalledPath = installedPaths.get(rPathKey);
+//					}
+//					srcDstMutate(notification, alreadyInstalledPath);
+//				} else {
+					/*** test ***/
+
+					 /*
+					if (installedPaths.containsKey(forwardPathKey)
+							|| installedPaths.containsKey(reversePathKey)) {
+						LOG.debug("     ==================================================================     ");
+						LOG.debug("     Path is already installed between nodes     "
+								+ srcHost.getHostIP()
+								+ " and "
+								+ dstHost.getHostIP());
+						LOG.debug("     ==================================================================     ");
+						// int index =
+						// installedPaths.get(forwardPathKey).indexOf(Integer.toString(notification.getSwitchId()));
+						// if (index >= 0) {
+
+						// }
+						SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
+						packetOutBuilder.setSwitchId(dstHost
+								.getSwitchConnectedTo());
+						packetOutBuilder.setInPortNumber(-1);
+						packetOutBuilder.setPayload(notification.getPayload()); // This
+																				// sets
+																				// the
+																				// payload
+																				// as
+																				// received
+																				// during
+																				// PacketIn
+						packetOutBuilder.setOutputPort(Integer.toString(dstHost
+								.getPortConnectedTo()));
+
+						this.activeSDNService.sendPacketOut(packetOutBuilder
+								.build());
+
+						return;
+						// /We need the handle the special case where if the
+						// switch receives a packet who it was forwarding before
+						// but as
+						// the path is migrated away due to link failure or
+						// attack. Now, there will now path exists for this
+						// packet but that
+						// path doesn't contain current ingress node. So, the
+						// packet may stuck in an infinite loop between the
+						// controller and switch
 					}
-					pathInputBuilder.setSwitchesInPath(pathNodes);
-					installedPaths.put(forwardPathKey, path);
-					//updateLinkCriticality(path);
-					LOG.debug("     ==================================================================     ");
-					LOG.debug("     Path found is " );
-					LOG.debug("		" + path.toString());
-					LOG.debug("     ==================================================================     ");
-				}
-				
-				pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
-				this.activeSDNService.installNetworkPath(pathInputBuilder.build());
-				
-				pathInputBuilder.setTypeOfTraffic(TrafficType.TCP);
-				this.activeSDNService.installNetworkPath(pathInputBuilder.build());
-				
-				pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
-				this.activeSDNService.installNetworkPath(pathInputBuilder.build());
-				
-				SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
-				packetOutBuilder.setSwitchId(notification.getSwitchId());
-				packetOutBuilder.setInPortNumber(notification.getInPortNumber());
-				packetOutBuilder.setPayload(notification.getPayload()); //This sets the payload as received during PacketIn
-				packetOutBuilder.setOutputPort(TABLE); 
-			
-				this.activeSDNService.sendPacketOut(packetOutBuilder.build());
-				
-				
-				if (installedPaths.size() >= 3) {
-					trigger = false;
-				}
+
+					InstallNetworkPathInputBuilder pathInputBuilder = new InstallNetworkPathInputBuilder();
+
+					pathInputBuilder.setSrcIpAddress(icmpPacket
+							.getSourceAddress());
+					pathInputBuilder.setDstIpAddress(icmpPacket
+							.getDestinationAddress());
+					pathInputBuilder.setFlowPriority(200);
+					List<Integer> pathNodes = Lists.newArrayList();
+
+					List<String> path = topology.findShortestPath(
+							srcHost.getSwitchConnectedTo(),
+							dstHost.getSwitchConnectedTo());
+					if (path != null) {
+						for (String node : path) {
+							pathNodes.add(Integer.parseInt(node));
+						}
+						pathInputBuilder.setSwitchesInPath(pathNodes);
+						installedPaths.put(forwardPathKey, path);
+						// updateLinkCriticality(path);
+						LOG.debug("     ==================================================================     ");
+						LOG.debug("     Path found is ");
+						LOG.debug("		" + path.toString());
+						LOG.debug("     ==================================================================     ");
+					}
+
+					pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
+					this.activeSDNService.installNetworkPath(pathInputBuilder
+							.build());
+
+					pathInputBuilder.setTypeOfTraffic(TrafficType.TCP);
+					this.activeSDNService.installNetworkPath(pathInputBuilder
+							.build());
+
+					pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
+					this.activeSDNService.installNetworkPath(pathInputBuilder
+							.build());
+
+					SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
+					packetOutBuilder.setSwitchId(notification.getSwitchId());
+					packetOutBuilder.setInPortNumber(notification
+							.getInPortNumber());
+					packetOutBuilder.setPayload(notification.getPayload()); // This
+																			// sets
+																			// the
+																			// payload
+																			// as
+																			// received
+																			// during
+																			// PacketIn
+					packetOutBuilder.setOutputPort(TABLE);
+
+					this.activeSDNService.sendPacketOut(packetOutBuilder
+							.build());
+
+					if (installedPaths.size() >= 3) {
+						trigger = false;
+					}
+//				}
 				*/
 				
 				//test code
@@ -984,9 +1054,9 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 //					this.activeSDNService.installNetworkPath(pathInputBuilder.build());
 //				}
 				
-				if ((icmpPacket.getSourceAddress().equals("10.0.0.1/32") && icmpPacket.getDestinationAddress().equals("10.0.0.8/32"))) {
-
-//					dstMutate(notification);
+//				/*
+				if ((icmpPacket.getSourceAddress().equals("10.0.0.1/32") && icmpPacket.getDestinationAddress().equals("10.0.0.8/32"))
+						|| (icmpPacket.getSourceAddress().equals("10.0.0.4/32") && icmpPacket.getDestinationAddress().equals("10.0.0.7/32"))) {
 
 					InstallNetworkPathInputBuilder pathInputBuilder = new InstallNetworkPathInputBuilder();
 
@@ -1007,11 +1077,13 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 							pathNodes.add(Integer.parseInt(node));
 						}
 						pathInputBuilder.setSwitchesInPath(pathNodes);
-						installedPaths.put("hello", path);
-						// updateLinkCriticality(path);
+						
+						if(!installedPaths.containsKey("hello")) {
+							installedPaths.put("hello", path);
+						}
+						
 						LOG.debug("     ==================================================================     ");
-						LOG.debug("     Path found is ");
-						LOG.debug("		" + path.toString());
+						LOG.debug("     Path found is {}", path.toString());
 						LOG.debug("     ==================================================================     ");
 					}
 				
@@ -1019,6 +1091,11 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 
 					this.activeSDNService.installNetworkPath(pathInputBuilder.build());
 
+
+					LOG.debug("     ==================================================================     ");
+					LOG.debug("     Before sending packet, switch {}, inPort{}", notification.getSwitchId(), notification.getInPortNumber());
+					LOG.debug("     ==================================================================     ");
+					
 					SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
 					packetOutBuilder.setSwitchId(notification.getSwitchId());
 					packetOutBuilder.setInPortNumber(notification.getInPortNumber());
@@ -1028,12 +1105,26 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 					this.activeSDNService.sendPacketOut(packetOutBuilder.build());
 					
 				}
+//				*/
 				
-				if ((icmpPacket.getSourceAddress().equals("10.0.0.4/32") && icmpPacket
-						.getDestinationAddress().equals("10.0.0.7/32"))) {
-
-					srcDstMutate(notification, installedPaths.get("hello"));
+				if (icmpPacket.getSourceAddress().equals("10.0.0.1/32") && icmpPacket
+						.getDestinationAddress().equals("10.0.0.7/32")) {
+					
+					List<String> alreadyInstalledPath = null;
+					
+//					String fPathKey = "10.0.0.1/32" + ":" + "10.0.0.8/32";
+//					String rPathKey = "10.0.0.8/32" + ":" + "10.0.0.8/1";
+//					if (installedPaths.containsKey(fPathKey)){
+//						alreadyInstalledPath = installedPaths.get(fPathKey);
+//					}
+//					if (installedPaths.containsKey(rPathKey)){
+//						alreadyInstalledPath = installedPaths.get(rPathKey);
+//					}
+					
+					alreadyInstalledPath = installedPaths.get("hello");
+					srcDstMutate(notification, alreadyInstalledPath);
 				}
+				
 //				 * 
 //				 * */
 				
