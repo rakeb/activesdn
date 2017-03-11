@@ -316,12 +316,57 @@ module activesdn {
 			}
 		}
 	}
-    rpc migrate-network-path {
+    
+    rpc re-route {
 		input {
 			leaf src-ip-address {
                 type string;
             }
 			leaf dst-ip-address {
+                type string;
+            }
+			leaf-list switches-in-old-path {
+				min-elements 1;
+				type int32;
+			}
+			leaf-list switches-in-new-path {
+				min-elements 1;
+				type int32;
+			}
+			leaf flow-priority {
+				default 200;
+				type int32;
+			}
+			leaf idle-timeout {
+				default 0;
+				type int32;
+			}
+			leaf hard-timeout {
+				default 0;
+				type int32;
+			}
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
+    
+    rpc migrate-network-path {
+		input {
+			leaf old-src-ip-address {
+				description "It is assumed that this filed must be provided";
+                type string;
+            }
+			leaf new-src-ip-address {
+				description "This field may left empty";
+                type string;
+            }
+			leaf old-dst-ip-address {
+                type string;
+            }
+			leaf new-dst-ip-address {
                 type string;
             }
 			leaf-list switches-in-old-path {

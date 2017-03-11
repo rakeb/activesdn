@@ -773,6 +773,8 @@ module tap {
     		}
 			list neighbors {
 				key "neighbor-node-id";
+				description "Lets say, s1 has a link with s2, output port of s1 is x and input port of s2 is y. 
+					Then neighbor-node-id means s1, src-port means x and neigh-port means y";
 				leaf neighbor-node-id {
 	    			type leafref {
 	                    path "/inv:nodes/inv:node/inv:id";
@@ -909,6 +911,52 @@ module tap {
                 type inet:ipv4-prefix;
             }
 			leaf dst-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf-list old-path-nodes {
+				min-elements 1;
+				type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+			}
+			leaf-list new-path-nodes {
+				min-elements 1;
+				type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+			}
+			leaf flow-priority {
+				type int32;
+			}
+			leaf idle-timeout {
+				type int32;
+			}
+			leaf hard-timeout {
+				type int32;
+			}
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
+	
+	rpc migrate-path {
+		description "Migrate old path to a new path using same source but different destination";
+		input {
+			leaf old-src-ip-address {
+				description "It is assumed that this filed must be provided";
+                type inet:ipv4-prefix;
+            }
+			leaf new-src-ip-address {
+				description "This field may left empty";
+                type inet:ipv4-prefix;
+            }
+			leaf old-dst-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf new-dst-ip-address {
                 type inet:ipv4-prefix;
             }
 			leaf-list old-path-nodes {

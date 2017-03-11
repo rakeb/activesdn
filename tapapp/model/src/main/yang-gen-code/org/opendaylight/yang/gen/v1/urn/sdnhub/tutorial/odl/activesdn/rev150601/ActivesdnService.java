@@ -535,6 +535,37 @@ import java.util.concurrent.Future;
  *         }
  *     }
  * }
+ * rpc re-route {
+ *     input {
+ *         leaf src-ip-address {
+ *             type string;
+ *         }
+ *         leaf dst-ip-address {
+ *             type string;
+ *         }
+ *         leaf-list switches-in-old-path {
+ *             type int32;
+ *         }
+ *         leaf-list switches-in-new-path {
+ *             type int32;
+ *         }
+ *         leaf flow-priority {
+ *             type flow-priority;
+ *         }
+ *         leaf idle-timeout {
+ *             type idle-timeout;
+ *         }
+ *         leaf hard-timeout {
+ *             type hard-timeout;
+ *         }
+ *     }
+ *     
+ *     output {
+ *         leaf status {
+ *             type string;
+ *         }
+ *     }
+ * }
  * rpc remove-a-flow-rule-from-switch {
  *     input {
  *         leaf switch-id {
@@ -553,10 +584,16 @@ import java.util.concurrent.Future;
  * }
  * rpc migrate-network-path {
  *     input {
- *         leaf src-ip-address {
+ *         leaf old-src-ip-address {
  *             type string;
  *         }
- *         leaf dst-ip-address {
+ *         leaf new-src-ip-address {
+ *             type string;
+ *         }
+ *         leaf old-dst-ip-address {
+ *             type string;
+ *         }
+ *         leaf new-dst-ip-address {
  *             type string;
  *         }
  *         leaf-list switches-in-old-path {
@@ -697,6 +734,8 @@ public interface ActivesdnService
     Future<RpcResult<CreateDstOnlyTunnelOutput>> createDstOnlyTunnel(CreateDstOnlyTunnelInput input);
     
     Future<RpcResult<RedirectOutput>> redirect(RedirectInput input);
+    
+    Future<RpcResult<ReRouteOutput>> reRoute(ReRouteInput input);
     
     Future<RpcResult<RemoveAFlowRuleFromSwitchOutput>> removeAFlowRuleFromSwitch(RemoveAFlowRuleFromSwitchInput input);
     

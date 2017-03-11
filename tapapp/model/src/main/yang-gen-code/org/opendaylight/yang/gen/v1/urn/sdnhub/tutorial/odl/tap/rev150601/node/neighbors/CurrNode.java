@@ -54,6 +54,11 @@ public interface CurrNode
 
     NodeId getCurrNodeId();
     
+    /**
+     * Lets say, s1 has a link with s2, output port of s1 is x and input port of s2 is 
+     * y. Then neighbor-node-id means s1, src-port means x and neigh-port means y
+     *
+     */
     List<Neighbors> getNeighbors();
     
     /**

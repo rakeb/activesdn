@@ -107,8 +107,12 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IsLinkFloodedBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathOutputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteOutput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectOutputBuilder;
@@ -162,6 +166,9 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.Instal
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.LocalIpv4Prefix;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MigratePathInput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MigratePathInputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MigratePathOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MovePathInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MovePathOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MutateIpInputBuilder;
@@ -227,7 +234,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
-public class ActiveSDNApi implements ActivesdnService, OpendaylightFlowStatisticsListener, OpendaylightPortStatisticsListener, OpendaylightQueueStatisticsListener{
+//Previously it is called ActivesdnAPI
+public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowStatisticsListener, OpendaylightPortStatisticsListener, OpendaylightQueueStatisticsListener{
 
 	private final Logger LOG = LoggerFactory.getLogger(this.getClass());
 	private final static long FLOOD_PORT_NUMBER = 0xfffffffbL;
@@ -256,7 +264,7 @@ public class ActiveSDNApi implements ActivesdnService, OpendaylightFlowStatistic
     private long delayedNotification = 0; 
     private boolean skip = true; 
     
-	public ActiveSDNApi(DataBroker dataBroker, NotificationProviderService notificationService, RpcProviderRegistry rpcProviderRegistry) {
+	public ActivesdnServiceImpl(DataBroker dataBroker, NotificationProviderService notificationService, RpcProviderRegistry rpcProviderRegistry) {
 		//Store the data broker for reading/writing from inventory store
         this.dataBroker = dataBroker;
         this.notificationService = notificationService;
@@ -790,8 +798,7 @@ public class ActiveSDNApi implements ActivesdnService, OpendaylightFlowStatistic
 	}
 	
 	@Override
-	public Future<RpcResult<MigrateNetworkPathOutput>> migrateNetworkPath(
-			MigrateNetworkPathInput input) {
+	public Future<RpcResult<ReRouteOutput>> reRoute(ReRouteInput input) {
 		MovePathInputBuilder movePathBuilder = new MovePathInputBuilder();
 		try {
 			if (input.getDstIpAddress() == null || input.getSrcIpAddress() == null || 
@@ -822,8 +829,60 @@ public class ActiveSDNApi implements ActivesdnService, OpendaylightFlowStatistic
 				Future<RpcResult<MovePathOutput>> movePathFutureOutput =  
 				tapService.movePath(movePathBuilder.build());
 				if (movePathFutureOutput != null) {
-					MigrateNetworkPathOutput output = new MigrateNetworkPathOutputBuilder().
+					ReRouteOutput output = new ReRouteOutputBuilder().
 							setStatus(movePathFutureOutput.get().getResult().getStatus()).build();
+					return RpcResultBuilder.success(output).buildFuture();
+				}
+				else {
+					String exception = "Path could not be re routed.";
+					throw new Exception(exception);
+				}
+			}
+		} catch (Exception e){
+			LOG.error("Exception reached in Re Route RPC {} --------", e);
+			return null;
+		}
+	}
+	
+	
+	@Override
+	public Future<RpcResult<MigrateNetworkPathOutput>> migrateNetworkPath(
+			MigrateNetworkPathInput input) {
+		MigratePathInputBuilder migratePathInputBuilder = new MigratePathInputBuilder();
+		try {
+			if (input.getOldDstIpAddress() == null || input.getNewDstIpAddress() == null || 
+					input.getSwitchesInOldPath() == null || input.getSwitchesInNewPath()== null
+					|| input.getOldSrcIpAddress() == null) {
+				String exception = "Incomplete Data is provided and some parameter has null value.";
+				throw new Exception(exception);
+			} else {
+				migratePathInputBuilder.setOldDstIpAddress(new Ipv4Prefix(input.getOldDstIpAddress()));
+				migratePathInputBuilder.setNewDstIpAddress(new Ipv4Prefix(input.getNewDstIpAddress()));
+				migratePathInputBuilder.setOldSrcIpAddress(new Ipv4Prefix(input.getOldSrcIpAddress()));
+				migratePathInputBuilder.setNewSrcIpAddress(new Ipv4Prefix(input.getNewSrcIpAddress()));
+				
+				List<NodeId> oldNodeList = Lists.newArrayList();
+				for (int node: input.getSwitchesInOldPath()){
+					NodeId nodeId = new NodeId("openflow:" + Integer.toString(node));
+					oldNodeList.add(nodeId);
+				}
+				migratePathInputBuilder.setOldPathNodes(oldNodeList);
+				
+				List<NodeId> newNodeList = Lists.newArrayList();
+				for (int node: input.getSwitchesInNewPath()){
+					NodeId nodeId = new NodeId("openflow:" + Integer.toString(node));
+					newNodeList.add(nodeId);
+				}
+				migratePathInputBuilder.setNewPathNodes(newNodeList);
+				
+				migratePathInputBuilder.setFlowPriority(input.getFlowPriority());
+				migratePathInputBuilder.setIdleTimeout(input.getIdleTimeout());
+				migratePathInputBuilder.setHardTimeout(input.getHardTimeout());
+
+				Future<RpcResult<MigratePathOutput>> migratePathFutureOutput = tapService.migratePath(migratePathInputBuilder.build());
+				if (migratePathFutureOutput != null) {
+					MigrateNetworkPathOutput output = new MigrateNetworkPathOutputBuilder().
+							setStatus(migratePathFutureOutput.get().getResult().getStatus()).build();
 					return RpcResultBuilder.success(output).buildFuture();
 				}
 				else {
@@ -836,6 +895,7 @@ public class ActiveSDNApi implements ActivesdnService, OpendaylightFlowStatistic
 			return null;
 		}
 	}
+	
 	
 	@Override
 	public Future<RpcResult<RemoveAllFlowsFromASwitchOutput>> removeAllFlowsFromASwitch(
@@ -1630,9 +1690,9 @@ public class ActiveSDNApi implements ActivesdnService, OpendaylightFlowStatistic
 					if (portStatsOutput != null){
 						FloodedLinksBuilder floodedLinkBuilder = new FloodedLinksBuilder();
 						//--------For the time being there is only one link and we assume that is flooded
-						//floodedLinkBuilder.setLinkId(portId);
-						//floodedLinkBuilder.setPacketDropObserved(5);
-						//listOfFloodedLinks.add(floodedLinkBuilder.build());
+						floodedLinkBuilder.setLinkId(portId);
+						floodedLinkBuilder.setPacketDropObserved((long)5);
+						listOfFloodedLinks.add(floodedLinkBuilder.build());
 						//--------------------------------------------
 						if (portStatsOutput.getReceiveDrops() > 0){
 							LOG.debug("");
@@ -1850,9 +1910,12 @@ public class ActiveSDNApi implements ActivesdnService, OpendaylightFlowStatistic
 		}
 	}
 
+//<<<<<<< HEAD:tapapp/implementation/src/main/java/org/sdnhub/odl/tutorial/tapapp/impl/ActiveSDNApi.java
 	
 
 
+//=======
+//>>>>>>> master:tapapp/implementation/src/main/java/org/sdnhub/odl/tutorial/tapapp/impl/ActivesdnServiceImpl.java
 //	@Override
 //	public Future<RpcResult<CanReachOutput>> canReach(CanReachInput input) {
 //		// TODO Auto-generated method stub

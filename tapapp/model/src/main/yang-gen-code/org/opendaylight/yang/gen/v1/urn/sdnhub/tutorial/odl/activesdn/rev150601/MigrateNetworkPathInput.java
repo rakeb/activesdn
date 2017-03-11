@@ -10,10 +10,16 @@ import org.opendaylight.yangtools.yang.binding.Augmentable;
  * <br>(Source path: <i>META-INF/yang/activesdn.yang</i>):
  * <pre>
  * container input {
- *     leaf src-ip-address {
+ *     leaf old-src-ip-address {
  *         type string;
  *     }
- *     leaf dst-ip-address {
+ *     leaf new-src-ip-address {
+ *         type string;
+ *     }
+ *     leaf old-dst-ip-address {
+ *         type string;
+ *     }
+ *     leaf new-dst-ip-address {
  *         type string;
  *     }
  *     leaf-list switches-in-old-path {
@@ -51,9 +57,21 @@ public interface MigrateNetworkPathInput
     public static final QName QNAME = org.opendaylight.yangtools.yang.common.QName.create("urn:sdnhub:tutorial:odl:activesdn",
         "2015-06-01", "input").intern();
 
-    java.lang.String getSrcIpAddress();
+    /**
+     * It is assumed that this filed must be provided
+     *
+     */
+    java.lang.String getOldSrcIpAddress();
     
-    java.lang.String getDstIpAddress();
+    /**
+     * This field may left empty
+     *
+     */
+    java.lang.String getNewSrcIpAddress();
+    
+    java.lang.String getOldDstIpAddress();
+    
+    java.lang.String getNewDstIpAddress();
     
     List<java.lang.Integer> getSwitchesInOldPath();
     

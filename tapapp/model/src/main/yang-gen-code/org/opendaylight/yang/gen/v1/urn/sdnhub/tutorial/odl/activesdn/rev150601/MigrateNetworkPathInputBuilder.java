@@ -18,11 +18,13 @@ import java.util.Map;
  */
 public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput> {
 
-    private java.lang.String _dstIpAddress;
     private java.lang.Integer _flowPriority;
     private java.lang.Integer _hardTimeout;
     private java.lang.Integer _idleTimeout;
-    private java.lang.String _srcIpAddress;
+    private java.lang.String _newDstIpAddress;
+    private java.lang.String _newSrcIpAddress;
+    private java.lang.String _oldDstIpAddress;
+    private java.lang.String _oldSrcIpAddress;
     private List<java.lang.Integer> _switchesInNewPath;
     private List<java.lang.Integer> _switchesInOldPath;
 
@@ -32,11 +34,13 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
     }
 
     public MigrateNetworkPathInputBuilder(MigrateNetworkPathInput base) {
-        this._dstIpAddress = base.getDstIpAddress();
         this._flowPriority = base.getFlowPriority();
         this._hardTimeout = base.getHardTimeout();
         this._idleTimeout = base.getIdleTimeout();
-        this._srcIpAddress = base.getSrcIpAddress();
+        this._newDstIpAddress = base.getNewDstIpAddress();
+        this._newSrcIpAddress = base.getNewSrcIpAddress();
+        this._oldDstIpAddress = base.getOldDstIpAddress();
+        this._oldSrcIpAddress = base.getOldSrcIpAddress();
         this._switchesInNewPath = base.getSwitchesInNewPath();
         this._switchesInOldPath = base.getSwitchesInOldPath();
         if (base instanceof MigrateNetworkPathInputImpl) {
@@ -54,10 +58,6 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
     }
 
 
-    public java.lang.String getDstIpAddress() {
-        return _dstIpAddress;
-    }
-    
     public java.lang.Integer getFlowPriority() {
         return _flowPriority;
     }
@@ -70,8 +70,20 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
         return _idleTimeout;
     }
     
-    public java.lang.String getSrcIpAddress() {
-        return _srcIpAddress;
+    public java.lang.String getNewDstIpAddress() {
+        return _newDstIpAddress;
+    }
+    
+    public java.lang.String getNewSrcIpAddress() {
+        return _newSrcIpAddress;
+    }
+    
+    public java.lang.String getOldDstIpAddress() {
+        return _oldDstIpAddress;
+    }
+    
+    public java.lang.String getOldSrcIpAddress() {
+        return _oldSrcIpAddress;
     }
     
     public List<java.lang.Integer> getSwitchesInNewPath() {
@@ -91,12 +103,6 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
     }
 
      
-    public MigrateNetworkPathInputBuilder setDstIpAddress(final java.lang.String value) {
-        this._dstIpAddress = value;
-        return this;
-    }
-    
-     
     public MigrateNetworkPathInputBuilder setFlowPriority(final java.lang.Integer value) {
         this._flowPriority = value;
         return this;
@@ -115,8 +121,26 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
     }
     
      
-    public MigrateNetworkPathInputBuilder setSrcIpAddress(final java.lang.String value) {
-        this._srcIpAddress = value;
+    public MigrateNetworkPathInputBuilder setNewDstIpAddress(final java.lang.String value) {
+        this._newDstIpAddress = value;
+        return this;
+    }
+    
+     
+    public MigrateNetworkPathInputBuilder setNewSrcIpAddress(final java.lang.String value) {
+        this._newSrcIpAddress = value;
+        return this;
+    }
+    
+     
+    public MigrateNetworkPathInputBuilder setOldDstIpAddress(final java.lang.String value) {
+        this._oldDstIpAddress = value;
+        return this;
+    }
+    
+     
+    public MigrateNetworkPathInputBuilder setOldSrcIpAddress(final java.lang.String value) {
+        this._oldSrcIpAddress = value;
         return this;
     }
     
@@ -162,22 +186,26 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
             return org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput.class;
         }
 
-        private final java.lang.String _dstIpAddress;
         private final java.lang.Integer _flowPriority;
         private final java.lang.Integer _hardTimeout;
         private final java.lang.Integer _idleTimeout;
-        private final java.lang.String _srcIpAddress;
+        private final java.lang.String _newDstIpAddress;
+        private final java.lang.String _newSrcIpAddress;
+        private final java.lang.String _oldDstIpAddress;
+        private final java.lang.String _oldSrcIpAddress;
         private final List<java.lang.Integer> _switchesInNewPath;
         private final List<java.lang.Integer> _switchesInOldPath;
 
         private Map<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput>> augmentation = Collections.emptyMap();
 
         private MigrateNetworkPathInputImpl(MigrateNetworkPathInputBuilder base) {
-            this._dstIpAddress = base.getDstIpAddress();
             this._flowPriority = base.getFlowPriority();
             this._hardTimeout = base.getHardTimeout();
             this._idleTimeout = base.getIdleTimeout();
-            this._srcIpAddress = base.getSrcIpAddress();
+            this._newDstIpAddress = base.getNewDstIpAddress();
+            this._newSrcIpAddress = base.getNewSrcIpAddress();
+            this._oldDstIpAddress = base.getOldDstIpAddress();
+            this._oldSrcIpAddress = base.getOldSrcIpAddress();
             this._switchesInNewPath = base.getSwitchesInNewPath();
             this._switchesInOldPath = base.getSwitchesInOldPath();
             switch (base.augmentation.size()) {
@@ -194,11 +222,6 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
         }
 
         @Override
-        public java.lang.String getDstIpAddress() {
-            return _dstIpAddress;
-        }
-        
-        @Override
         public java.lang.Integer getFlowPriority() {
             return _flowPriority;
         }
@@ -214,8 +237,23 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
         }
         
         @Override
-        public java.lang.String getSrcIpAddress() {
-            return _srcIpAddress;
+        public java.lang.String getNewDstIpAddress() {
+            return _newDstIpAddress;
+        }
+        
+        @Override
+        public java.lang.String getNewSrcIpAddress() {
+            return _newSrcIpAddress;
+        }
+        
+        @Override
+        public java.lang.String getOldDstIpAddress() {
+            return _oldDstIpAddress;
+        }
+        
+        @Override
+        public java.lang.String getOldSrcIpAddress() {
+            return _oldSrcIpAddress;
         }
         
         @Override
@@ -248,11 +286,13 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
         
             final int prime = 31;
             int result = 1;
-            result = prime * result + Objects.hashCode(_dstIpAddress);
             result = prime * result + Objects.hashCode(_flowPriority);
             result = prime * result + Objects.hashCode(_hardTimeout);
             result = prime * result + Objects.hashCode(_idleTimeout);
-            result = prime * result + Objects.hashCode(_srcIpAddress);
+            result = prime * result + Objects.hashCode(_newDstIpAddress);
+            result = prime * result + Objects.hashCode(_newSrcIpAddress);
+            result = prime * result + Objects.hashCode(_oldDstIpAddress);
+            result = prime * result + Objects.hashCode(_oldSrcIpAddress);
             result = prime * result + Objects.hashCode(_switchesInNewPath);
             result = prime * result + Objects.hashCode(_switchesInOldPath);
             result = prime * result + Objects.hashCode(augmentation);
@@ -274,9 +314,6 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
                 return false;
             }
             org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput other = (org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput)obj;
-            if (!Objects.equals(_dstIpAddress, other.getDstIpAddress())) {
-                return false;
-            }
             if (!Objects.equals(_flowPriority, other.getFlowPriority())) {
                 return false;
             }
@@ -286,7 +323,16 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
             if (!Objects.equals(_idleTimeout, other.getIdleTimeout())) {
                 return false;
             }
-            if (!Objects.equals(_srcIpAddress, other.getSrcIpAddress())) {
+            if (!Objects.equals(_newDstIpAddress, other.getNewDstIpAddress())) {
+                return false;
+            }
+            if (!Objects.equals(_newSrcIpAddress, other.getNewSrcIpAddress())) {
+                return false;
+            }
+            if (!Objects.equals(_oldDstIpAddress, other.getOldDstIpAddress())) {
+                return false;
+            }
+            if (!Objects.equals(_oldSrcIpAddress, other.getOldSrcIpAddress())) {
                 return false;
             }
             if (!Objects.equals(_switchesInNewPath, other.getSwitchesInNewPath())) {
@@ -321,15 +367,6 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
             java.lang.StringBuilder builder = new java.lang.StringBuilder ("MigrateNetworkPathInput [");
             boolean first = true;
         
-            if (_dstIpAddress != null) {
-                if (first) {
-                    first = false;
-                } else {
-                    builder.append(", ");
-                }
-                builder.append("_dstIpAddress=");
-                builder.append(_dstIpAddress);
-             }
             if (_flowPriority != null) {
                 if (first) {
                     first = false;
@@ -357,14 +394,41 @@ public class MigrateNetworkPathInputBuilder implements Builder <org.opendaylight
                 builder.append("_idleTimeout=");
                 builder.append(_idleTimeout);
              }
-            if (_srcIpAddress != null) {
+            if (_newDstIpAddress != null) {
                 if (first) {
                     first = false;
                 } else {
                     builder.append(", ");
                 }
-                builder.append("_srcIpAddress=");
-                builder.append(_srcIpAddress);
+                builder.append("_newDstIpAddress=");
+                builder.append(_newDstIpAddress);
+             }
+            if (_newSrcIpAddress != null) {
+                if (first) {
+                    first = false;
+                } else {
+                    builder.append(", ");
+                }
+                builder.append("_newSrcIpAddress=");
+                builder.append(_newSrcIpAddress);
+             }
+            if (_oldDstIpAddress != null) {
+                if (first) {
+                    first = false;
+                } else {
+                    builder.append(", ");
+                }
+                builder.append("_oldDstIpAddress=");
+                builder.append(_oldDstIpAddress);
+             }
+            if (_oldSrcIpAddress != null) {
+                if (first) {
+                    first = false;
+                } else {
+                    builder.append(", ");
+                }
+                builder.append("_oldSrcIpAddress=");
+                builder.append(_oldSrcIpAddress);
              }
             if (_switchesInNewPath != null) {
                 if (first) {

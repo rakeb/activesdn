@@ -31,6 +31,7 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IsLinkFlooded;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.NewHostFound;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SendPacketOutInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForLinkFloodingCheckInputBuilder;
@@ -53,52 +54,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
-enum TrafficProtocolType {TCP, UDP, ICMP, IP};
-///////////////////////////////////////////////////////////////////
-class ConnectedHostInfo {
-	private String hostMac;
-	private String hostIP;
-	private int switchConnectedTo;
-	private int portConnectedTo;
-	
-	ConnectedHostInfo(String hostMac, String hostIP, 
-			int switchConnectedTo, int portConnectedTo){
-		this.hostIP = hostIP;
-		this.hostMac = hostMac;
-		this.switchConnectedTo = switchConnectedTo;
-		this.portConnectedTo = portConnectedTo;
-	}
-	
-	public String getHostMac(){
-		return this.hostMac;
-	}
-	public String getHostIP(){
-		return this.hostIP;
-	}
-	public int getSwitchConnectedTo(){
-		return this.switchConnectedTo;
-	}
-	public int getPortConnectedTo(){
-		return this.portConnectedTo;
-	}
-	
-}
-///////////////////////////////////////
-class FlowStatsTuple {
-	public String flowId;
-	public String srcIPAddress, dstIPAddress;
-	public long srcPort = -1, dstPort = -1;
-	public long packetCount, byteCount;
-	public long duration, timeWindow;
-	
-	public TrafficProtocolType traffic;
-}
-
-class SwitchStatsSnapshot {
-	public HashMap<String, FlowStatsTuple> listOfFlows = new HashMap<String, FlowStatsTuple>();
-	public long snapshotTime;
-	public int snapshotId;
-}
+@SuppressWarnings("deprecation")
+enum TrafficProtocolType {
+	TCP, UDP, ICMP, IP
+};
 
 ///////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -253,16 +212,16 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	        	LOG.debug("     Found Pair {} with flooded link along the path.", pair);
 	        	LOG.debug("==============---------------=================----------------------");
 	        	
-				MigrateNetworkPathInputBuilder migratePathInputBuilder = new MigrateNetworkPathInputBuilder();
-				migratePathInputBuilder.setSrcIpAddress(sourceIp);
-				migratePathInputBuilder.setDstIpAddress(dstIp);
-				migratePathInputBuilder.setFlowPriority(300);
+				ReRouteInputBuilder reRouteInputBuilder = new ReRouteInputBuilder();
+				reRouteInputBuilder.setSrcIpAddress(sourceIp);
+				reRouteInputBuilder.setDstIpAddress(dstIp);
+				reRouteInputBuilder.setFlowPriority(300);
 				
 				List<Integer> oldPathNodes = Lists.newArrayList(); //List of switches along the old path
 				for (String node : installedPaths.get(pair)){
 					oldPathNodes.add(Integer.parseInt(node));
 				}
-				migratePathInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
+				reRouteInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
 				
 				List<Integer> newPathNodes = Lists.newArrayList();
 				List<String> path = topology.findShortestPath(
@@ -273,12 +232,20 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 					for (String node : path){
 						newPathNodes.add(Integer.parseInt(node));
 					}
-					migratePathInputBuilder.setSwitchesInNewPath(newPathNodes);
-					LOG.debug("=========================================================================================");
-					LOG.debug("   Path changed from {}  to  {}", installedPaths.get(pair).toString(), path.toString());
-					LOG.debug("=========================================================================================");
+//<<<<<<< HEAD
+//					migratePathInputBuilder.setSwitchesInNewPath(newPathNodes);
+//					LOG.debug("=========================================================================================");
+//					LOG.debug("   Path changed from {}  to  {}", installedPaths.get(pair).toString(), path.toString());
+//					LOG.debug("=========================================================================================");
+//=======
+					reRouteInputBuilder.setSwitchesInNewPath(newPathNodes);
+					LOG.debug("     ==================================================================     ");
+					LOG.debug("   Path of Pair {} is changed from {}  to  {} ", pair, 
+							installedPaths.get(pair).toString(), path.toString());
+					LOG.debug("      ==================================================================     ");
+//>>>>>>> master
 					installedPaths.put(pair, path);
-					this.activeSDNService.migrateNetworkPath(migratePathInputBuilder.build());
+					this.activeSDNService.reRoute(reRouteInputBuilder.build());
 				}
 				else {
 					LOG.debug("==================================================================     ");
@@ -346,7 +313,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	public boolean inspectByProxy(EventTriggered notification) {
 
 		LOG.debug("     ==================================================================     ");
-		LOG.debug("     DropBox Login Inspection Starts " );
+		LOG.debug("     DropBox Login: Inspection Starts " );
 		LOG.debug("     ==================================================================     ");
 		
 		TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
@@ -360,55 +327,49 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		String forwardTo;
 		
 		pathForDropBoxLogin = topology.findShortestPath(srcHost.getSwitchConnectedTo(), dstHost.getSwitchConnectedTo());
-		
-//		if (pathForDropBoxLogin != null) {
-//			LOG.debug("     ==================================================================     ");
-//			LOG.debug("     Before removal Path found is " );
-//			LOG.debug(pathForDropBoxLogin.toString());
-//			LOG.debug("      ==================================================================     ");
-//		}
-		
-//		pathForDropBoxLogin.remove(Integer.toString(srcHost.getSwitchConnectedTo()));
-//		
-//		if (pathForDropBoxLogin != null) {
-//			LOG.debug("     ==================================================================     ");
-//			LOG.debug("     After removal Path found is " );
-//			LOG.debug(pathForDropBoxLogin.toString());
-//			LOG.debug("      ==================================================================     ");
-//		}
 
-		// populate proxy table
+
+//		pathForDropBoxLogin.remove(Integer.toString(srcHost.getSwitchConnectedTo()));
+//		populate proxy table
 		forwardTo = pathForDropBoxLogin.get(1); // 1 because the first switch will be negated and second switch is the next hop
 		proxyTable.getSource().add(source);
 		proxyTable.getAction().put(source, INSPECT);
 		proxyTable.getForwardTo().put(source, forwardTo);
-//		LOG.debug("     ==================================================================     ");
-//		LOG.debug("     DropBox Login Inspection Ends " );
-//		LOG.debug("     ==================================================================     ");
 		
 		String payload = notification.getStringPayload();
-		
 		if (payload != ""){
-			LOG.debug("Payload available {}", payload);
+			LOG.debug("Payload available in the packet: {}", payload);
 			if (payload.contains("malicious")){
 				LOG.debug("We have found malicious string");
+				LOG.debug("     ==================================================================     ");
+				LOG.debug("     DropBox Login: Inspection Ends " );
+				LOG.debug("     ==================================================================     ");
 				return true;
 			}
 			else {
 				LOG.debug("We Couldn't find malicious string");
+				
+				LOG.debug("     ==================================================================     ");
+				LOG.debug("     DropBox Login: Inspection Ends " );
+				LOG.debug("     ==================================================================     ");
 				return false;
 			}
 		}
 		else {
 			LOG.debug("No data available in the payload");
+			
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("     DropBox Login: Inspection Ends " );
+			LOG.debug("     ==================================================================     ");
 			return true;
 		}
 		
 	}
 
-	public void reRoute(EventTriggered notification) {
+	//in CLIPS it is reRoute
+	public void reDirect(EventTriggered notification) {
 		LOG.debug("     ==================================================================     ");
-		LOG.debug("     DropBox Login Redirect to controller Starts " );
+		LOG.debug("     DropBox Login: Redirect to controller Starts " );
 		LOG.debug("     ==================================================================     ");
 		
 		TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
@@ -416,17 +377,22 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		String source = tcpPacketType.getSourceAddress();
 		String destination = tcpPacketType.getDestinationAddress();
 		
+		String srcDstKey = source + ":" + destination;
+		
 		ConnectedHostInfo srcHost = hostTable.get(source);
-		ConnectedHostInfo dstHost = hostTable.get(destination);
+//		ConnectedHostInfo dstHost = hostTable.get(destination);
 
-		if (installedInspectionPaths.containsKey(source+":"+destination)){
+		if (installedInspectionPaths.containsKey(srcDstKey)){
 			//SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
 			SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
-			packetOutBuilder.setSwitchId(Integer.parseInt(installedInspectionPaths.get(source+":"+destination).get(1)));
+			packetOutBuilder.setSwitchId(Integer.parseInt(installedInspectionPaths.get(srcDstKey).get(1)));
 			packetOutBuilder.setInPortNumber(-1);
 			packetOutBuilder.setPayload(notification.getPayload()); // This sets the payload as received during PacketIn
 			packetOutBuilder.setOutputPort(TABLE);
-			this.activeSDNService.sendPacketOut(packetOutBuilder.build());	
+			this.activeSDNService.sendPacketOut(packetOutBuilder.build());
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("     DropBox Login: Redirect to controller Ends " );
+			LOG.debug("     ==================================================================     ");
 			return;
 		}
 		
@@ -444,9 +410,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			}
 			redirectInputBuilder.setSwitchesInPath(pathNodes);
 			LOG.debug("     ==================================================================     ");
-			LOG.debug("     Path found is " );
-			LOG.debug(pathForDropBoxLogin.toString());
-			LOG.debug("      ==================================================================     ");
+			LOG.debug("     Path found for pathForDropBoxLogin is {}", pathForDropBoxLogin.toString());
+			LOG.debug("     ==================================================================     ");
 		}
 		redirectInputBuilder.setTypeOfTraffic(TrafficType.TCP);
 		redirectInputBuilder.setInspectionSwitchId(pathNodes.get(0));
@@ -455,8 +420,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		//redirectInputBuilder.setInspectionSwitchPortId("1"); //e.g., if you want to ouput through port of the switch
 		this.activeSDNService.redirect(redirectInputBuilder.build());
 
-		if (installedInspectionPaths.containsKey(source+":"+destination) == false){
-			installedInspectionPaths.put(source+":"+destination, pathForDropBoxLogin);
+		if (installedInspectionPaths.containsKey(srcDstKey) == false){
+			installedInspectionPaths.put(srcDstKey, pathForDropBoxLogin);
 		}
 		
 		//Forward the packet to next hop
@@ -471,7 +436,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		this.activeSDNService.sendPacketOut(packetOutBuilder.build());		 
 		
 		LOG.debug("     ==================================================================     ");
-		LOG.debug("     DropBox Login Redirect to controller Ends " );
+		LOG.debug("     DropBox Login: Redirect to controller Ends " );
 		LOG.debug("     ==================================================================     ");
 	}
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -577,9 +542,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		
 		
 	}
-	
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	@Override
 	public void onEventTriggered(EventTriggered notification) {
 		//LOG.debug("     ==================================================================     ");
@@ -737,16 +700,18 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 					LOG.debug("SYN FLAG has seen");
 					LOG.debug("Destination Port = {}", tcpPacketType.getDestPort());
 					if (tcpPacketType.getDestPort() == 100) {
-						LOG.debug("Received Drop Box packet coming from Src {}", tcpPacketType.getSourceAddress());
+						LOG.debug("Received Drop Box packet coming from Src {} to Dst {} in Port {}", tcpPacketType.getSourceAddress(), 
+								tcpPacketType.getDestinationAddress(), tcpPacketType.getDestPort());
+						
 						String srcDstKey = tcpPacketType.getSourceAddress() + 
 								":" + susceptibleDestination;
 						if (installedPaths.containsKey(srcDstKey)){
-							LOG.debug("SrcIP {} is reachable to DstIP {}", tcpPacketType.getSourceAddress(), 
-									tcpPacketType.getDestinationAddress());
+							LOG.debug("SrcIP {} is reachable to Susceptible Destination DstIP {}", tcpPacketType.getSourceAddress(), 
+									susceptibleDestination);
 							
 							//handle coa
 							if (!inspectByProxy(notification)) {
-								reRoute(notification);
+								reDirect(notification);
 							}
 							else {
 								blockIP(notification);
@@ -961,14 +926,14 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	}
 
 	private void blockIP(EventTriggered notification) {
-		LOG.debug("     ==================================================================     ");
-		LOG.debug("     DropBox Login Block to controller Starts " );
-		LOG.debug("     ==================================================================     ");
-		
 		TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
 		
 		String source = tcpPacketType.getSourceAddress();
 		String destination = tcpPacketType.getDestinationAddress();
+
+		LOG.debug("     ==================================================================     ");
+		LOG.debug("     DropBox Login: Blocking IP {} Starts ", source);
+		LOG.debug("     ==================================================================     ");
 		
 		ConnectedHostInfo srcHost = hostTable.get(source);
 		ConnectedHostInfo dstHost = hostTable.get(destination);
@@ -987,7 +952,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		this.activeSDNService.installFlowRule(flowRuleInputBuilder.build());
 		
 		LOG.debug("     ==================================================================     ");
-		LOG.debug("     DropBox Login Block to controller Ends " );
+		LOG.debug("     DropBox Login: Blocking IP {} Ends ", source);
 		LOG.debug("     ==================================================================     ");
 		
 	}
@@ -1583,12 +1548,12 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////------------------------------migrateNetworkPath() Function example  ------------------------------------////
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	MigrateNetworkPathInputBuilder migratePathInputBuilder = new MigrateNetworkPathInputBuilder();
-		migratePathInputBuilder.setSrcIpAddress("10.0.0.1/32");
-		migratePathInputBuilder.setDstIpAddress("10.0.0.8/32");
-		migratePathInputBuilder.setFlowPriority(300);
-		migratePathInputBuilder.setIdleTimeout(90);
-		migratePathInputBuilder.setHardTimeout(0);
+		ReRouteInputBuilder reRouteInputBuilder = new ReRouteInputBuilder();
+		reRouteInputBuilder.setSrcIpAddress("10.0.0.1/32");
+		reRouteInputBuilder.setDstIpAddress("10.0.0.8/32");
+		reRouteInputBuilder.setFlowPriority(300);
+		reRouteInputBuilder.setIdleTimeout(90);
+		reRouteInputBuilder.setHardTimeout(0);
 		
 		List<Integer> oldPathNodes = Lists.newArrayList(); //List of switches along the old path
 		oldPathNodes.add(3);
@@ -1596,15 +1561,15 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		oldPathNodes.add(1);
 		oldPathNodes.add(5);
 		oldPathNodes.add(7);
-		migratePathInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
+		reRouteInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
 		
 		List<Integer> newPathNodes = Lists.newArrayList();
 		newPathNodes.add(3);
 		newPathNodes.add(2);
 		newPathNodes.add(5);
 		newPathNodes.add(7);
-		migratePathInputBuilder.setSwitchesInNewPath(oldPathNodes);
-		this.activeSDNService.migrateNetworkPath(migratePathInputBuilder.build());
+		reRouteInputBuilder.setSwitchesInNewPath(oldPathNodes);
+		this.activeSDNService.reRoute(reRouteInputBuilder.build());
 						
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////------------------------------createSrcDstTunnel() Function example  ------------------------------------////

@@ -9,6 +9,9 @@ import org.opendaylight.yangtools.yang.binding.Identifiable;
 
 
 /**
+ * Lets say, s1 has a link with s2, output port of s1 is x and input port of s2 is 
+ * y. Then neighbor-node-id means s1, src-port means x and neigh-port means y
+ *
  * <p>This class represents the following YANG schema fragment defined in module <b>tap</b>
  * <br>(Source path: <i>META-INF/yang/tap.yang</i>):
  * <pre>

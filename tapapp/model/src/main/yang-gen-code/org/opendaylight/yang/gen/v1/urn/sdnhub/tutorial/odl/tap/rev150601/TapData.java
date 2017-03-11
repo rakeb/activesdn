@@ -1330,6 +1330,44 @@ import org.opendaylight.yangtools.yang.binding.DataRoot;
  *             }
  *         }
  *     }
+ *     rpc migrate-path {
+ *         "Migrate old path to a new path using same source but different destination";
+ *         input {
+ *             leaf old-src-ip-address {
+ *                 type ipv4-prefix;
+ *             }
+ *             leaf new-src-ip-address {
+ *                 type ipv4-prefix;
+ *             }
+ *             leaf old-dst-ip-address {
+ *                 type ipv4-prefix;
+ *             }
+ *             leaf new-dst-ip-address {
+ *                 type ipv4-prefix;
+ *             }
+ *             leaf-list old-path-nodes {
+ *                 type leafref;
+ *             }
+ *             leaf-list new-path-nodes {
+ *                 type leafref;
+ *             }
+ *             leaf flow-priority {
+ *                 type int32;
+ *             }
+ *             leaf idle-timeout {
+ *                 type int32;
+ *             }
+ *             leaf hard-timeout {
+ *                 type int32;
+ *             }
+ *         }
+ *         
+ *         output {
+ *             leaf status {
+ *                 type string;
+ *             }
+ *         }
+ *     }
  *     rpc removeFlowsFromSwitch {
  *         input {
  *             leaf node {

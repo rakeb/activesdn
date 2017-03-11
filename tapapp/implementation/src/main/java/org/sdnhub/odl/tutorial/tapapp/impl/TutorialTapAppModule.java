@@ -34,7 +34,7 @@ public class TutorialTapAppModule extends AbstractTutorialTapAppModule {
         Preconditions.checkNotNull(rpcProviderRegistry);
         Preconditions.checkNotNull(notificationService);
 
-        TutorialTapProvider tapProvider = new TutorialTapProvider(dataBrokerService, notificationService, rpcProviderRegistry);
+        TapServiceImpl tapProvider = new TapServiceImpl(dataBrokerService, notificationService, rpcProviderRegistry);
         LOG.info("Tutorial TapApp (instance {}) initialized.", tapProvider);
         return tapProvider;
     }

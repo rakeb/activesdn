@@ -22,16 +22,6 @@ import javax.xml.ws.handler.PortInfo;
 //import org.opendaylight.controller.sal.core.spi.data.statistics.DOMStoreStatsTracker;
 //import org.opendaylight.controller.sal.reader.NodeConnectorStatistics;
 
-
-
-
-
-
-
-
-
-
-
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.api.DataChangeListener;
 import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
@@ -181,6 +171,9 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.Instal
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.LocalIpv4Prefix;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MigratePathInput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MigratePathOutput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MigratePathOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MovePathInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MovePathOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MovePathOutputBuilder;
@@ -297,14 +290,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-interface RepeatFunction {
-	InstallFlowInput performFunction (NodeConnectorId outputPort, Ipv4Prefix dstIp, Ipv4Prefix srcIp, NodeId nodeid);
-	InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix curDstIp,
-			Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp,
-			NodeId nodeid);
-}
-
-public class TutorialTapProvider implements AutoCloseable, DataChangeListener, OpendaylightInventoryListener, TapService {
+// Previously it is called TutorialTapProvider
+public class TapServiceImpl implements AutoCloseable, DataChangeListener, OpendaylightInventoryListener, TapService {
     private final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
     //Members related to MD-SAL operations
@@ -316,7 +303,7 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
     private HashMap<NodeId, List<String>> tapsInstalled = new HashMap<NodeId, List<String>>();
     private HashMap<String, String> pathFlows = new HashMap<String, String>();
     private TutorialL2Forwarding tutorialL2Forwarding;
-    private ActiveSDNApi activeSDNApi;
+    private ActivesdnServiceImpl activeSDNApi;
 	private ActiveSDNAssignment activeSDNAssignment;
 	private NetworkGraph topology;
 	private HashMap<NodeConnectorId, NodeId> linkNeighbor = new HashMap<NodeConnectorId, NodeId>();
@@ -325,11 +312,11 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 	//Member Functions
 //////////////////////////////////////////////////////////////////////////////	
     		
-    public TutorialTapProvider(DataBroker dataBroker, NotificationProviderService notificationService, RpcProviderRegistry rpcProviderRegistry) {
+    public TapServiceImpl(DataBroker dataBroker, NotificationProviderService notificationService, RpcProviderRegistry rpcProviderRegistry) {
     	topology = new NetworkGraph();
     	this.activeSDNAssignment = new ActiveSDNAssignment(dataBroker, notificationService, rpcProviderRegistry, topology);
     	this.tutorialL2Forwarding = new TutorialL2Forwarding(dataBroker, notificationService, rpcProviderRegistry, this.activeSDNAssignment);
-    	this.activeSDNApi = new ActiveSDNApi(dataBroker, notificationService, rpcProviderRegistry);
+    	this.activeSDNApi = new ActivesdnServiceImpl(dataBroker, notificationService, rpcProviderRegistry);
     	
         //Store the data broker for reading/writing from inventory store
         this.dataBroker = dataBroker;
@@ -2109,7 +2096,6 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 		List<NodeId> pathNodes = input.getPathNodes();
 		InstallPathOutputBuilder output = new InstallPathOutputBuilder();
 		
-		int nodeIndex = 0;
 		RepeatFunction func = new RepeatFunction() {	
 			@Override
 			public InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix dstIp,
@@ -2152,6 +2138,7 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 				return null;
 			}
 		};
+		
 		int index = 0;
 		try {
 			for (; index < pathNodes.size(); index++){
@@ -2159,13 +2146,16 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 				//Future<RpcResult<InstallFlowOutput>> futureOutput1 = null;
 				if (index == 0){ // got the first switch
 					ConnectedHost host = getHostInfo(input.getSrcIpAddress().getValue());
+					//forwarding direction rule i.e., switch -> src
 					if (host != null){
 						pathRule = true;
 						this.installFlow(func.performFunction(host.getNodeConnectorConnectedTo(), 
 								input.getSrcIpAddress(), input.getDstIpAddress(), pathNodes.get(index)));
 					}
+					
+					//if there are more than one switch
 					if (index + 1 < pathNodes.size()){
-						//forwarding direction rule i.e., src -> dst
+						//forwarding direction rule i.e., src -> dst (switch to switch)
 						Neighbors neighbor = getPortInformation(pathNodes.get(index), pathNodes.get(index+1));
 						if (neighbor != null){
 							pathRule = true;
@@ -2175,6 +2165,7 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 					}
 					else {
 						ConnectedHost host1 = getHostInfo(input.getDstIpAddress().getValue());
+						//forwarding direction rule i.e., switch -> src
 						if (host1 != null){
 							pathRule = true;
 							this.installFlow(func.performFunction(host1.getNodeConnectorConnectedTo(), 
@@ -2307,6 +2298,11 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 				//LOG.debug("         ---------------------------------------------------------------------     ");
        		 	//LOG.debug(newpathNodes.get(index).getValue() + "  index & index+1     " + newpathNodes.get(index + 1));
        		 	//LOG.debug("         ---------------------------------------------------------------------     ");
+				
+				//"Lets say, s1 has a link with s2, output port of s1 is x and input port of s2 is y. 
+				//Then neighbor-node-id means s1, src-port means x and neigh-port means y";
+				//newpathNodes.get(index) == s1
+				//newpathNodes.get(index+1) == s2
 				Neighbors neighbor = getPortInformation(newpathNodes.get(index), newpathNodes.get(index+1));
 				if (neighbor != null){
 					pathRule = true;
@@ -2457,6 +2453,100 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 		return RpcResultBuilder.success(output).buildFuture();
 		//return null;
 	}
+	
+	
+	@Override
+	public Future<RpcResult<MigratePathOutput>> migratePath(
+			final MigratePathInput input) {
+		// This function migrates the traffic from one path to another in a new destination
+		List<NodeId> oldpathNodes = input.getOldPathNodes();
+		List<NodeId> newpathNodes = input.getNewPathNodes();
+		
+		Ipv4Prefix oldSrcIp = input.getOldSrcIpAddress();
+		Ipv4Prefix newSrcIp = input.getNewSrcIpAddress();
+		
+		Ipv4Prefix oldDstIpAddress = input.getOldDstIpAddress();
+		Ipv4Prefix newDstIpAddress = input.getNewDstIpAddress();
+		
+		Ipv4Prefix newSrcIpAddress;
+		Ipv4Prefix oldSrcIpAddress;
+		
+		MigratePathOutputBuilder output = new MigratePathOutputBuilder();
+		try {
+			if (newSrcIp != null) {
+				newSrcIpAddress = newSrcIp;
+				oldSrcIpAddress = oldSrcIp;
+			} else if(oldSrcIp != null && newSrcIp == null) {
+				newSrcIpAddress = oldSrcIp;
+				oldSrcIpAddress = oldSrcIp;
+			} else {
+				String exception = "Src not provided";
+				throw new Exception(exception);
+			}
+			
+			RepeatFunction func = new RepeatFunction() {	
+				@Override
+				public InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix dstIp,
+						Ipv4Prefix srcIp, NodeId nodeid) {
+					AssociatedActionsBuilder actionBuilder = new AssociatedActionsBuilder();
+					ForwardToPortBuilder forwardBuilder = new ForwardToPortBuilder();
+					forwardBuilder.setOutputNodeConnector(outputPort);
+					
+					actionBuilder.setFlowActions(new ForwardToPortCaseBuilder().
+							setForwardToPort(forwardBuilder.build()).build());
+					actionBuilder.setId((long)1);
+					List<AssociatedActions> actionList = Lists.newArrayList();
+					actionList.add(actionBuilder.build());
+					
+					NewFlowBuilder newFlowBuilder = new NewFlowBuilder();
+					newFlowBuilder.setDstIpAddress(dstIp);
+					//newFlowBuilder.setTrafficMatch(input.get)
+					newFlowBuilder.setFlowPriority(input.getFlowPriority());
+					newFlowBuilder.setIdleTimeout(input.getIdleTimeout());
+					newFlowBuilder.setHardTimeout(input.getHardTimeout());
+					
+					InstallFlowInputBuilder installFlowBuilder = new InstallFlowInputBuilder();
+					installFlowBuilder.setNode(nodeid);
+					installFlowBuilder.setNewFlow(newFlowBuilder.build());
+					installFlowBuilder.setAssociatedActions(actionList);
+					return installFlowBuilder.build();
+					
+				}
+
+				@Override
+				public InstallFlowInput performFunction(
+						NodeConnectorId outputPort, Ipv4Prefix curDstIp,
+						Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp,
+						Ipv4Prefix newSrcIp, NodeId nodeid) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+			};
+			
+			//Install flow rule in the new paths
+			installFlowRulesInPath(newpathNodes, newSrcIpAddress, newDstIpAddress, func);
+			//Delete flow rule from the old paths
+			removeFlowRulesInPath(oldpathNodes, oldSrcIpAddress, oldDstIpAddress);
+			
+		} catch (Exception e) {
+            LOG.error("Exception reached in MovePath RPC {} --------", e);
+            output.setStatus("Path Couldn't be migrated.");
+    		return RpcResultBuilder.success(output).buildFuture();
+        }
+		/*
+		 * ------Do something for old path, one thing that we can readjust their idle timeout to small value
+		 *  we can start this to begin-with. So, for each migration, the nodes in the oldPath are put to 
+		 *  no flight zone for this src-destination pair. We can also extend the matching criteria from only
+		 *  destination to src-destination both. So, whenever a new flow-removed msg is received then we can
+		 *  do a simple look-up to confirm if flow nees to be restored or just leave it.
+		 *  
+		 *  Also Check what should be the flags of these newly installed flows
+		 */
+		output.setStatus("Path is successfully migrated.");
+		return RpcResultBuilder.success(output).buildFuture();
+	}
+	
+	
 	///////////////////////////////////////////////////////////////////////////
 	@Override
 	public Future<RpcResult<InstallPathBwNodesOutput>> installPathBwNodes(
@@ -3008,7 +3098,12 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 				LOG.debug("NodeConnectorID {}", input.getInpsectionSwitchPort());
 				try {
 					for (; index < pathNodes.size(); index++){
-						LOG.debug(pathNodes.get(index).getValue() , "=", input.getInspectionSwitchId().getValue());
+//<<<<<<< HEAD:tapapp/implementation/src/main/java/org/sdnhub/odl/tutorial/tapapp/impl/TutorialTapProvider.java
+//						LOG.debug(pathNodes.get(index).getValue() , "=", input.getInspectionSwitchId().getValue());
+//=======
+//						String debugMessage = pathNodes.get(index).getValue() + "=" + input.getInspectionSwitchId().getValue();
+//						LOG.debug(debugMessage);
+//>>>>>>> master:tapapp/implementation/src/main/java/org/sdnhub/odl/tutorial/tapapp/impl/TapServiceImpl.java
 						//Future<RpcResult<InstallFlowOutput>> futureOutput = null;
 						//Future<RpcResult<InstallFlowOutput>> futureOutput1 = null;
 						if (index == 0){ // got the first switch
@@ -3118,4 +3213,189 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 				return RpcResultBuilder.success(output).buildFuture();
 	}
 	
+	public void installFlowRulesInPath(List<NodeId> pathNodes, Ipv4Prefix srcIpAddress, 
+			Ipv4Prefix dstIpAddress, RepeatFunction func) {
+		int index;
+		for (index = 0; index < pathNodes.size(); index++){
+			if (index == 0){ // got the first switch
+				ConnectedHost srcHost = getHostInfo(srcIpAddress.getValue());
+				//Reverse direction rule i.e., switch -> src
+				if (srcHost != null){
+					pathRule = true;
+					this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(), 
+							srcIpAddress, dstIpAddress, pathNodes.get(index)));
+				}
+				
+				//if there are more than one switch
+				if (pathNodes.size() > 1){
+					//Forwarding direction rule i.e., src -> dst (switch to switch)
+					Neighbors neighbor = getPortInformation(pathNodes.get(index), pathNodes.get(index+1));
+					if (neighbor != null){
+						pathRule = true;
+						this.installFlow(func.performFunction(neighbor.getSrcPort(), 
+								dstIpAddress, srcIpAddress, pathNodes.get(index)));
+					}
+				} else { // case is h1 -- s1 -- h2
+					ConnectedHost dstHost = getHostInfo(dstIpAddress.getValue());
+					//Forwarding direction rule i.e., switch -> dst
+					if (dstHost != null){
+						pathRule = true;
+						this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
+								dstIpAddress, srcIpAddress, pathNodes.get(index)));
+					}
+				}
+			} else if (index + 1 < pathNodes.size()){ //we have more than one switch
+				//Forwarding direction rule i.e., src -> dst
+				Neighbors forwardingNeighbor = getPortInformation(pathNodes.get(index), pathNodes.get(index+1));
+				if (forwardingNeighbor != null){
+					pathRule = true;
+					this.installFlow(func.performFunction(forwardingNeighbor.getSrcPort(), 
+							dstIpAddress, srcIpAddress, pathNodes.get(index)));
+				}
+				//Reverse direction rule  i.e., dst -> src
+				Neighbors reversNeighbor = getPortInformation(pathNodes.get(index), pathNodes.get(index-1));
+				if (reversNeighbor != null){
+					pathRule = true;
+					this.installFlow(func.performFunction(reversNeighbor.getSrcPort(), 
+							srcIpAddress, dstIpAddress, pathNodes.get(index)));
+				}
+			}
+			else if (index + 1 == pathNodes.size()){ //Last switch
+				ConnectedHost dstHost = getHostInfo(dstIpAddress.getValue());
+				//Forwarding direction rule i.e., switch -> dst
+				if (dstHost != null){
+					pathRule = true;
+					this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
+							dstIpAddress, srcIpAddress, pathNodes.get(index)));
+				}
+				//Reverse direction rule i.e., dst -> src
+				Neighbors neighbor = getPortInformation(pathNodes.get(index), pathNodes.get(index-1));
+				if (neighbor != null){
+					pathRule = true;
+					this.installFlow(func.performFunction(neighbor.getSrcPort(), 
+							srcIpAddress, dstIpAddress, pathNodes.get(index)));
+				}
+			}
+		}
+	}
+	
+	public void removeFlowRulesInPath(List<NodeId> pathNodes, Ipv4Prefix srcIpAddress, 
+			Ipv4Prefix dstIpAddress) {
+		int index;
+		
+//		if (index == 0){ // got the first switch
+//			ConnectedHost srcHost = getHostInfo(srcIpAddress.getValue());
+//			//Reverse direction rule i.e., switch -> src
+//			if (srcHost != null){
+//				pathRule = true;
+//				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(), 
+//						srcIpAddress, dstIpAddress, pathNodes.get(index)));
+//			}
+//			
+//			//if there are more than one switch
+//			if (pathNodes.size() > 1){
+//				//Forwarding direction rule i.e., src -> dst (switch to switch)
+//				Neighbors neighbor = getPortInformation(pathNodes.get(index), pathNodes.get(index+1));
+//				if (neighbor != null){
+//					pathRule = true;
+//					this.installFlow(func.performFunction(neighbor.getSrcPort(), 
+//							dstIpAddress, srcIpAddress, pathNodes.get(index)));
+//				}
+//			} else { // case is h1 -- s1 -- h2
+//				ConnectedHost dstHost = getHostInfo(dstIpAddress.getValue());
+//				//Forwarding direction rule i.e., switch -> dst
+//				if (dstHost != null){
+//					pathRule = true;
+//					this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
+//							dstIpAddress, srcIpAddress, pathNodes.get(index)));
+//				}
+//			}
+//		} else if (index + 1 < pathNodes.size()){ //we have more than one switch
+//			//Forwarding direction rule i.e., src -> dst
+//			Neighbors forwardingNeighbor = getPortInformation(pathNodes.get(index), pathNodes.get(index+1));
+//			if (forwardingNeighbor != null){
+//				pathRule = true;
+//				this.installFlow(func.performFunction(forwardingNeighbor.getSrcPort(), 
+//						dstIpAddress, srcIpAddress, pathNodes.get(index)));
+//			}
+//			//Reverse direction rule  i.e., dst -> src
+//			Neighbors reversNeighbor = getPortInformation(pathNodes.get(index), pathNodes.get(index-1));
+//			if (reversNeighbor != null){
+//				pathRule = true;
+//				this.installFlow(func.performFunction(reversNeighbor.getSrcPort(), 
+//						srcIpAddress, dstIpAddress, pathNodes.get(index)));
+//			}
+//		}
+//		else if (index + 1 == pathNodes.size()){ //Last switch
+//			ConnectedHost dstHost = getHostInfo(dstIpAddress.getValue());
+//			//Forwarding direction rule i.e., switch -> dst
+//			if (dstHost != null){
+//				pathRule = true;
+//				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
+//						dstIpAddress, srcIpAddress, pathNodes.get(index)));
+//			}
+//			//Reverse direction rule i.e., dst -> src
+//			Neighbors neighbor = getPortInformation(pathNodes.get(index), pathNodes.get(index-1));
+//			if (neighbor != null){
+//				pathRule = true;
+//				this.installFlow(func.performFunction(neighbor.getSrcPort(), 
+//						srcIpAddress, dstIpAddress, pathNodes.get(index)));
+//			}
+//		}
+		
+		
+		for (index = 0; index < pathNodes.size(); index++){
+			//delete forwarding flow from the switch
+			String switchToDstKey = pathNodes.get(index).getValue() + ":" + dstIpAddress.getValue();
+			
+			if (pathFlows.containsKey(switchToDstKey)){
+				String flowIdStr = pathFlows.get(switchToDstKey);
+            	
+            	FlowBuilder flowBuilder = new FlowBuilder();
+            	FlowKey key = new FlowKey(new FlowId(flowIdStr));
+            	flowBuilder.setFlowName(flowIdStr);
+            	flowBuilder.setKey(key);
+            	flowBuilder.setId(new FlowId(flowIdStr));
+            	flowBuilder.setTableId((short)0);
+                	
+            	@SuppressWarnings("deprecation")
+				InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)
+            			.child(Node.class, new NodeKey(pathNodes.get(index)))
+            			.augmentation(FlowCapableNode.class)
+            			.child(Table.class, new TableKey(flowBuilder.getTableId()))
+            			.child(Flow.class, new FlowKey(flowBuilder.getKey()))
+            			.build();
+                	
+            	GenericTransactionUtils.writeData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID, flowBuilder.build(), false);
+            	flowsInstalled.get(pathNodes.get(index)).remove(flowIdStr);
+            	pathFlows.remove(switchToDstKey);
+			}
+            
+			//delete reverse flow from the switch
+			String switchToSrcKey = pathNodes.get(index).getValue() + ":" + srcIpAddress.getValue();
+			
+			if (pathFlows.containsKey(switchToSrcKey)){
+				String flowIdStr1 = pathFlows.get(switchToSrcKey);
+            	
+				FlowBuilder flowBuilder = new FlowBuilder();
+				FlowKey key = new FlowKey(new FlowId(flowIdStr1));
+            	flowBuilder.setFlowName(flowIdStr1);
+            	flowBuilder.setKey(key);
+            	flowBuilder.setId(new FlowId(flowIdStr1));
+            	flowBuilder.setTableId((short)0);
+                	
+            	@SuppressWarnings("deprecation")
+				InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)
+            			.child(Node.class, new NodeKey(pathNodes.get(index)))
+            			.augmentation(FlowCapableNode.class)
+            			.child(Table.class, new TableKey(flowBuilder.getTableId()))
+            			.child(Flow.class, new FlowKey(flowBuilder.getKey()))
+            			.build();
+                	
+            	GenericTransactionUtils.writeData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID, flowBuilder.build(), false);
+            	flowsInstalled.get(pathNodes.get(index)).remove(flowIdStr1);
+            	pathFlows.remove(switchToSrcKey);
+			}
+		}
+	}
 }
