@@ -347,7 +347,7 @@ import org.opendaylight.yangtools.yang.binding.NotificationListener;
  *             type string;
  *         }
  *         leaf packet-drop-observed {
- *             type int32;
+ *             type uint32;
  *         }
  *     }
  * }

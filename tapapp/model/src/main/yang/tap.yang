@@ -333,6 +333,24 @@ module tap {
     			}
     		}
     		
+    		case set-dst-mac-address-case {
+    			description "This sets the Destination MAC address in the packet";
+    			container set-dst-mac-address {
+    				leaf value {
+    					type yang:mac-address;
+    				}
+    			}
+    		}
+    		
+    		case set-src-mac-address-case {
+    			description "This sets the SRC MAC Address of the packet";
+    			container set-src-mac-address {
+    				leaf value {
+    					type yang:mac-address;
+    				}
+    			}
+    		}
+    		
     		case set-ipv4-tos-case {
     			description "This sets the IP TOS value of the packet to change its precedence.";
     			container set-ipv4-tos {

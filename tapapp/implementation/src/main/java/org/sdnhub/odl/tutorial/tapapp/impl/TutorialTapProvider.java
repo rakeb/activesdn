@@ -24,6 +24,14 @@ import javax.xml.ws.handler.PortInfo;
 
 
 
+
+
+
+
+
+
+
+
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.api.DataChangeListener;
 import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
@@ -44,6 +52,8 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.acti
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.DropActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.FloodActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.OutputActionCaseBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.SetDlDstActionCaseBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.SetDlSrcActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.SetNwDstActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.SetNwSrcActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.SetNwTosActionCaseBuilder;
@@ -55,6 +65,8 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.acti
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.drop.action._case.DropActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.flood.action._case.FloodActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.output.action._case.OutputActionBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.dl.dst.action._case.SetDlDstActionBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.dl.src.action._case.SetDlSrcActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.field._case.SetField;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.nw.dst.action._case.SetNwDstActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.nw.src.action._case.SetNwSrcActionBuilder;
@@ -199,7 +211,9 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.a
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.forward.to.flood._case.ForwardToFloodBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.forward.to.port._case.ForwardToPortBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.set.dst.ipv4.address._case.SetDstIpv4AddressBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.set.dst.mac.address._case.SetDstMacAddressBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.set.source.ipv4.address._case.SetSourceIpv4AddressBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.set.src.mac.address._case.SetSrcMacAddressBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.*;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.*;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MalEvents;
@@ -1360,6 +1374,24 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
         		Ipv4 ipv4Case = ipv4CaseBuilder.build();
         		nwDstActionB.setAddress(ipv4Case);
         		ab.setAction(new SetNwDstActionCaseBuilder().setSetNwDstAction(nwDstActionB.build()).build());
+        		ab.setKey(new ActionKey(outputIndex));
+        		ab.setOrder(outputIndex++);
+        		actionList.add(ab.build());
+        	}
+        	else if (action.getFlowActions() instanceof SetDstMacAddressCase){
+        		SetDstMacAddressCase dstMacCase = (SetDstMacAddressCase) action.getFlowActions();
+        		SetDlDstActionBuilder dlDstActionB = new SetDlDstActionBuilder();
+        		dlDstActionB.setAddress(dstMacCase.getSetDstMacAddress().getValue());
+        		ab.setAction(new SetDlDstActionCaseBuilder().setSetDlDstAction(dlDstActionB.build()).build());
+        		ab.setKey(new ActionKey(outputIndex));
+        		ab.setOrder(outputIndex++);
+        		actionList.add(ab.build());
+        	}
+        	else if (action.getFlowActions() instanceof SetSrcMacAddressCase){
+        		SetSrcMacAddressCase srcMacCase = (SetSrcMacAddressCase) action.getFlowActions();
+        		SetDlSrcActionBuilder dlSrcActionB = new SetDlSrcActionBuilder();
+        		dlSrcActionB.setAddress(srcMacCase.getSetSrcMacAddress().getValue());
+        		ab.setAction(new SetDlSrcActionCaseBuilder().setSetDlSrcAction(dlSrcActionB.build()).build());
         		ab.setKey(new ActionKey(outputIndex));
         		ab.setOrder(outputIndex++);
         		actionList.add(ab.build());
@@ -2545,6 +2577,16 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 							setSetSourceIpv4Address(srcIpBuilder.build()).build());
 					actionBuilder.setId(actionKey++);
 					actionList.add(actionBuilder.build());
+					/////////////////////////////////////
+					ConnectedHost host = getHostInfo(newSrcIp.getValue());
+					if (host != null){
+						SetSrcMacAddressBuilder srcMacBuilder = new SetSrcMacAddressBuilder();
+						srcMacBuilder.setValue(host.getHostMacAddress());
+						actionBuilder.setFlowActions(new SetSrcMacAddressCaseBuilder().
+								setSetSrcMacAddress(srcMacBuilder.build()).build());
+						actionBuilder.setId(actionKey++);
+						actionList.add(actionBuilder.build());
+					}
 				}
 				if (curDstIp.equals(newDstIp) == false){
 					SetDstIpv4AddressBuilder dstIpBuilder = new SetDstIpv4AddressBuilder();
@@ -2553,6 +2595,16 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 							setSetDstIpv4Address(dstIpBuilder.build()).build());
 					actionBuilder.setId(actionKey++);
 					actionList.add(actionBuilder.build());
+					//////////////////////////
+					ConnectedHost host = getHostInfo(newDstIp.getValue());
+					if (host != null){
+						SetDstMacAddressBuilder dstMacBuilder = new SetDstMacAddressBuilder();
+						dstMacBuilder.setValue(host.getHostMacAddress());
+						actionBuilder.setFlowActions(new SetDstMacAddressCaseBuilder().
+								setSetDstMacAddress(dstMacBuilder.build()).build());
+						actionBuilder.setId(actionKey++);
+						actionList.add(actionBuilder.build());
+					}
 				}
 				
 				ForwardToPortBuilder forwardBuilder = new ForwardToPortBuilder();
@@ -2612,11 +2664,12 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 				String exception = "Dst Host " + input.getDstIpAddress().getValue() + 
 						" is not known to controller ";
 				throw new Exception(exception);
-			} else if (dstHost.getNodeConnectedTo().equals(input.getPathNodes().get(input.getPathNodes().size()-1)) == false ){
-				String exception = "Dst Host " + input.getDstIpAddress().getValue() + 
-						" is not known connected to node " + input.getPathNodes().get(input.getPathNodes().size()-1).getValue();
-				throw new Exception(exception);
-			}
+			} 
+//			else if (dstHost.getNodeConnectedTo().equals(input.getPathNodes().get(input.getPathNodes().size()-1)) == false ){
+//				String exception = "Dst Host " + input.getDstIpAddress().getValue() + 
+//						" is not known connected to node " + input.getPathNodes().get(input.getPathNodes().size()-1).getValue();
+//				throw new Exception(exception);
+//			}
 			//////////////////////
 			Neighbors srcEdgeNeighbor = getPortInformation(input.getPathNodes().get(0), input.getPathNodes().get(1));
 			if (srcEdgeNeighbor == null){
@@ -2683,7 +2736,7 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 				pathInputBuilder.setFlowPriority(input.getFlowPriority());
 				pathInputBuilder.setIdleTimeout(input.getIdleTimeout());
 				pathInputBuilder.setHardTimeout(input.getHardTimeout());
-				this.installPathBwNodes(pathInputBuilder.build());
+				//this.installPathBwNodes(pathInputBuilder.build());
 				
 				//On source edge node, dstHostIP is the actual destination, however its traffic should be hidden from the network 
 				//so we change the IP destination of packets from actual dstHostIP to new IP
@@ -2701,6 +2754,33 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 						input.getDstIpAddress(),					 
 						input.getPathNodes().get(0)));
 				
+				ConnectedHost newDstHost = getHostInfo(dstOnlyCase.getDstOnly().getNewDstIpAddress().getValue());
+				if (newDstHost == null){
+					String exception = "New Dst Host " + input.getDstIpAddress().getValue() + 
+							" is not known to controller ";
+					throw new Exception(exception);
+				}
+				//LOG.debug("((((((((((((((((((((((((New Dst Host is {} )))))))))))))))))))))", newDstHost.getHostIpAddress().getValue());
+				////-------------------------------------------------------------------------------------------------------------/////
+				///-----This code is only temporary fix for the video to install flow rules at the destination edge router ------/////
+				////------------------------------------------------------------------------------------------------------------/////
+				//on Dst Edge node, if traffic coming from SrcHost for dstHost will be mutated in dstIP as we hide the identity of dstHost  
+				//from network. So, we have to now change the mutated dstIP to original dstIp of the dstHost
+				this.installFlow(func.performFunction(newDstHost.getNodeConnectorConnectedTo(), 
+						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+						input.getSrcIpAddress(), input.getSrcIpAddress(),
+						input.getPathNodes().get(input.getPathNodes().size()-1)));
+				
+				//On Destination edge node, any traffic originating from dstHost will have its IP address and we have to hide its identity from   
+				//the network. So we change the srcIP of packets from actual dstHost to mutated IP
+				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
+						input.getSrcIpAddress(), input.getSrcIpAddress(),
+						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+						input.getPathNodes().get(input.getPathNodes().size()-1)));
+				
+				/*
 				//on Dst Edge node, if traffic coming from SrcHost for dstHost will be mutated in dstIP as we hide the identity of dstHost  
 				//from network. So, we have to now change the mutated dstIP to original dstIp of the dstHost
 				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
@@ -2716,6 +2796,7 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 						input.getDstIpAddress(),
 						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
 						input.getPathNodes().get(input.getPathNodes().size()-1)));
+						*/
 			}/////////////////////////////////////////////////////////////////
 			else if (input.getMutationEnd() instanceof BothCase){
 				BothCase bothCase = (BothCase) input.getMutationEnd();
@@ -2872,11 +2953,19 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 					public InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix dstIp,
 							Ipv4Prefix srcIp, NodeId nodeid) {
 						AssociatedActionsBuilder actionBuilder = new AssociatedActionsBuilder();
-						ForwardToPortBuilder forwardBuilder = new ForwardToPortBuilder();
-						forwardBuilder.setOutputNodeConnector(outputPort);
-						
-						actionBuilder.setFlowActions(new ForwardToPortCaseBuilder().
-								setForwardToPort(forwardBuilder.build()).build());
+	
+						if (outputPort.getValue() == "openflow:6:4294967293"){
+							ForwardToControllerBuilder forwardControllerBuilder = new ForwardToControllerBuilder();
+							actionBuilder.setFlowActions(new ForwardToControllerCaseBuilder().
+									setForwardToController(forwardControllerBuilder.build()).build());
+						}
+						else {
+							ForwardToPortBuilder forwardBuilder = new ForwardToPortBuilder();
+							forwardBuilder.setOutputNodeConnector(outputPort);
+							actionBuilder.setFlowActions(new ForwardToPortCaseBuilder().
+									setForwardToPort(forwardBuilder.build()).build());
+						}
+											
 						actionBuilder.setId((long)1);
 						List<AssociatedActions> actionList = Lists.newArrayList();
 						actionList.add(actionBuilder.build());
@@ -2916,8 +3005,10 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 					return RpcResultBuilder.success(output).buildFuture();
 				}
 				int index = 0;
+				LOG.debug("NodeConnectorID {}", input.getInpsectionSwitchPort());
 				try {
 					for (; index < pathNodes.size(); index++){
+						LOG.debug(pathNodes.get(index).getValue() , "=", input.getInspectionSwitchId().getValue());
 						//Future<RpcResult<InstallFlowOutput>> futureOutput = null;
 						//Future<RpcResult<InstallFlowOutput>> futureOutput1 = null;
 						if (index == 0){ // got the first switch
@@ -2929,7 +3020,8 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 										input.getSrcIpAddress(), input.getDstIpAddress(), pathNodes.get(index)));
 							}
 							if (index + 1 < pathNodes.size()){
-								if (pathNodes.get(index) == input.getInspectionSwitchId()){
+								if (pathNodes.get(index).getValue().equals(input.getInspectionSwitchId().getValue())){ //This is the switching node so we have to forward the port
+									//which is now the controller port
 									this.installFlow(func.performFunction(input.getInpsectionSwitchPort(), 
 											input.getDstIpAddress(), input.getSrcIpAddress(), pathNodes.get(index)));
 								}
@@ -2954,11 +3046,12 @@ public class TutorialTapProvider implements AutoCloseable, DataChangeListener, O
 						}/////////////////////////////////////////////////////////////////
 						//we have more than one switch
 						else if (index - 1 >= 0 && index + 1 < pathNodes.size()) {
-							if (pathNodes.get(index) == input.getInspectionSwitchId()) {
+							if (pathNodes.get(index).getValue().equals(input.getInspectionSwitchId().getValue())) {
 								this.installFlow(func.performFunction(
 										input.getInpsectionSwitchPort(),
 										input.getDstIpAddress(),
 										input.getSrcIpAddress(), pathNodes.get(index)));
+								LOG.debug("Installed the switch along the path with switchID {}", input.getInspectionSwitchId());
 							} else {
 								// forwarding direction rule i.e., src -> dst
 								Neighbors neighbor = getPortInformation(

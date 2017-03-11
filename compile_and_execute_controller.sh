@@ -5,6 +5,7 @@ echo "Compipling Active SDN "
 #mvn clean install -pl distribution -am -DskipTests=true -DskipIT -nsu -T 1C &&
 #cd /home/ubuntu/Downloads/SDNHub_Opendaylight_Tutorial/distribution
 mvn clean install -DskipTests -DskipIT -nsu -T 1C -offline &&
+#mvn clean install &&
 cd /home/ubuntu/Downloads/SDNHub_Opendaylight_Tutorial
 echo " Starting controller configuration after compilation"
 

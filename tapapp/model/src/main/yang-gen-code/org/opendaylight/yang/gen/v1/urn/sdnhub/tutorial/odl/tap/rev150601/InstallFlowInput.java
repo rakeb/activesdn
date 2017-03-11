@@ -92,6 +92,13 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.instal
  *                     }
  *                 }
  *             }
+ *             case set-dst-mac-address-case {
+ *                 container set-dst-mac-address {
+ *                     leaf value {
+ *                         type mac-address;
+ *                     }
+ *                 }
+ *             }
  *             case set-ipv4-tos-case {
  *                 container set-ipv4-tos {
  *                     leaf value {
@@ -145,6 +152,13 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.instal
  *                 container set-source-ipv4-address {
  *                     leaf value {
  *                         type ipv4-prefix;
+ *                     }
+ *                 }
+ *             }
+ *             case set-src-mac-address-case {
+ *                 container set-src-mac-address {
+ *                     leaf value {
+ *                         type mac-address;
  *                     }
  *                 }
  *             }

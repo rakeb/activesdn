@@ -294,6 +294,13 @@ import java.util.concurrent.Future;
  *                         }
  *                     }
  *                 }
+ *                 case set-dst-mac-address-case {
+ *                     container set-dst-mac-address {
+ *                         leaf value {
+ *                             type mac-address;
+ *                         }
+ *                     }
+ *                 }
  *                 case set-ipv4-tos-case {
  *                     container set-ipv4-tos {
  *                         leaf value {
@@ -347,6 +354,13 @@ import java.util.concurrent.Future;
  *                     container set-source-ipv4-address {
  *                         leaf value {
  *                             type ipv4-prefix;
+ *                         }
+ *                     }
+ *                 }
+ *                 case set-src-mac-address-case {
+ *                     container set-src-mac-address {
+ *                         leaf value {
+ *                             type mac-address;
  *                         }
  *                     }
  *                 }

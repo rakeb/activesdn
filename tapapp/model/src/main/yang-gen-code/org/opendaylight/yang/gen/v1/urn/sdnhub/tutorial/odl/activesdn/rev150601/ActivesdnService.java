@@ -21,6 +21,34 @@ import java.util.concurrent.Future;
  *         }
  *     }
  * }
+ * rpc install-path-segment {
+ *     input {
+ *         leaf src-ip-address {
+ *             type string;
+ *         }
+ *         leaf dst-ip-address {
+ *             type string;
+ *         }
+ *         leaf-list switches-in-path {
+ *             type int32;
+ *         }
+ *         leaf flow-priority {
+ *             type int32;
+ *         }
+ *         leaf idle-timeout {
+ *             type int32;
+ *         }
+ *         leaf hard-timeout {
+ *             type int32;
+ *         }
+ *     }
+ *     
+ *     output {
+ *         leaf status {
+ *             type string;
+ *         }
+ *     }
+ * }
  * rpc send-packet-out {
  *     input {
  *         leaf switch-id {
@@ -639,6 +667,8 @@ public interface ActivesdnService
 
 
     Future<RpcResult<RemoveAllFlowsFromASwitchOutput>> removeAllFlowsFromASwitch(RemoveAllFlowsFromASwitchInput input);
+    
+    Future<RpcResult<InstallPathSegmentOutput>> installPathSegment(InstallPathSegmentInput input);
     
     Future<RpcResult<SendPacketOutOutput>> sendPacketOut(SendPacketOutInput input);
     

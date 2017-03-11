@@ -18,7 +18,7 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
  *             type string;
  *         }
  *         leaf packet-drop-observed {
- *             type int32;
+ *             type uint32;
  *         }
  *     }
  * }
