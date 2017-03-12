@@ -663,7 +663,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		LOG.debug("     ==================================================================     ");
 
 		String rIpSrc = icmpPacket.getSourceAddress();
-		String vIpSrc = icmpPacket.getSourceAddress();
+		String vIpSrc = "10.0.0.2/32";
 		String rIpDst = "10.0.0.8/32";
 		String vIpDst = icmpPacket.getDestinationAddress();
 		
