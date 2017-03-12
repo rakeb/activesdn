@@ -995,6 +995,48 @@ module tap {
 		}
 	}
 	
+	
+	rpc ip-mutate-engine {
+		input {
+			leaf old-src-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf new-src-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf old-dst-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf new-dst-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf-list path-nodes {
+				min-elements 1;
+				type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+			}
+			leaf flow-priority {
+				default 200;
+				type int32;
+			}
+			leaf idle-timeout {
+				default 0;
+				type int32;
+			}
+			leaf hard-timeout {
+				default 0;
+				type int32;
+			}
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
+	
+	
 	rpc mutate-ip {
 		input {
 			leaf src-ip-address {

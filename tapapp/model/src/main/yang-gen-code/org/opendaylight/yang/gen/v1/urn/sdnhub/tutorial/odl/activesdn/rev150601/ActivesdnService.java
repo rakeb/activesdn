@@ -183,6 +183,40 @@ import java.util.concurrent.Future;
  *         }
  *     }
  * }
+ * rpc ip-mutate {
+ *     input {
+ *         leaf old-src-ip-address {
+ *             type string;
+ *         }
+ *         leaf new-src-ip-address {
+ *             type string;
+ *         }
+ *         leaf old-dst-ip-address {
+ *             type string;
+ *         }
+ *         leaf new-dst-ip-address {
+ *             type string;
+ *         }
+ *         leaf-list switches-in-path {
+ *             type int32;
+ *         }
+ *         leaf flow-priority {
+ *             type flow-priority;
+ *         }
+ *         leaf idle-timeout {
+ *             type idle-timeout;
+ *         }
+ *         leaf hard-timeout {
+ *             type hard-timeout;
+ *         }
+ *     }
+ *     
+ *     output {
+ *         leaf status {
+ *             type string;
+ *         }
+ *     }
+ * }
  * rpc install-flow-rule {
  *     input {
  *         leaf switch-id {
@@ -716,6 +750,8 @@ public interface ActivesdnService
     Future<RpcResult<UnsubscribeForStatsFromSwitchOutput>> unsubscribeForStatsFromSwitch(UnsubscribeForStatsFromSwitchInput input);
     
     Future<RpcResult<CreateSrcDstTunnelOutput>> createSrcDstTunnel(CreateSrcDstTunnelInput input);
+    
+    Future<RpcResult<IpMutateOutput>> ipMutate(IpMutateInput input);
     
     Future<RpcResult<InstallFlowRuleOutput>> installFlowRule(InstallFlowRuleInput input);
     

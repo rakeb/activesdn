@@ -483,6 +483,40 @@ import java.util.concurrent.Future;
  *         }
  *     }
  * }
+ * rpc ip-mutate-engine {
+ *     input {
+ *         leaf old-src-ip-address {
+ *             type ipv4-prefix;
+ *         }
+ *         leaf new-src-ip-address {
+ *             type ipv4-prefix;
+ *         }
+ *         leaf old-dst-ip-address {
+ *             type ipv4-prefix;
+ *         }
+ *         leaf new-dst-ip-address {
+ *             type ipv4-prefix;
+ *         }
+ *         leaf-list path-nodes {
+ *             type leafref;
+ *         }
+ *         leaf flow-priority {
+ *             type flow-priority;
+ *         }
+ *         leaf idle-timeout {
+ *             type idle-timeout;
+ *         }
+ *         leaf hard-timeout {
+ *             type hard-timeout;
+ *         }
+ *     }
+ *     
+ *     output {
+ *         leaf status {
+ *             type string;
+ *         }
+ *     }
+ * }
  * rpc getAllSwitches {
  *     output {
  *         leaf-list nodes {
@@ -675,6 +709,8 @@ public interface TapService
     Future<RpcResult<MovePathOutput>> movePath(MovePathInput input);
     
     Future<RpcResult<CheckingOutput>> checking(CheckingInput input);
+    
+    Future<RpcResult<IpMutateEngineOutput>> ipMutateEngine(IpMutateEngineInput input);
     
     Future<RpcResult<GetAllSwitchesOutput>> getAllSwitches();
     

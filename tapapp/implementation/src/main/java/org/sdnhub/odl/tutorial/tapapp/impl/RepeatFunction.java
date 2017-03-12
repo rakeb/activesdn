@@ -9,6 +9,6 @@ public interface RepeatFunction {
 
 	InstallFlowInput performFunction (NodeConnectorId outputPort, Ipv4Prefix dstIp, Ipv4Prefix srcIp, NodeId nodeid);
 	InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix curDstIp,
-			Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp,
+			Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp, boolean setMac,
 			NodeId nodeid);
 }

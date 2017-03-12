@@ -105,6 +105,9 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentOutputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IpMutateInput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IpMutateOutput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IpMutateOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IsLinkFloodedBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInputBuilder;
@@ -165,6 +168,8 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.Instal
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathBwNodesOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathOutput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.IpMutateEngineInputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.IpMutateEngineOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.LocalIpv4Prefix;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MigratePathInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MigratePathInputBuilder;
@@ -786,6 +791,50 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 				tapService.mutateIp(mutateIpBuilder.build());
 				if (mutateIpFutureOutput != null) {
 					CreateSrcDstTunnelOutput output = new CreateSrcDstTunnelOutputBuilder().
+							setStatus(mutateIpFutureOutput.get().getResult().getStatus()).build();
+					return RpcResultBuilder.success(output).buildFuture();
+				}
+				else {
+					String exception = "No Tunnel could be installed.";
+					throw new Exception(exception);
+				}
+			}
+		} catch (Exception e){
+			LOG.error("Exception reached in Create Source Destination lTunnel RPC {} --------", e);
+			return null;
+		}
+	}
+	
+	@Override
+	public Future<RpcResult<IpMutateOutput>> ipMutate(IpMutateInput input) {
+		IpMutateEngineInputBuilder mutateIpBuilder = new IpMutateEngineInputBuilder();
+		try {
+			if (input.getOldDstIpAddress() == null || input.getOldSrcIpAddress() == null || 
+					input.getNewDstIpAddress() == null || input.getNewSrcIpAddress() == null || 
+					input.getSwitchesInPath()== null) {
+				String exception = "Incomplete Data is provided and some parameter has null value.";
+				throw new Exception(exception);
+			}
+			else {
+				mutateIpBuilder.setOldDstIpAddress(new Ipv4Prefix(input.getOldDstIpAddress()));
+				mutateIpBuilder.setOldSrcIpAddress(new Ipv4Prefix(input.getOldSrcIpAddress()));
+				mutateIpBuilder.setNewDstIpAddress(new Ipv4Prefix(input.getNewDstIpAddress()));
+				mutateIpBuilder.setNewSrcIpAddress(new Ipv4Prefix(input.getNewSrcIpAddress()));
+				List<NodeId> nodeList = Lists.newArrayList();
+				for (int node: input.getSwitchesInPath()){
+					NodeId nodeId = new NodeId("openflow:" + Integer.toString(node));
+					nodeList.add(nodeId);
+				}
+				mutateIpBuilder.setPathNodes(nodeList);
+				
+				mutateIpBuilder.setFlowPriority(input.getFlowPriority());
+				mutateIpBuilder.setIdleTimeout(input.getIdleTimeout());
+				mutateIpBuilder.setHardTimeout(input.getHardTimeout());
+				///-------------------------------
+				Future<RpcResult<IpMutateEngineOutput>> mutateIpFutureOutput =  
+				tapService.ipMutateEngine(mutateIpBuilder.build());
+				if (mutateIpFutureOutput != null) {
+					IpMutateOutput output = new IpMutateOutputBuilder().
 							setStatus(mutateIpFutureOutput.get().getResult().getStatus()).build();
 					return RpcResultBuilder.success(output).buildFuture();
 				}
@@ -1914,19 +1963,4 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			this.notificationService.publish(linkFlooded.build());
 		}
 	}
-
-//<<<<<<< HEAD:tapapp/implementation/src/main/java/org/sdnhub/odl/tutorial/tapapp/impl/ActiveSDNApi.java
-	
-
-
-//=======
-//>>>>>>> master:tapapp/implementation/src/main/java/org/sdnhub/odl/tutorial/tapapp/impl/ActivesdnServiceImpl.java
-//	@Override
-//	public Future<RpcResult<CanReachOutput>> canReach(CanReachInput input) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-
-	
-	
 }

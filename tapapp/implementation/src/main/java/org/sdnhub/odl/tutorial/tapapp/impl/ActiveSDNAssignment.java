@@ -29,6 +29,7 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallFlowRuleInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallNetworkPathInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentInputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IpMutateInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IsDropboxDetected;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IsLinkFlooded;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInputBuilder;
@@ -637,10 +638,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 
 	}
 	
-	private void srcDstMutate(EventTriggered notification, List<String> path) {
-		// /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		// ------------------------------createDstOnlyTunnel() Function
-		// /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	private void ipMutate(EventTriggered notification, List<String> path) {
 		IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
 
 		// LOG.debug("Control is returned");
@@ -648,7 +646,6 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 //		ConnectedHostInfo dstHost = hostTable.get(icmpPacket.getDestinationAddress());
 		
 		List<Integer> pathNodes = Lists.newArrayList(); // list of switches
-		// along the path
 
 //		List<String> path = topology.findShortestPath(srcHost.getSwitchConnectedTo(), dstHost.getSwitchConnectedTo());
 		if (path != null) {
@@ -665,28 +662,38 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		LOG.debug("     RHM starts...");
 		LOG.debug("     ==================================================================     ");
 
-//		String rIpSrc = icmpPacket.getSourceAddress();
-//		String rIpDst = "10.0.0.8/32";
-//		String vIpSrc = icmpPacket.getSourceAddress();
-//		String vIpDst = icmpPacket.getDestinationAddress();
-		
 		String rIpSrc = icmpPacket.getSourceAddress();
-		String rIpDst = "10.0.0.8/32";
 		String vIpSrc = icmpPacket.getSourceAddress();
-		String vIpDst = "10.0.0.8/32";
+		String rIpDst = "10.0.0.8/32";
+		String vIpDst = icmpPacket.getDestinationAddress();
 		
-		CreateSrcDstTunnelInputBuilder srcDstTunnelBuilder = new CreateSrcDstTunnelInputBuilder();
-		srcDstTunnelBuilder.setCurrentSrcIpAddress(vIpSrc); //src vIP -> test case 10.0.0.1
-		srcDstTunnelBuilder.setNewSrcIpAddress(rIpSrc); //src rIP -> test case 10.0.0.1
-		srcDstTunnelBuilder.setCurrentDstIpAddress(vIpDst); // dst vIP -> test case 10.0.0.7
-		srcDstTunnelBuilder.setNewDstIpAddress(rIpDst); //dst rIP  -> test case 10.0.0.8
-		srcDstTunnelBuilder.setFlowPriority(400);
-		srcDstTunnelBuilder.setIdleTimeout(0);
-		srcDstTunnelBuilder.setHardTimeout(0); //if you want the flow to remain forever in the switch
+		IpMutateInputBuilder ipMutateInputBuilder = new IpMutateInputBuilder();
 		
-		srcDstTunnelBuilder.setSwitchesInPath(pathNodes);
+		ipMutateInputBuilder.setOldSrcIpAddress(vIpSrc);
+		ipMutateInputBuilder.setNewSrcIpAddress(rIpSrc);
+		ipMutateInputBuilder.setOldDstIpAddress(vIpDst);
+		ipMutateInputBuilder.setNewDstIpAddress(rIpDst);
 		
-		this.activeSDNService.createSrcDstTunnel(srcDstTunnelBuilder.build());
+		ipMutateInputBuilder.setSwitchesInPath(pathNodes);
+		
+		ipMutateInputBuilder.setFlowPriority(400);
+		ipMutateInputBuilder.setIdleTimeout(0);
+		ipMutateInputBuilder.setHardTimeout(0);
+		
+		this.activeSDNService.ipMutate(ipMutateInputBuilder.build());
+		
+//		CreateSrcDstTunnelInputBuilder srcDstTunnelBuilder = new CreateSrcDstTunnelInputBuilder();
+//		srcDstTunnelBuilder.setCurrentSrcIpAddress(vIpSrc); //src vIP -> test case 10.0.0.1
+//		srcDstTunnelBuilder.setNewSrcIpAddress(rIpSrc); //src rIP -> test case 10.0.0.1
+//		srcDstTunnelBuilder.setCurrentDstIpAddress(vIpDst); // dst vIP -> test case 10.0.0.7
+//		srcDstTunnelBuilder.setNewDstIpAddress(rIpDst); //dst rIP  -> test case 10.0.0.8
+//		srcDstTunnelBuilder.setFlowPriority(400);
+//		srcDstTunnelBuilder.setIdleTimeout(0);
+//		srcDstTunnelBuilder.setHardTimeout(0); //if you want the flow to remain forever in the switch
+//		
+//		srcDstTunnelBuilder.setSwitchesInPath(pathNodes);
+//		
+//		this.activeSDNService.createSrcDstTunnel(srcDstTunnelBuilder.build());
 		
 
 		LOG.debug("     ==================================================================     ");
@@ -1069,6 +1076,10 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 					packetOutBuilder.setOutputPort(TABLE); 
 				
 					this.activeSDNService.sendPacketOut(packetOutBuilder.build());
+					
+					if (installedPaths.size() == 2) {
+						ipMutate(notification, path);
+					}
 					
 					if (installedPaths.size() == 3){
 						//GetAllFlowRulesFromASwitchInputBuilder switchFlow = new GetAllFlowRulesFromASwitchInputBuilder();
