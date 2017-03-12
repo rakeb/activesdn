@@ -20,4 +20,5 @@ MANIFEST.MF
 *.jar
 *.war
 *.ear
+yang-gen-code/
 yang-gen-config/
