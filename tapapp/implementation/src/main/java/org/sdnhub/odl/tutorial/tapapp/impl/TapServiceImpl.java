@@ -2782,10 +2782,10 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			Ipv4Prefix vIpDst = input.getOldDstIpAddress();
 					
 			
-			LOG.debug("     ==================================================================     ");
-			LOG.debug("     For mutation we found, rIpSrc {}, rIpDst{}, vIpSrc {}, vIpDst{}", rIpSrc.getValue(), rIpDst.getValue(),
-					vIpSrc.getValue(), vIpDst.getValue());
-			LOG.debug("     ==================================================================     ");
+//			LOG.debug("     ==================================================================     ");
+//			LOG.debug("     For mutation we found, rIpSrc {}, rIpDst{}, vIpSrc {}, vIpDst{}", rIpSrc.getValue(), rIpDst.getValue(),
+//					vIpSrc.getValue(), vIpDst.getValue());
+//			LOG.debug("     ==================================================================     ");
 			
 			List<NodeId> pathNodes = Lists.newArrayList();
 			pathNodes.add(input.getPathNodes().get(0));
@@ -2802,9 +2802,9 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			ConnectedHost dstHost = getHostInfo(rIpDst.getValue());
 			
 
-			LOG.debug("     ==================================================================     ");
-			LOG.debug("     And srcHost {}, dstHost{}", srcHost.getNodeConnectedTo().getValue(), dstHost.getNodeConnectedTo().getValue());
-			LOG.debug("     ==================================================================     ");
+//			LOG.debug("     ==================================================================     ");
+//			LOG.debug("     And srcHost {}, dstHost{}", srcHost.getNodeConnectedTo().getValue(), dstHost.getNodeConnectedTo().getValue());
+//			LOG.debug("     ==================================================================     ");
 			
 //			Lets assume the condition, rIp's are h1,h2 and vIp's are h3,h4
 //			First switch: going to destination
@@ -3961,9 +3961,9 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			if (allInstalledFlows.containsKey(switchToDstKey)){
 				List<String> flowIds = allInstalledFlows.get(switchToDstKey);
 				for (String flowIdStr : flowIds) {
-					LOG.debug("     ---------------------------------------------------------------------     ");
-					LOG.debug("		Delete forwading rule to : {}", flowIdStr);
-					LOG.debug("     ---------------------------------------------------------------------     ");
+//					LOG.debug("     ---------------------------------------------------------------------     ");
+//					LOG.debug("		Delete forwading rule to : {}", flowIdStr);
+//					LOG.debug("     ---------------------------------------------------------------------     ");
 					
 	            	FlowBuilder flowBuilder = new FlowBuilder();
 	            	FlowKey key = new FlowKey(new FlowId(flowIdStr));
@@ -3992,9 +3992,9 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			if (allInstalledFlows.containsKey(switchToSrcKey)){
 				List<String> flowIds = allInstalledFlows.get(switchToSrcKey);
 				for (String flowIdStr : flowIds) {
-					LOG.debug("     ---------------------------------------------------------------------     ");
-					LOG.debug("		Delete reversing rule to : {}", flowIdStr);
-					LOG.debug("     ---------------------------------------------------------------------     ");
+//					LOG.debug("     ---------------------------------------------------------------------     ");
+//					LOG.debug("		Delete reversing rule to : {}", flowIdStr);
+//					LOG.debug("     ---------------------------------------------------------------------     ");
 	            	
 					FlowBuilder flowBuilder = new FlowBuilder();
 					FlowKey key = new FlowKey(new FlowId(flowIdStr));

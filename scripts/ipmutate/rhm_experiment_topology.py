@@ -131,13 +131,16 @@ def pingTest( net ):
     host4 = net.hosts[3]
     host5 = net.hosts[4]
     host6 = net.hosts[5]
+    host7 = net.hosts[6]
 
     host4.cmd('bash rhm_host4.sh &')
     host5.cmd('bash rhm_host5.sh &')
     host6.cmd('bash rhm_host6.sh &')
+    
+    host7.cmd('bash host7_holt.sh')
 
     host1.cmd('bash rhm_host1.sh &')
-    #host2.cmd('bash rhm_host2.sh &')
+    host2.cmd('bash rhm_host2.sh &')
    
         
 def find_all(a_str, sub_str):

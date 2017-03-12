@@ -114,7 +114,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
     
     boolean ipMutationPathFirstTime = true;
     private long ipMutationDuration;
-    private static final int ipMutationTrigger = 20;
+    private static final int IPMMUTATIONTRIGGER = 20;
+    private static final String RIP_DST = "10.0.0.8/32";
     private long ipMutationTimeDifference;
     
     private long mutationDuration = 0;
@@ -664,11 +665,11 @@ public class ActiveSDNAssignment implements ActivesdnListener{
         if (ipMutationPathFirstTime) {
             ipMutationDuration = seconds;
             ipMutationPathFirstTime = false;
-            return 1;
+//            return 1;
         } else {
             ipMutationTimeDifference = seconds - ipMutationDuration;
         }
-        long index = (ipMutationTimeDifference/ipMutationTrigger) % 6;
+        long index = (ipMutationTimeDifference/IPMMUTATIONTRIGGER) % 6;
         
         return (int) index;
 	}
@@ -681,14 +682,29 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		String rIpSrc = icmpPacket.getSourceAddress();
 //		String vIpSrc = "10.0.0.2/32";
 		String vIpSrc = icmpPacket.getSourceAddress();
-		String rIpDst = "10.0.0.8/32";
+		String rIpDst = RIP_DST;
 		String vIpDst = icmpPacket.getDestinationAddress();
 		
-		String key = vIpSrc + ":" + vIpDst;
+//		String key = vIpSrc + ":" + vIpDst;
 //		Integer key =  new Integer(vIpIndex);
 //		String key = Integer.toString(vIpIndex);
 		
+		vIpIndex = changeVip();
+		
 		String currentVipFromController = vIpList.get(vIpIndex);
+		
+		String nextVipFromController;
+		
+		if (vIpIndex + 1 > 5) {
+			 nextVipFromController = vIpList.get(0);
+		} else {
+			nextVipFromController = vIpList.get(vIpIndex + 1);
+		}
+		
+		LOG.debug("     ==================================================================     ");
+		LOG.debug("     Using the following vIP {} and vIP Index {}",  currentVipFromController, vIpIndex);
+		LOG.debug("     Every {} seconds vIP changed, so use the following vIP {} next time", IPMMUTATIONTRIGGER,  nextVipFromController);
+		LOG.debug("     ==================================================================     ");
 		
 		if (!vIpDst.equals(currentVipFromController)) {
 			if (vIpSrc.equals(currentVipFromController)) {
@@ -696,7 +712,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				sendingPacketOut(notification);
 			}
 			LOG.debug("     ==================================================================     ");
-			LOG.debug("     Dropping pakcets as the current Destination {} is not same as vIP {} is not using ...", vIpDst, currentVipFromController);
+			LOG.debug("     Dropping pakcets from {} to {} ...", vIpSrc, vIpDst);
+			LOG.debug("     Because destination {} doesn't matched with vIP {}", vIpDst, currentVipFromController);
 			LOG.debug("     ==================================================================     ");
 //			if (vIpDst.equals(rIpDst)) {
 //				blockIP(rIpSrc, vIpDst, null, notification.getSwitchId(), 40);
@@ -708,17 +725,17 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 //			if (!alreadyMutated.contains(key)) {
 				
 				LOG.debug("     ==================================================================     ");
-				LOG.debug("     Ip Mutation starts with vIP Index {}, and vIP {}", vIpIndex, currentVipFromController);
+				LOG.debug("     Staring IP Mutation using vIP {} and rIP {}", currentVipFromController, rIpDst);
 				LOG.debug("     ==================================================================     ");
 				
 				if (path != null) {
 					for (String node : path) {
 						pathNodes.add(Integer.parseInt(node));
 					}
-					LOG.debug("     ==================================================================     ");
-					LOG.debug("     Using path for Ip Mutate is ");
-					LOG.debug("		" + path.toString());
-					LOG.debug("     ==================================================================     ");
+//					LOG.debug("     ==================================================================     ");
+//					LOG.debug("     Using path for Ip Mutate is ");
+//					LOG.debug("		" + path.toString());
+//					LOG.debug("     ==================================================================     ");
 				}
 				
 				IpMutateInputBuilder ipMutateInputBuilder = new IpMutateInputBuilder();
@@ -732,7 +749,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				
 				ipMutateInputBuilder.setFlowPriority(400);
 				ipMutateInputBuilder.setIdleTimeout(0);
-				ipMutateInputBuilder.setHardTimeout(ipMutationTrigger);
+				ipMutateInputBuilder.setHardTimeout(IPMMUTATIONTRIGGER);
 				
 				this.activeSDNService.ipMutate(ipMutateInputBuilder.build());
 				
@@ -746,11 +763,11 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 //					vIpIndex %= 5;
 //				}
 				
-				vIpIndex = changeVip();
-				
-				LOG.debug("     ==================================================================     ");
-				LOG.debug("     Every {} seconds vIP changed, so use the following vIP {} and vIP Index {}", ipMutationTrigger,  vIpList.get(vIpIndex), vIpIndex);
-				LOG.debug("     ==================================================================     ");
+//				vIpIndex = changeVip();
+//				
+//				LOG.debug("     ==================================================================     ");
+//				LOG.debug("     Every {} seconds vIP changed, so use the following vIP {} and vIP Index {}", ipMutationTrigger,  vIpList.get(vIpIndex), vIpIndex);
+//				LOG.debug("     ==================================================================     ");
 				
 				sendingPacketOut(notification);
 				
