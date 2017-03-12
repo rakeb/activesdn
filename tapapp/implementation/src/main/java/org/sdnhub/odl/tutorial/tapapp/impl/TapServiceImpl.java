@@ -2790,13 +2790,13 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			List<NodeId> pathNodes = Lists.newArrayList();
 			pathNodes.add(input.getPathNodes().get(0));
 			pathNodes.add(input.getPathNodes().get(input.getPathNodes().size() -1));
-			
-//				removeAllFlowRulesInPath(pathNodes , bothCase.getBoth().getNewSrcIpAddress(), bothCase.getBoth().getNewDstIpAddress());
-			removeAllFlowRulesInPath(pathNodes , vIpSrc, vIpDst);
-			List gateways = Lists.newArrayList();
-			gateways.add(pathNodes.get(0));
-			gateways.add(pathNodes.get(pathNodes.size()-1));
-			removeAllFlowRulesInPath(gateways , rIpSrc, rIpDst);
+//			
+//			removeAllFlowRulesInPath(pathNodes , vIpSrc, vIpDst);
+//			List gateways = Lists.newArrayList();
+//			gateways.add(pathNodes.get(0));
+//			gateways.add(pathNodes.get(pathNodes.size()-1));
+//			removeAllFlowRulesInPath(gateways , rIpSrc, rIpDst);
+			removeAllFlowRulesInPath(pathNodes , rIpSrc, rIpDst);
 			
 			ConnectedHost srcHost = getHostInfo(rIpSrc.getValue());
 			ConnectedHost dstHost = getHostInfo(rIpDst.getValue());
