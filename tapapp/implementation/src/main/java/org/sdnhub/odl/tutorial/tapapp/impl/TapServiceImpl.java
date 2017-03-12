@@ -2155,7 +2155,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			@Override
 			public InstallFlowInput performFunction(NodeConnectorId outputPort,
 					Ipv4Prefix curDstIp, Ipv4Prefix newDstIp,
-					Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp, NodeId nodeid) {
+					Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp, boolean setMac, NodeId nodeid) {
 				// TODO Auto-generated method stub
 				return null;
 			}
@@ -2306,7 +2306,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 				public InstallFlowInput performFunction(
 						NodeConnectorId outputPort, Ipv4Prefix curDstIp,
 						Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp,
-						Ipv4Prefix newSrcIp, NodeId nodeid) {
+						Ipv4Prefix newSrcIp, boolean setMac, NodeId nodeid) {
 					// TODO Auto-generated method stub
 					return null;
 				}
@@ -2545,7 +2545,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 				public InstallFlowInput performFunction(
 						NodeConnectorId outputPort, Ipv4Prefix curDstIp,
 						Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp,
-						Ipv4Prefix newSrcIp, NodeId nodeid) {
+						Ipv4Prefix newSrcIp, boolean setMac, NodeId nodeid) {
 					// TODO Auto-generated method stub
 					return null;
 				}
@@ -2627,7 +2627,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 				public InstallFlowInput performFunction(
 						NodeConnectorId outputPort, Ipv4Prefix curDstIp,
 						Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp,
-						Ipv4Prefix newSrcIp, NodeId nodeid) {
+						Ipv4Prefix newSrcIp, boolean setMac, NodeId nodeid) {
 					// TODO Auto-generated method stub
 					return null;
 				}
@@ -2690,7 +2690,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 		RepeatFunction func = new RepeatFunction() {	
 			@Override
 			public InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix curDstIp,
-					Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp,
+					Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp, boolean setMac,
 					NodeId nodeid) {
 				
 				LOG.debug("     ==================================================================     ");
@@ -2710,7 +2710,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 					actionList.add(actionBuilder.build());
 					/////////////////////////////////////
 					ConnectedHost host = getHostInfo(newSrcIp.getValue());
-					if (host != null){
+					if (host != null && setMac){
 						SetSrcMacAddressBuilder srcMacBuilder = new SetSrcMacAddressBuilder();
 						srcMacBuilder.setValue(host.getHostMacAddress());
 						actionBuilder.setFlowActions(new SetSrcMacAddressCaseBuilder().
@@ -2728,7 +2728,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 					actionList.add(actionBuilder.build());
 					//////////////////////////
 					ConnectedHost host = getHostInfo(newDstIp.getValue());
-					if (host != null){
+					if (host != null && setMac){
 						SetDstMacAddressBuilder dstMacBuilder = new SetDstMacAddressBuilder();
 						dstMacBuilder.setValue(host.getHostMacAddress());
 						actionBuilder.setFlowActions(new SetDstMacAddressCaseBuilder().
@@ -2792,7 +2792,11 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			pathNodes.add(input.getPathNodes().get(input.getPathNodes().size() -1));
 			
 //				removeAllFlowRulesInPath(pathNodes , bothCase.getBoth().getNewSrcIpAddress(), bothCase.getBoth().getNewDstIpAddress());
-//				removeAllFlowRulesInPath(pathNodes , rIpSrc, rIpDst);
+			removeAllFlowRulesInPath(pathNodes , vIpSrc, vIpDst);
+			List gateways = Lists.newArrayList();
+			gateways.add(pathNodes.get(0));
+			gateways.add(pathNodes.get(pathNodes.size()-1));
+			removeAllFlowRulesInPath(gateways , rIpSrc, rIpDst);
 			
 			ConnectedHost srcHost = getHostInfo(rIpSrc.getValue());
 			ConnectedHost dstHost = getHostInfo(rIpDst.getValue());
@@ -2804,54 +2808,54 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			
 //			Lets assume the condition, rIp's are h1,h2 and vIp's are h3,h4
 //			First switch: going to destination
-//			Now,	h1 --> h2 is actual traffic
-//			to 		h3 --> h4 is executed
+//			What we got		h1 --> h4
+//			what we want	h1 --> h2	MAC change
 //			rIpSrc = h1 //these four are fixed
 //			rIpDst = h2
 //			vIpSrc = h3
 //			vIpDst = h4
-// 			So change will be like: for destination: h4->h2, for source: h3->h1
+// 			So change will be like: for destination: h4->h2, for source: h1->h1
 			this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(), 
-					vIpDst, rIpDst,	vIpSrc, rIpSrc, 
+					vIpDst, rIpDst,	rIpSrc, rIpSrc, true,
 					input.getPathNodes().get(0)));
 
 			//			Lets assume the condition, rIp's are h1,h2 and vIp's are h3,h4
 //			First switch: going to destination
-//			Now,	h2 --> h1 is actual traffic which will be changed
-//			to 		h4 --> h3 need to be executed
+//			What we got 	h2 --> h1 
+//			What we want	h4 --> h1 NO MAC change
 //			rIpSrc = h1 //these four are fixed
 //			rIpDst = h2
 //			vIpSrc = h3
 //			vIpDst = h4
-// 			So change will be like: for destination: h1->h3, for source: h2->h4
+// 			So change will be like: for destination: h1->h1, for source: h2->h4
 			this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(),
-					rIpSrc, vIpSrc, rIpDst, vIpDst,
+					rIpSrc, rIpSrc, rIpDst, vIpDst, false,
 					input.getPathNodes().get(0)));
 			
 //			Lets assume the condition, rIp's are h1,h2 and vIp's are h3,h4
 //			Last switch: going to destination
-//			Now,	h1 --> h2 is actual traffic which will be changed
-//			to 		h3 --> h4 is executed
+//			What we got 	h1 --> h2
+//			What we want	h3 --> h2 NO MAC change
 //			rIpSrc = h1 //these four are fixed
 //			rIpDst = h2
 //			vIpSrc = h3
 //			vIpDst = h4
-// 			So change will be like: for destination: h2->h4, for source: h1->h3
+// 			So change will be like: for destination: h2->h2, for source: h1->h3
 			this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
-						rIpDst, vIpDst, rIpSrc, vIpSrc,
+						rIpDst, rIpDst, rIpSrc, vIpSrc, false,
 						input.getPathNodes().get(input.getPathNodes().size()-1)));
 			
 //			Lets assume the condition, rIp's are h1,h2 and vIp's are h3,h4
 //			Last switch: going to source
-//			Now,	h2 --> h1 is actual traffic 
-//			to 		h4 --> h3 is need to be executed
+//			What we got		h2 --> h3 
+//			What we want	h2 --> h1 MAC change
 //			rIpSrc = h1 //these four are fixed
 //			rIpDst = h2
 //			vIpSrc = h3
 //			vIpDst = h4
-// 			So change will be like: for destination: h1->h3, for source: h2->h4
+// 			So change will be like: for destination: h3->h1, for source: h2->h2
 			this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
-					rIpSrc, vIpSrc, rIpDst, vIpDst,
+					vIpSrc, rIpSrc, rIpDst, rIpDst, true,
 					input.getPathNodes().get(input.getPathNodes().size()-1)));
 
 		} catch (Exception e) {
@@ -2874,7 +2878,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 		RepeatFunction func = new RepeatFunction() {	
 			@Override
 			public InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix curDstIp,
-					Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp,
+					Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp,  boolean setMac,
 					NodeId nodeid) {
 				
 				LOG.debug("     ==================================================================     ");
@@ -3182,7 +3186,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 //						input.getSrcIpAddress(), bothCase.getBoth().getNewSrcIpAddress(), 
 //						input.getPathNodes().get(0)));
 				this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(), 
-						vIpDst, rIpDst,	vIpSrc, rIpSrc, 
+						vIpDst, rIpDst,	vIpSrc, rIpSrc, false,
 						input.getPathNodes().get(0)));
 				
 				//On source edge node, traffic coming from mutated dstHost IP to mutated srcHost IP should be 
@@ -3192,7 +3196,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 //						bothCase.getBoth().getNewDstIpAddress(), input.getDstIpAddress(), 
 //						input.getPathNodes().get(0)));
 				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(),
-						rIpSrc, vIpSrc, rIpDst, vIpDst,
+						rIpSrc, vIpSrc, rIpDst, vIpDst, false,
 						input.getPathNodes().get(0)));
 				
 				//On dst edge node, traffic coming for actual dstHost is mutated in both src and dst IPs
@@ -3622,7 +3626,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 					@Override
 					public InstallFlowInput performFunction(NodeConnectorId outputPort,
 							Ipv4Prefix curDstIp, Ipv4Prefix newDstIp,
-							Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp, NodeId nodeid) {
+							Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp, boolean setMac, NodeId nodeid) {
 						// TODO Auto-generated method stub
 						return null;
 					}
