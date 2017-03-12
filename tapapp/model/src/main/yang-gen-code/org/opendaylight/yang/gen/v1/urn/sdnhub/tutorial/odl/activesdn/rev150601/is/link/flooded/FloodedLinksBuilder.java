@@ -19,7 +19,7 @@ public class FloodedLinksBuilder implements Builder <org.opendaylight.yang.gen.v
 
     private FloodedLinksKey _key;
     private java.lang.String _linkId;
-    private java.lang.Integer _packetDropObserved;
+    private java.lang.Long _packetDropObserved;
 
     Map<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.is.link.flooded.FloodedLinks>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.is.link.flooded.FloodedLinks>> augmentation = Collections.emptyMap();
 
@@ -60,7 +60,7 @@ public class FloodedLinksBuilder implements Builder <org.opendaylight.yang.gen.v
         return _linkId;
     }
     
-    public java.lang.Integer getPacketDropObserved() {
+    public java.lang.Long getPacketDropObserved() {
         return _packetDropObserved;
     }
     
@@ -85,7 +85,17 @@ public class FloodedLinksBuilder implements Builder <org.opendaylight.yang.gen.v
     }
     
      
-    public FloodedLinksBuilder setPacketDropObserved(final java.lang.Integer value) {
+     private static void checkPacketDropObservedRange(final long value) {
+         if (value >= 0L && value <= 4294967295L) {
+             return;
+         }
+         throw new IllegalArgumentException(String.format("Invalid range: %s, expected: [[0‥4294967295]].", value));
+     }
+    
+    public FloodedLinksBuilder setPacketDropObserved(final java.lang.Long value) {
+    if (value != null) {
+        checkPacketDropObservedRange(value);
+    }
         this._packetDropObserved = value;
         return this;
     }
@@ -122,7 +132,7 @@ public class FloodedLinksBuilder implements Builder <org.opendaylight.yang.gen.v
 
         private final FloodedLinksKey _key;
         private final java.lang.String _linkId;
-        private final java.lang.Integer _packetDropObserved;
+        private final java.lang.Long _packetDropObserved;
 
         private Map<java.lang.Class<? extends Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.is.link.flooded.FloodedLinks>>, Augmentation<org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.is.link.flooded.FloodedLinks>> augmentation = Collections.emptyMap();
 
@@ -161,7 +171,7 @@ public class FloodedLinksBuilder implements Builder <org.opendaylight.yang.gen.v
         }
         
         @Override
-        public java.lang.Integer getPacketDropObserved() {
+        public java.lang.Long getPacketDropObserved() {
             return _packetDropObserved;
         }
         

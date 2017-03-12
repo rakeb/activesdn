@@ -248,7 +248,7 @@ def simpleTest():
     print "Testing network connectivity"
     #ifconfigTest(net)
     createQueues()
-    pingTest(net)
+    #pingTest(net)
     #net.pingAll()
     
     CLI(net)

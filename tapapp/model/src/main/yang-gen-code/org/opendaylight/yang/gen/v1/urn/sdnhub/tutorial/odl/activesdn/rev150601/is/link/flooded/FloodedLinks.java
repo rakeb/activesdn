@@ -16,7 +16,7 @@ import org.opendaylight.yangtools.yang.binding.Identifiable;
  *         type string;
  *     }
  *     leaf packet-drop-observed {
- *         type int32;
+ *         type uint32;
  *     }
  * }
  * </pre>
@@ -42,7 +42,7 @@ public interface FloodedLinks
 
     java.lang.String getLinkId();
     
-    java.lang.Integer getPacketDropObserved();
+    java.lang.Long getPacketDropObserved();
     
     /**
      * Returns Primary Key of Yang List Type

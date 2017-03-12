@@ -654,6 +654,13 @@ import org.opendaylight.yangtools.yang.binding.DataRoot;
  *                     }
  *                 }
  *             }
+ *             case set-dst-mac-address-case {
+ *                 container set-dst-mac-address {
+ *                     leaf value {
+ *                         type mac-address;
+ *                     }
+ *                 }
+ *             }
  *             case set-ipv4-tos-case {
  *                 container set-ipv4-tos {
  *                     leaf value {
@@ -707,6 +714,13 @@ import org.opendaylight.yangtools.yang.binding.DataRoot;
  *                 container set-source-ipv4-address {
  *                     leaf value {
  *                         type ipv4-prefix;
+ *                     }
+ *                 }
+ *             }
+ *             case set-src-mac-address-case {
+ *                 container set-src-mac-address {
+ *                     leaf value {
+ *                         type mac-address;
  *                     }
  *                 }
  *             }
@@ -1070,6 +1084,13 @@ import org.opendaylight.yangtools.yang.binding.DataRoot;
  *                             }
  *                         }
  *                     }
+ *                     case set-dst-mac-address-case {
+ *                         container set-dst-mac-address {
+ *                             leaf value {
+ *                                 type mac-address;
+ *                             }
+ *                         }
+ *                     }
  *                     case set-ipv4-tos-case {
  *                         container set-ipv4-tos {
  *                             leaf value {
@@ -1123,6 +1144,13 @@ import org.opendaylight.yangtools.yang.binding.DataRoot;
  *                         container set-source-ipv4-address {
  *                             leaf value {
  *                                 type ipv4-prefix;
+ *                             }
+ *                         }
+ *                     }
+ *                     case set-src-mac-address-case {
+ *                         container set-src-mac-address {
+ *                             leaf value {
+ *                                 type mac-address;
  *                             }
  *                         }
  *                     }

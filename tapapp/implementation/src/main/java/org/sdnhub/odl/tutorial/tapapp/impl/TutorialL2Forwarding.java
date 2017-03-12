@@ -126,33 +126,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 @SuppressWarnings("deprecation")
-//import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.ProtocolInfo;
-//import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.ProtocolInfoBuilder;
-//import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.arp.rev140528.ArpPacketReceived;
-//import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.arp.rev140528.ArpPacketReceivedBuilder;
-/*
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.arp.rev140528.KnownHardwareType;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.arp.rev140528.KnownOperation;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.arp.rev140528.arp.packet.received.packet.chain.packet.ArpPacket;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.arp.rev140528.arp.packet.received.packet.chain.packet.ArpPacketBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528.PacketPayload;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528.packet.chain.grp.PacketChain;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528.packet.chain.grp.PacketChainBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.basepacket.rev140528.packet.chain.grp.packet.chain.Packet;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.EthernetPacketListener;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.EthernetPacketReceived;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.EthernetPacketReceivedBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.KnownEtherType;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.ethernet.rev140528.ethernet.packet.received.packet.chain.packet.EthernetPacket;
-//import org.opendaylight.l2switch.packethandler.decoders.EthernetDecoder;
-//import org.opendaylight.l2switch.packethandler.decoders.utils.BitBufferHelper;
-//import org.opendaylight.l2switch.packethandler.decoders.utils.BufferException;
-//import org.opendaylight.l2switch.packethandler.decoders.utils.HexEncode;
-//import org.opendaylight.l2switch.packethandler.decoders.utils.NetUtils;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.RouteInput;
-//org.opendaylight.yang.gen.v1.urn.opendaylight.packet.arp.rev140528; version="[0.5.0,1.0.0)"
-//import org.opendaylight.l2switch.packethandler.decoders.ArpDecoder;
-*/
 
 class EventDetection {
 	String tapId;
@@ -472,6 +445,22 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
 	}
    
     public String extractPayload(Ipv4PacketHeader ipv4Packet){
+//<<<<<<< HEAD
+//    	boolean tcpHeader = (ipv4Packet.getProtocol().getIntValue() == KnownIpProtocols.Tcp.getIntValue() ? true : false);
+//    	boolean udpHeader = (ipv4Packet.getProtocol().getIntValue() == KnownIpProtocols.Udp.getIntValue() ? true : false);
+//    	LOG.debug(ipv4Packet.getProtocol().getIntValue() == KnownIpProtocols.Tcp.getIntValue() ? "It is TCP Header" : "It is UDP Header");
+//    	int totalLength = ipv4Packet.getIpv4Length();
+//    	LOG.debug("Total Packet Length {}", totalLength);
+//    	int headerLength = ipv4Packet.getPayloadLength();
+//    	LOG.debug("IP Header Length {} ", headerLength);
+//    	//int payloadLength = totalLength - headerLength - (tcpHeader ? 20 : 8);
+//    	int payloadLength = totalLength - 40;
+//    	LOG.debug("Payload Length {}", payloadLength);
+//    	int payloadOffset = 14 + 40;// headerLength + (tcpHeader ? 20 : 8);
+//    	LOG.debug("Payload offset in bytes {}", payloadOffset);
+//    	payloadOffset *= NetUtils.NumBitsInAByte;
+//    	LOG.debug("Payload offset in bits {}", payloadOffset);
+//=======
 //    	boolean tcpHeader = (ipv4Packet.getProtocol().getIntValue() == KnownIpProtocols.Tcp.getIntValue() ? true : false);
 //    	boolean udpHeader = (ipv4Packet.getProtocol().getIntValue() == KnownIpProtocols.Udp.getIntValue() ? true : false);
     	LOG.debug(ipv4Packet.getProtocol().getIntValue() == KnownIpProtocols.Tcp.getIntValue() ? "It is TCP Header" : "It is UDP Header");
@@ -486,6 +475,7 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
 //    	LOG.debug("Payload offset in bytes {}", payloadOffset);
     	payloadOffset *= NetUtils.NumBitsInAByte;
 //    	LOG.debug("Payload offset in bits {}", payloadOffset);
+//>>>>>>> master
     	String payload = "";
     	
     	try {

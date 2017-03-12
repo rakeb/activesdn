@@ -26,7 +26,7 @@ while(True):
    print("----Sending %s UDP packets----" % (pktCount))
    #sendp(pkt_list,iface="s6-eth3")
    sendp(pkt_list)
-   time.sleep(1)
+   time.sleep(0.2)
 
 '''
 from scapy.all import sr1,IP,ICMP

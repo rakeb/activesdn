@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
@@ -19,7 +20,6 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ConstructTopology;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateDstOnlyTunnelInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcDstTunnelInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcOnlyTunnelInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.EventTriggered;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.EventTriggered.TriggeredEventType;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FlowIsRemoved;
@@ -28,7 +28,7 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllFlowRulesFromASwitchOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallFlowRuleInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallNetworkPathInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.Ipv4PacketHeaderFields;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IsDropboxDetected;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IsLinkFlooded;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInputBuilder;
@@ -46,6 +46,7 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.grp.flow.statistic.FlowStatistic;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.is.link.flooded.FloodedLinks;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.GetNetworkTopologyOutput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathBwNodesInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.TapService;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.TrafficType;
 import org.opendaylight.yangtools.concepts.Registration;
@@ -88,6 +89,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
     private List<String> throttledIPs = Lists.newArrayList();
     private List<String> listOfNewComers = Lists.newArrayList();
     List<String>whiteListedSources = Lists.newArrayList();
+    private List<String> serverIPs = Lists.newArrayList();
+    List<Integer> edgeSwitches = Lists.newArrayList();
     private String criticalLink = null;
     private LinkInfo deletedLink = null;
     private boolean trigger = false;
@@ -100,6 +103,13 @@ public class ActiveSDNAssignment implements ActivesdnListener{
     private ProxyTable proxyTable = new ProxyTable();
     private final static String INSPECT = "INSPECT";
     private List<String> pathForDropBoxLogin;
+    private List<String> randomHostIPs = Lists.newArrayList();
+    private long mutationDuration = 0;
+    private int mutationTrigger = 25; //Represents number of seconds before trigger IP mutation (RHM)
+    private boolean mutationPathFirstTime = true;
+    int mutationIndex = 0;
+    boolean rhmExperiment = false;
+    /////////////////////////////////////////////////////////////////
     
 	@SuppressWarnings("deprecation")
 	public ActiveSDNAssignment(DataBroker dataBroker, NotificationProviderService notificationService, 
@@ -113,6 +123,14 @@ public class ActiveSDNAssignment implements ActivesdnListener{
         notificationService.registerNotificationListener(this);
         //this.topology = new NetworkGraph();
         this.topology = topology;
+        //////////////////////////
+        serverIPs.add("10.0.0.10/32");
+        randomHostIPs.add("10.0.0.6/32");
+        randomHostIPs.add("10.0.0.7/32");
+        randomHostIPs.add("10.0.0.8/32");
+        randomHostIPs.add("10.0.0.9/32");
+        randomHostIPs.add("10.0.0.10/32");
+        randomHostIPs.add("10.0.0.11/32");
 	}
 
 	@Override
@@ -121,6 +139,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				notification.getHostMacAddress(), notification.getHostIpAddress(), 
 				notification.getSwitchConnectedTo(), notification.getPortConnectedTo());
 		hostTable.put(notification.getHostIpAddress(), connectedHost);
+		edgeSwitches.add(notification.getSwitchConnectedTo());
 	}
 
 	@Override
@@ -164,8 +183,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		NodeId sourceNode = new NodeId("openflow:" + leftSwitch);
 		NodeId dstNode = new NodeId("openflow:" + rightSwitch);
 		
-//		updateInstalledPaths(sourceNode, dstNode, whiteListedSources);
-		migratePath(sourceNode, dstNode, whiteListedSources);
+		updateInstalledPaths(sourceNode, dstNode, whiteListedSources);
+//		migratePath(sourceNode, dstNode, whiteListedSources);
 		
 	}
 
@@ -193,7 +212,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				}
 				
 				LOG.debug("==============---------------=================----------------------");
-	        	LOG.debug("Found Pair {} with critical link along the path.", pair);
+	        	LOG.debug("     Found Pair {} with flooded link along the path.", pair);
 	        	LOG.debug("==============---------------=================----------------------");
 	        	
 				ReRouteInputBuilder reRouteInputBuilder = new ReRouteInputBuilder();
@@ -225,9 +244,9 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 					this.activeSDNService.reRoute(reRouteInputBuilder.build());
 				}
 				else {
-					LOG.debug("     ==================================================================     ");
+					LOG.debug("==================================================================     ");
 					LOG.debug("   No new Path is found for Pair {}  ", pair);
-					LOG.debug("      ==================================================================     ");
+					LOG.debug("==================================================================     ");
 				}
 			}
 		}
@@ -356,7 +375,9 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		criticalLinks.clear();
 		
 		for (List<String> path: installedPaths.values()) {
-			for (int index = 0; index < path.size() - 1; index++){
+			for (int index = 1; index < path.size() - 2; index++){
+				//Currently I have made this to ensure that I find Critical link in the middle of the network 
+				//and not with  hte edge routers
 				String link = path.get(index) + ":" + path.get(index + 1);
 				String revLink = path.get(index + 1) + ":" + path.get(index);
 				if (criticalLinks.containsKey(link)){
@@ -374,6 +395,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		int maxValue = (Collections.max(criticalLinks.values()));  // This will return max value in the Hashmap
 		
         for (Entry<String, Integer> entry : criticalLinks.entrySet()) {  // Iterate through hashmap
+        	//if (entry.getKey().contains("11") || entry.getKey().contains("5")) {continue;}
             if (entry.getValue() == maxValue) {
             	LOG.debug("     ^^^^^^^^^^^^^^==============================^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^     ");
 				LOG.debug("                    Critical Link = {} ", entry.getKey());
@@ -420,6 +442,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		String forwardTo;
 		
 		pathForDropBoxLogin = topology.findShortestPath(srcHost.getSwitchConnectedTo(), dstHost.getSwitchConnectedTo());
+
 
 //		pathForDropBoxLogin.remove(Integer.toString(srcHost.getSwitchConnectedTo()));
 //		populate proxy table
@@ -677,7 +700,105 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		packetOutBuilder.setOutputPort(TABLE);
 
 		this.activeSDNService.sendPacketOut(packetOutBuilder.build());
+	}
 
+	public void randomHostMutation(EventTriggered notification){
+		long timeMillis = System.currentTimeMillis();
+		long seconds = TimeUnit.MILLISECONDS.toSeconds(timeMillis);
+		//We get the index of the current IP in the list
+		
+		if (mutationPathFirstTime){
+			mutationDuration = seconds;
+			mutationIndex = 0;
+		}
+		else {
+			if (seconds - mutationDuration > mutationTrigger){
+				mutationIndex = Math.floorDiv((int)(seconds - mutationDuration), mutationTrigger) % 6;
+				//mutationDuration = seconds;
+			}
+		}
+		
+		LOG.debug("---------------------------------------------------------------");
+		LOG.debug("******* Current Virtual DST IP should be {} *********", randomHostIPs.get(mutationIndex));
+		LOG.debug("---------------------------------------------------------------");
+		
+		IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
+		ConnectedHostInfo srcHost = hostTable.get(icmpPacket.getSourceAddress());
+		ConnectedHostInfo dstHost = hostTable.get(icmpPacket.getDestinationAddress());
+		ConnectedHostInfo realDstHost = hostTable.get("10.0.0.12/32");
+		String forwardPathKey = "10.0.0.12/32:10.0.0.12/32";
+		
+		if (icmpPacket.getDestinationAddress().equals(randomHostIPs.get(mutationIndex))){
+			if (mutationPathFirstTime == true){
+				InstallPathSegmentInputBuilder pathInputBuilder = new InstallPathSegmentInputBuilder(); 
+				
+				pathInputBuilder.setSrcIpAddress(icmpPacket.getSourceAddress());
+				pathInputBuilder.setDstIpAddress("10.0.0.12/32");
+				pathInputBuilder.setFlowPriority(300);
+				//pathInputBuilder.setHardTimeout(mutationTrigger);
+				List<Integer> pathNodes = Lists.newArrayList();
+				
+				List<String> path = topology.findShortestPath(
+						srcHost.getSwitchConnectedTo(), realDstHost.getSwitchConnectedTo());
+				if (path != null) {
+					for (String node : path){
+						pathNodes.add(Integer.parseInt(node));
+					}
+					pathInputBuilder.setSwitchesInPath(pathNodes);
+					
+					installedPaths.put(forwardPathKey, path);
+					//LOG.debug("==================================================================     ");
+					//LOG.debug("     Path Segment found is {}", path.toString());
+					//LOG.debug(path.toString());
+					//LOG.debug("==================================================================     ");
+				}
+				mutationPathFirstTime = false;
+				//pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
+				//pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
+				this.activeSDNService.installPathSegment(pathInputBuilder.build());
+			}
+			//LOG.debug("Now handling RHM");
+			CreateDstOnlyTunnelInputBuilder   dstOnlyTunnelBuilder = new CreateDstOnlyTunnelInputBuilder();
+			dstOnlyTunnelBuilder.setSrcIpAddress(icmpPacket.getSourceAddress());
+			dstOnlyTunnelBuilder.setCurrentDstIpAddress(icmpPacket.getDestinationAddress());
+			dstOnlyTunnelBuilder.setNewDstIpAddress("10.0.0.12/32");
+			dstOnlyTunnelBuilder.setFlowPriority(300);
+			dstOnlyTunnelBuilder.setIdleTimeout(0);
+			dstOnlyTunnelBuilder.setHardTimeout(mutationTrigger); //Flow rule will be removed after 20 seconds
+			
+			List<Integer> pathNodes = Lists.newArrayList();
+			List<String> path = topology.findShortestPath(
+					srcHost.getSwitchConnectedTo(), realDstHost.getSwitchConnectedTo());
+			if (path != null) {
+				for (String node : path){
+					pathNodes.add(Integer.parseInt(node));
+				}
+				dstOnlyTunnelBuilder.setSwitchesInPath(pathNodes);
+				//installedPaths.put(forwardPathKey, path);
+				//updateLinkCriticality(path);
+				//LOG.debug("==================================================================     ");
+				//LOG.debug("  Path Establised for IP Mutation is {}", path.toString());
+				//LOG.debug(path.toString());
+				//LOG.debug("==================================================================     ");
+			}
+			
+			dstOnlyTunnelBuilder.setSwitchesInPath(pathNodes);
+			this.activeSDNService.createDstOnlyTunnel(dstOnlyTunnelBuilder.build());
+		
+			SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
+			packetOutBuilder.setSwitchId(notification.getSwitchId());
+			packetOutBuilder.setInPortNumber(notification.getInPortNumber());
+			packetOutBuilder.setPayload(notification.getPayload()); //This sets the payload as received during PacketIn
+			packetOutBuilder.setOutputPort(TABLE); 
+		
+			this.activeSDNService.sendPacketOut(packetOutBuilder.build());
+		}
+		else {
+			LOG.debug("=================================================================================");
+			LOG.debug("   Communication is not allowed between {} and {}", icmpPacket.getSourceAddress(), icmpPacket.getDestinationAddress());
+			//LOG.debug("   Originating switch is {}", notification.getSwitchId());
+			LOG.debug("=================================================================================");
+		}
 	}
 
 	@Override
@@ -692,9 +813,10 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			Ipv4PacketType ipv4Packet = (Ipv4PacketType) notification.getPacketType();
 			if (!(hostTable.containsKey(ipv4Packet.getSourceAddress()) && 
 					hostTable.containsKey(ipv4Packet.getDestinationAddress()))){
-				LOG.debug("     ==================================================================     ");
-				LOG.debug("		Some host information is missing so skipping rest of the event trigger.");
-				LOG.debug("     ==================================================================     ");
+
+				LOG.debug("=====================================================================================");
+				LOG.debug("        Some host information is missing so skipping rest of the event trigger.");
+				LOG.debug("=====================================================================================");
 				return;
 			}
 		}
@@ -702,9 +824,10 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
 			if (!(hostTable.containsKey(icmpPacket.getSourceAddress()) && 
 					hostTable.containsKey(icmpPacket.getDestinationAddress()))){
-				LOG.debug("     ==================================================================     ");
-				LOG.debug("		Some host information is missing so skipping rest of the event trigger.");
-				LOG.debug("     ==================================================================     ");
+				
+				LOG.debug("=================================================================================");
+				LOG.debug("    Some host information is missing so skipping rest of the event trigger.");
+				LOG.debug("=================================================================================");
 				return;
 			}
 		}
@@ -732,100 +855,99 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			if (notification.getPacketType() instanceof Ipv4PacketType) {
 				Ipv4PacketType ipv4Packet = (Ipv4PacketType) notification.getPacketType();
 				
-				LOG.debug("IPV4 Type...............................");
-				ConnectedHostInfo srcHost = hostTable.get(ipv4Packet.getSourceAddress());
-				ConnectedHostInfo dstHost = hostTable.get(ipv4Packet.getDestinationAddress());
-				String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
-				String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
-				if (installedPaths.isEmpty() == false){
-					for (String pathKey : installedPaths.keySet()){
-						LOG.debug("Following paths are installed {}", pathKey);
-					}
-				}
-				if (installedPaths.containsKey(forwardPathKey) || installedPaths.containsKey(reversePathKey)){
-					LOG.debug("     ==================================================================     ");
-					LOG.debug("     Path is already installed between nodes     " + srcHost.getHostIP() + " and " + dstHost.getHostIP());
-					LOG.debug("      ==================================================================     ");
-					//int index = installedPaths.get(forwardPathKey).indexOf(Integer.toString(notification.getSwitchId()));
-					//if (index >= 0) {
-						
+				if (rhmExperiment == false){
+					ConnectedHostInfo srcHost = hostTable.get(ipv4Packet.getSourceAddress());
+					ConnectedHostInfo dstHost = hostTable.get(ipv4Packet.getDestinationAddress());
+					String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
+					String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
+					//if (installedPaths.isEmpty() == false){
+					//	for (String pathKey : installedPaths.keySet()){
+					//		LOG.debug("Following paths are installed {}", pathKey);
+					//	}
 					//}
+					if (installedPaths.containsKey(forwardPathKey) || installedPaths.containsKey(reversePathKey)){
+						LOG.debug("=================================================================================================");
+						LOG.debug("     Path is already installed between nodes     " + srcHost.getHostIP() + " and " + dstHost.getHostIP());
+						LOG.debug("=================================================================================================");
+						//int index = installedPaths.get(forwardPathKey).indexOf(Integer.toString(notification.getSwitchId()));
+						//if (index >= 0) {
+							
+						//}
+						SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
+						packetOutBuilder.setSwitchId(dstHost.getSwitchConnectedTo());
+						packetOutBuilder.setInPortNumber(-1);
+						packetOutBuilder.setPayload(notification.getPayload()); //This sets the payload as received during PacketIn
+						packetOutBuilder.setOutputPort(Integer.toString(dstHost.getPortConnectedTo())); 
+					
+						this.activeSDNService.sendPacketOut(packetOutBuilder.build());
+						
+						return;
+						///We need the handle the special case where if the switch receives a packet who it was forwarding before but as 
+						// the path is migrated away due to link failure or attack. Now, there will now path exists for this packet but that 
+						// path doesn't contain currrnet ingress node. So, the packet may stuck in an infinit loop between the controller and switch
+					}
+					
+					InstallNetworkPathInputBuilder pathInputBuilder = new InstallNetworkPathInputBuilder();
+					
+					pathInputBuilder.setSrcIpAddress(ipv4Packet.getSourceAddress());
+					pathInputBuilder.setDstIpAddress(ipv4Packet.getDestinationAddress());
+					pathInputBuilder.setFlowPriority(300);
+					List<Integer> pathNodes = Lists.newArrayList();
+					
+					List<String> path = topology.findShortestPath(
+							srcHost.getSwitchConnectedTo(), dstHost.getSwitchConnectedTo());
+					if (path != null) {
+						for (String node : path){
+							pathNodes.add(Integer.parseInt(node));
+						}
+						pathInputBuilder.setSwitchesInPath(pathNodes);
+						installedPaths.put(forwardPathKey, path);
+						LOG.debug("==================================================================     ");
+						LOG.debug("     Path found is {}", path.toString() );
+						//LOG.debug(path.toString());
+						LOG.debug("==================================================================     ");
+					}
+					pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
+					this.activeSDNService.installNetworkPath(pathInputBuilder.build());
+					
+					pathInputBuilder.setTypeOfTraffic(TrafficType.TCP);
+					this.activeSDNService.installNetworkPath(pathInputBuilder.build());
+					
+					pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
+					this.activeSDNService.installNetworkPath(pathInputBuilder.build());
+					
 					SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
-					packetOutBuilder.setSwitchId(dstHost.getSwitchConnectedTo());
-					packetOutBuilder.setInPortNumber(-1);
+					packetOutBuilder.setSwitchId(notification.getSwitchId());
+					packetOutBuilder.setInPortNumber(notification.getInPortNumber());
 					packetOutBuilder.setPayload(notification.getPayload()); //This sets the payload as received during PacketIn
-					packetOutBuilder.setOutputPort(Integer.toString(dstHost.getPortConnectedTo())); 
+					packetOutBuilder.setOutputPort(TABLE); 
 				
 					this.activeSDNService.sendPacketOut(packetOutBuilder.build());
 					
-					return;
-					///We need the handle the special case where if the switch receives a packet who it was forwarding before but as 
-					// the path is migrated away due to link failure or attack. Now, there will no path exists for this packet but that 
-					// path doesn't contain current ingress node. So, the packet may stuck in an infinite loop between the controller and switch
-				}
-				
-				InstallNetworkPathInputBuilder pathInputBuilder = new InstallNetworkPathInputBuilder();
-				
-				pathInputBuilder.setSrcIpAddress(ipv4Packet.getSourceAddress());
-				pathInputBuilder.setDstIpAddress(ipv4Packet.getDestinationAddress());
-				pathInputBuilder.setFlowPriority(300);
-				List<Integer> pathNodes = Lists.newArrayList();
-				
-				List<String> path = topology.findShortestPath(
-						srcHost.getSwitchConnectedTo(), dstHost.getSwitchConnectedTo());
-				if (path != null) {
-					for (String node : path){
-						pathNodes.add(Integer.parseInt(node));
-					}
-					pathInputBuilder.setSwitchesInPath(pathNodes);
-					installedPaths.put(forwardPathKey, path);
-					LOG.debug("     ==================================================================     ");
-					LOG.debug("     Path found is " );
-					LOG.debug(path.toString());
-					LOG.debug("      ==================================================================     ");
-				}
-				pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
-				this.activeSDNService.installNetworkPath(pathInputBuilder.build());
-				
-				pathInputBuilder.setTypeOfTraffic(TrafficType.TCP);
-				this.activeSDNService.installNetworkPath(pathInputBuilder.build());
-				
-				pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
-				this.activeSDNService.installNetworkPath(pathInputBuilder.build());
-				
-				SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
-				packetOutBuilder.setSwitchId(notification.getSwitchId());
-				packetOutBuilder.setInPortNumber(notification.getInPortNumber());
-				packetOutBuilder.setPayload(notification.getPayload()); //This sets the payload as received during PacketIn
-				packetOutBuilder.setOutputPort(TABLE); 
-			
-				this.activeSDNService.sendPacketOut(packetOutBuilder.build());
-				
-				if (installedPaths.size() >= 3) {trigger = true;}
-				if (trigger == true) {
-					criticalLink = findCriticalLink();
-					try {
-						if (criticalLink != null){
-							int leftSwitch = Integer.parseInt(criticalLink.split(":")[0]);
-							int rightSwitch = Integer.parseInt(criticalLink.split(":")[1]);
-							LinkInfo link = topology.findLink(leftSwitch, rightSwitch);
-							this.activeSDNService.subscribeForStatsFromSwitch(
-									new SubscribeForStatsFromSwitchInputBuilder().setSwitchId(leftSwitch).build());
-							this.activeSDNService.subscribeForStatsFromSwitch(
-									new SubscribeForStatsFromSwitchInputBuilder().setSwitchId(rightSwitch).build());
-							this.activeSDNService.subscribeForLinkFloodingCheck(
-									new SubscribeForLinkFloodingCheckInputBuilder()
-									.setSwitchId(leftSwitch)
-									.setConnectorId(link.getLeftSwitchPortNumber())
-									.setDropThreshold(1)
-									.build());
+					if (installedPaths.size() == 3) {
+						criticalLink = findCriticalLink();
+						try {
+							if (criticalLink != null){
+								int leftSwitch = Integer.parseInt(criticalLink.split(":")[0]);
+								int rightSwitch = Integer.parseInt(criticalLink.split(":")[1]);
+								LinkInfo link = topology.findLink(leftSwitch, rightSwitch);
+								this.activeSDNService.subscribeForStatsFromSwitch(
+										new SubscribeForStatsFromSwitchInputBuilder().setSwitchId(leftSwitch).build());
+								this.activeSDNService.subscribeForStatsFromSwitch(
+										new SubscribeForStatsFromSwitchInputBuilder().setSwitchId(rightSwitch).build());
+								this.activeSDNService.subscribeForLinkFloodingCheck(
+										new SubscribeForLinkFloodingCheckInputBuilder()
+										.setSwitchId(leftSwitch)
+										.setConnectorId(link.getLeftSwitchPortNumber())
+										.setDropThreshold(1)
+										.build());
+							}
+						} catch (Exception e) {
+							LOG.error("Exception reached in finding Critical link ans subscribing for Stats {} --------", e);
+							//return null;   /// if you are suppose to return something.
 						}
-					} catch (Exception e) {
-						LOG.error("Exception reached in finding Critical link ans subscribing for Stats {} --------", e);
-						//return null;   /// if you are suppose to return something.
 					}
 				}
-				
 			}
 			////-----------------------------------------------------------------------------------------------------
 			/////////////                   Handling TCP Traffic        /////////////////////////////////////////////  
@@ -885,317 +1007,142 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				//}
 				//=================
 				
-				/***test***/
-//				if (icmpPacket.getSourceAddress().equals("10.0.0.1/32")
-//						&& icmpPacket.getDestinationAddress().equals(
-//								"10.0.0.7/32")) {
-//
-//					String fPathKey = "10.0.0.1/32" + ":" + "10.0.0.8/32";
-//					String rPathKey = "10.0.0.8/32" + ":" + "10.0.0.8/1";
-//					List<String> alreadyInstalledPath = null;
-//
-//					if (installedPaths.containsKey(fPathKey)) {
-//						alreadyInstalledPath = installedPaths.get(fPathKey);
-//					}
-//					if (installedPaths.containsKey(rPathKey)) {
-//						alreadyInstalledPath = installedPaths.get(rPathKey);
-//					}
-//					srcDstMutate(notification, alreadyInstalledPath);
-//				} else {
-					/*** test ***/
-
-					 /*
-					if (installedPaths.containsKey(forwardPathKey)
-							|| installedPaths.containsKey(reversePathKey)) {
-						LOG.debug("     ==================================================================     ");
-						LOG.debug("     Path is already installed between nodes     "
-								+ srcHost.getHostIP()
-								+ " and "
-								+ dstHost.getHostIP());
-						LOG.debug("     ==================================================================     ");
-						// int index =
-						// installedPaths.get(forwardPathKey).indexOf(Integer.toString(notification.getSwitchId()));
-						// if (index >= 0) {
-
-						// }
-						SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
-						packetOutBuilder.setSwitchId(dstHost
-								.getSwitchConnectedTo());
-						packetOutBuilder.setInPortNumber(-1);
-						packetOutBuilder.setPayload(notification.getPayload()); // This
-																				// sets
-																				// the
-																				// payload
-																				// as
-																				// received
-																				// during
-																				// PacketIn
-						packetOutBuilder.setOutputPort(Integer.toString(dstHost
-								.getPortConnectedTo()));
-
-						this.activeSDNService.sendPacketOut(packetOutBuilder
-								.build());
-
-						return;
-						// /We need the handle the special case where if the
-						// switch receives a packet who it was forwarding before
-						// but as
-						// the path is migrated away due to link failure or
-						// attack. Now, there will now path exists for this
-						// packet but that
-						// path doesn't contain current ingress node. So, the
-						// packet may stuck in an infinite loop between the
-						// controller and switch
-					}
-
-					InstallNetworkPathInputBuilder pathInputBuilder = new InstallNetworkPathInputBuilder();
-
-					pathInputBuilder.setSrcIpAddress(icmpPacket
-							.getSourceAddress());
-					pathInputBuilder.setDstIpAddress(icmpPacket
-							.getDestinationAddress());
-					pathInputBuilder.setFlowPriority(200);
-					List<Integer> pathNodes = Lists.newArrayList();
-
-					List<String> path = topology.findShortestPath(
-							srcHost.getSwitchConnectedTo(),
-							dstHost.getSwitchConnectedTo());
-					if (path != null) {
-						for (String node : path) {
-							pathNodes.add(Integer.parseInt(node));
-						}
-						pathInputBuilder.setSwitchesInPath(pathNodes);
-						installedPaths.put(forwardPathKey, path);
-						// updateLinkCriticality(path);
-						LOG.debug("     ==================================================================     ");
-						LOG.debug("     Path found is ");
-						LOG.debug("		" + path.toString());
-						LOG.debug("     ==================================================================     ");
-					}
-
-					pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
-					this.activeSDNService.installNetworkPath(pathInputBuilder
-							.build());
-
-					pathInputBuilder.setTypeOfTraffic(TrafficType.TCP);
-					this.activeSDNService.installNetworkPath(pathInputBuilder
-							.build());
-
-					pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
-					this.activeSDNService.installNetworkPath(pathInputBuilder
-							.build());
-
+				if (installedPaths.containsKey(forwardPathKey) || installedPaths.containsKey(reversePathKey)){
+					LOG.debug("=========================================================================================");
+					LOG.debug("     Path is already installed between nodes     " + srcHost.getHostIP() + " and " + dstHost.getHostIP());
+					LOG.debug("=========================================================================================");
+					//int index = installedPaths.get(forwardPathKey).indexOf(Integer.toString(notification.getSwitchId()));
+					//if (index >= 0) {
+						
+					//}
 					SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
 					packetOutBuilder.setSwitchId(notification.getSwitchId());
 					packetOutBuilder.setInPortNumber(notification
 							.getInPortNumber());
-					packetOutBuilder.setPayload(notification.getPayload()); // This
-																			// sets
-																			// the
-																			// payload
-																			// as
-																			// received
-																			// during
-																			// PacketIn
+					packetOutBuilder.setPayload(notification.getPayload()); 
 					packetOutBuilder.setOutputPort(TABLE);
 
-					this.activeSDNService.sendPacketOut(packetOutBuilder
-							.build());
+					this.activeSDNService.sendPacketOut(packetOutBuilder.build());
 
 					if (installedPaths.size() >= 3) {
 						trigger = false;
 					}
-//				}
-				*/
-				
-				//test code
-				
-				/*
-				 * For migration 
-
-				criticalLink = findCriticalLink();
-				String newDstIp = "10.0.0.11/32";
-				String x = dstHost.getHostIP();
-				if(x.equals(newDstIp)) {
-					testMigratePath(srcHost.getHostIP(), dstHost.getHostIP());
 				}
-				 * 
-				 * */
 				
-				
-//				/*
-//				 * For RHM
-//				 * 
-//				if ((icmpPacket.getSourceAddress().equals("10.0.0.11/32") && icmpPacket
-//						.getDestinationAddress().equals("10.0.0.12/32"))
-//						|| (icmpPacket.getSourceAddress().equals("10.0.0.12/32") && icmpPacket
-//								.getDestinationAddress().equals("10.0.0.11/32"))) {
-//
-//					LOG.debug("     ==================================================================     ");
-//					LOG.debug("     Installing Path src {}, dst {}",
-//							icmpPacket.getSourceAddress(),
-//							icmpPacket.getDestinationAddress());
-//					LOG.debug("     ==================================================================     ");
-//					
-//					InstallNetworkPathInputBuilder pathInputBuilder = new InstallNetworkPathInputBuilder();
-//
-//					pathInputBuilder.setSrcIpAddress("10.0.0.11/32");
-//					pathInputBuilder.setDstIpAddress("10.0.0.12/32");
-//					pathInputBuilder.setFlowPriority(200);
-//					pathInputBuilder.setIdleTimeout(0);
-//					pathInputBuilder.setHardTimeout(0); // values in seconds
-//
-//					List<Integer> pathNodes = Lists.newArrayList(); // list of switches
-//																	// along the path
-//
-//					pathNodes.add(11);
-//					pathInputBuilder.setSwitchesInPath(pathNodes);
-//
-//					this.activeSDNService.installNetworkPath(pathInputBuilder.build());
-//				}
-				
-//				/*
-				if ((icmpPacket.getSourceAddress().equals("10.0.0.1/32") && icmpPacket.getDestinationAddress().equals("10.0.0.8/32"))
-						|| (icmpPacket.getSourceAddress().equals("10.0.0.4/32") && icmpPacket.getDestinationAddress().equals("10.0.0.7/32"))) {
-
+				if (rhmExperiment == true) {
+					randomHostMutation(notification);
+				} else {
 					InstallNetworkPathInputBuilder pathInputBuilder = new InstallNetworkPathInputBuilder();
-
-					LOG.debug("     ==================================================================     ");
-					LOG.debug("     Installing Path between src {}, dst {}", icmpPacket.getSourceAddress(), icmpPacket.getDestinationAddress());
-					LOG.debug("     ==================================================================     ");
-
+					
 					pathInputBuilder.setSrcIpAddress(icmpPacket.getSourceAddress());
 					pathInputBuilder.setDstIpAddress(icmpPacket.getDestinationAddress());
 					pathInputBuilder.setFlowPriority(300);
-					pathInputBuilder.setIdleTimeout(0);
-					pathInputBuilder.setHardTimeout(0); // values in seconds
 					List<Integer> pathNodes = Lists.newArrayList();
-
-					List<String> path = topology.findShortestPath(srcHost.getSwitchConnectedTo(), dstHost.getSwitchConnectedTo());
+					
+					List<String> path = topology.findShortestPath(
+							srcHost.getSwitchConnectedTo(), dstHost.getSwitchConnectedTo());
 					if (path != null) {
-						for (String node : path) {
+						for (String node : path){
 							pathNodes.add(Integer.parseInt(node));
 						}
 						pathInputBuilder.setSwitchesInPath(pathNodes);
-						
-						if(!installedPaths.containsKey("hello")) {
-							installedPaths.put("hello", path);
-						}
-						
-						LOG.debug("     ==================================================================     ");
+						installedPaths.put(forwardPathKey, path);
+						//updateLinkCriticality(path);
+						LOG.debug("==================================================================     ");
 						LOG.debug("     Path found is {}", path.toString());
-						LOG.debug("     ==================================================================     ");
+						LOG.debug("==================================================================     ");
 					}
-				
-					pathInputBuilder.setSwitchesInPath(pathNodes);
-
+					pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
+					//pathInputBuilder.setFlowPriority(300);
 					this.activeSDNService.installNetworkPath(pathInputBuilder.build());
-
-
-					LOG.debug("     ==================================================================     ");
-					LOG.debug("     Before sending packet, switch {}, inPort{}", notification.getSwitchId(), notification.getInPortNumber());
-					LOG.debug("     ==================================================================     ");
+					
+					pathInputBuilder.setTypeOfTraffic(TrafficType.TCP);
+					this.activeSDNService.installNetworkPath(pathInputBuilder.build());
+					
+					pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
+					this.activeSDNService.installNetworkPath(pathInputBuilder.build());
 					
 					SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
 					packetOutBuilder.setSwitchId(notification.getSwitchId());
 					packetOutBuilder.setInPortNumber(notification.getInPortNumber());
-					packetOutBuilder.setPayload(notification.getPayload());
-					packetOutBuilder.setOutputPort(TABLE);
-
+					packetOutBuilder.setPayload(notification.getPayload()); //This sets the payload as received during PacketIn
+					packetOutBuilder.setOutputPort(TABLE); 
+				
 					this.activeSDNService.sendPacketOut(packetOutBuilder.build());
 					
-				}
-//				*/
-				
-				if (icmpPacket.getSourceAddress().equals("10.0.0.1/32") && icmpPacket
-						.getDestinationAddress().equals("10.0.0.7/32")) {
-					
-					List<String> alreadyInstalledPath = null;
-					
-//					String fPathKey = "10.0.0.1/32" + ":" + "10.0.0.8/32";
-//					String rPathKey = "10.0.0.8/32" + ":" + "10.0.0.8/1";
-//					if (installedPaths.containsKey(fPathKey)){
-//						alreadyInstalledPath = installedPaths.get(fPathKey);
-//					}
-//					if (installedPaths.containsKey(rPathKey)){
-//						alreadyInstalledPath = installedPaths.get(rPathKey);
-//					}
-					
-					alreadyInstalledPath = installedPaths.get("hello");
-					srcDstMutate(notification, alreadyInstalledPath);
-				}
-				
-//				 * 
-//				 * */
-				
-				
-				if (trigger == true) {
-					/*
-					if (deletedLink != null) {
-						LOG.debug("     ==================================================================     ");
-						LOG.debug("          Deleting Event {} from switch {} ", floodEventId, criticalLink.split(":")[1]);
-						LOG.debug("      ==================================================================     ");
-						
-						topology.addLinkInfo(deletedLink.getLeftSwitch(), deletedLink.getRightSwitch(), 
-								deletedLink.getLeftSwitchPortNumber(), deletedLink.getRightSwitchPortNumber());
-						
-						RemoveEventFromSwitchInputBuilder removeEventBuilder = new RemoveEventFromSwitchInputBuilder();
-						removeEventBuilder.setEventId(floodEventId);
-						removeEventBuilder.setSwitchId(Integer.parseInt(criticalLink.split(":")[1]));
-						this.activeSDNService.removeEventFromSwitch(removeEventBuilder.build());
-						
-						//removeEventBuilder = new RemoveEventFromSwitchInputBuilder();
-						//removeEventBuilder.setEventId(notifyEventId);
-						//removeEventBuilder.setSwitchId(deletedLink.getRightSwitch());
-						//this.activeSDNService.removeEventFromSwitch(removeEventBuilder.build());
-
-						deletedLink = null;
-					}
-					*/
-					criticalLink = findCriticalLink();
-					try {
-						if (criticalLink != null){
-							int leftSwitch = Integer.parseInt(criticalLink.split(":")[0]);
-							int rightSwitch = Integer.parseInt(criticalLink.split(":")[1]);
-							LinkInfo link = topology.findLink(leftSwitch, rightSwitch);
-							this.activeSDNService.subscribeForStatsFromSwitch(
-									new SubscribeForStatsFromSwitchInputBuilder().setSwitchId(leftSwitch).build());
-							this.activeSDNService.subscribeForStatsFromSwitch(
-									new SubscribeForStatsFromSwitchInputBuilder().setSwitchId(rightSwitch).build());
-							this.activeSDNService.subscribeForLinkFloodingCheck(
-									new SubscribeForLinkFloodingCheckInputBuilder()
-									.setSwitchId(leftSwitch)
-									.setConnectorId(link.getLeftSwitchPortNumber())
-									.setDropThreshold(1)
-									.build());
-						}
+					if (installedPaths.size() == 3){
+						//GetAllFlowRulesFromASwitchInputBuilder switchFlow = new GetAllFlowRulesFromASwitchInputBuilder();
+						//switchFlow.setSwitchId(6);
+						//this.activeSDNService.getAllFlowRulesFromASwitch(switchFlow.build());
 						/*
-						if (criticalLink != null) {
-							int switchId = Integer.parseInt(criticalLink.split(":")[1]);
+						if (deletedLink != null) {
+							LOG.debug("     ==================================================================     ");
+							LOG.debug("          Deleting Event {} from switch {} ", floodEventId, criticalLink.split(":")[1]);
+							LOG.debug("      ==================================================================     ");
 							
-							SubscribeEventInputBuilder eventInputBuilder = new SubscribeEventInputBuilder();
-							eventInputBuilder.setCount((long)16);
-							eventInputBuilder.setDuration((long)40);
-							eventInputBuilder.setSwitchId(switchId);
-							eventInputBuilder.setTrafficProtocol(TrafficType.ICMP);
-							eventInputBuilder.setEventAction(EventAction.DROPANDNOTIFY);
-							eventInputBuilder.setHoldNotification(0);
+							topology.addLinkInfo(deletedLink.getLeftSwitch(), deletedLink.getRightSwitch(), 
+									deletedLink.getLeftSwitchPortNumber(), deletedLink.getRightSwitchPortNumber());
 							
-							Future<RpcResult<SubscribeEventOutput>> futureOutput;
-							futureOutput = this.activeSDNService.subscribeEvent(eventInputBuilder.build());
-							if (futureOutput != null){
-								SubscribeEventOutput eventOutput = futureOutput.get().getResult();
-								floodEventId = eventOutput.getEventId();
-							}
-							else {
-								String exception = "Event is not subscribed proper.";
-								throw new Exception(exception);
-							}
+							RemoveEventFromSwitchInputBuilder removeEventBuilder = new RemoveEventFromSwitchInputBuilder();
+							removeEventBuilder.setEventId(floodEventId);
+							removeEventBuilder.setSwitchId(Integer.parseInt(criticalLink.split(":")[1]));
+							this.activeSDNService.removeEventFromSwitch(removeEventBuilder.build());
+							
+							//removeEventBuilder = new RemoveEventFromSwitchInputBuilder();
+							//removeEventBuilder.setEventId(notifyEventId);
+							//removeEventBuilder.setSwitchId(deletedLink.getRightSwitch());
+							//this.activeSDNService.removeEventFromSwitch(removeEventBuilder.build());
+
+							deletedLink = null;
 						}
 						*/
-					} catch (Exception e) {
-						LOG.error("Exception reached in finding Critical link ans subscribing for Stats {} --------", e);
-						//return null;   /// if you are suppose to return something.
+					
+						criticalLink = findCriticalLink();
+						try {
+							if (criticalLink != null){
+								int leftSwitch = Integer.parseInt(criticalLink.split(":")[0]);
+								int rightSwitch = Integer.parseInt(criticalLink.split(":")[1]);
+								LinkInfo link = topology.findLink(leftSwitch, rightSwitch);
+								this.activeSDNService.subscribeForStatsFromSwitch(
+										new SubscribeForStatsFromSwitchInputBuilder().setSwitchId(leftSwitch).build());
+								this.activeSDNService.subscribeForStatsFromSwitch(
+										new SubscribeForStatsFromSwitchInputBuilder().setSwitchId(rightSwitch).build());
+								this.activeSDNService.subscribeForLinkFloodingCheck(
+										new SubscribeForLinkFloodingCheckInputBuilder()
+										.setSwitchId(leftSwitch)
+										.setConnectorId(link.getLeftSwitchPortNumber())
+										.setDropThreshold(1)
+										.build());
+							}
+							/*
+							if (criticalLink != null) {
+								int switchId = Integer.parseInt(criticalLink.split(":")[1]);
+								
+								SubscribeEventInputBuilder eventInputBuilder = new SubscribeEventInputBuilder();
+								eventInputBuilder.setCount((long)16);
+								eventInputBuilder.setDuration((long)40);
+								eventInputBuilder.setSwitchId(switchId);
+								eventInputBuilder.setTrafficProtocol(TrafficType.ICMP);
+								eventInputBuilder.setEventAction(EventAction.DROPANDNOTIFY);
+								eventInputBuilder.setHoldNotification(0);
+								
+								Future<RpcResult<SubscribeEventOutput>> futureOutput;
+								futureOutput = this.activeSDNService.subscribeEvent(eventInputBuilder.build());
+								if (futureOutput != null){
+									SubscribeEventOutput eventOutput = futureOutput.get().getResult();
+									floodEventId = eventOutput.getEventId();
+								}
+								else {
+									String exception = "Event is not subscribed proper.";
+									throw new Exception(exception);
+								}
+							}
+							*/
+					
+						} catch (Exception e) {
+							LOG.error("Exception reached in finding Critical link ans subscribing for Stats {} --------", e);
+							//return null;   /// if you are suppose to return something.
+						}
 					}
 				}
 			} /// End of ICMP Packet
@@ -1241,13 +1188,12 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		
 	}
 
-
 	private void blockIP(EventTriggered notification) {
 		TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
 		
 		String source = tcpPacketType.getSourceAddress();
 		String destination = tcpPacketType.getDestinationAddress();
-		
+
 		LOG.debug("     ==================================================================     ");
 		LOG.debug("     DropBox Login: Blocking IP {} Starts ", source);
 		LOG.debug("     ==================================================================     ");
@@ -1290,7 +1236,6 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		
 	}
 	
-
 	@Override
 	public void onFlowStatisticReceived(FlowStatisticReceived notification) {
 		//LOG.debug(" ");
@@ -1355,7 +1300,6 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			}
 		}
 	}
-
 
 	public void calculateRunningStatistics(int switchId){
 		if (networkStatistics.containsKey(switchId)){
@@ -1445,15 +1389,17 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		}
 	}
 	
-
 	public List<String> findElephantFlows(int switchId, int anomalousThreshold){
-		//LOG.debug("Find Elephant Flows is called to identify elephant flows");
+		LOG.debug(" .... Not found ...");
+		LOG.debug("Checking Elephant Flows ......................");
 		ArrayList<Long> flowBytes = new ArrayList<Long>();
 		for (String flowId : currentSwitchStats.get(switchId).listOfFlows.keySet()){ 
 			if (currentSwitchStats.get(switchId).listOfFlows.get(flowId).traffic == TrafficProtocolType.UDP){continue;}
 			if (blockedIPs.contains(currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress)){continue;}
 			if (throttledIPs.contains(currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress)){continue;}
 			if (currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress == "") {continue;}
+			if (serverIPs.contains(currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress)) {continue;}
+			if (whiteListedSources.contains(currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress)){continue;}
 			if (currentSwitchStats.get(switchId).listOfFlows.get(flowId).byteCount > 0){
 				flowBytes.add(currentSwitchStats.get(switchId).listOfFlows.get(flowId).byteCount);
 			}
@@ -1468,6 +1414,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			if (blockedIPs.contains(currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress)){continue;}
 			if (throttledIPs.contains(currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress)){continue;}
 			if (currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress == "") {continue;}
+			if (serverIPs.contains(currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress)) {continue;}
+			if (whiteListedSources.contains(currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress)){continue;}
 			if (currentSwitchStats.get(switchId).listOfFlows.get(flowId).byteCount > (baseLineValue * anomalousThreshold) ){
 				//String entry = currentSwitchStats.get(switchId).listOfFlows.get(flowId).flowId 
 				//		+ "," + currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress;
@@ -1478,16 +1426,17 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		return elephantFlows;
 	}
 	
-
 	public List<String> checkRateOfSuspiciousTraffic(int switchId, int anomalousRate){
 		LOG.debug("");
-		LOG.debug("Suspicous Rate Check is called is block high rate UDP or ICMP traffic");
+		LOG.debug("Checking high rate UDP/ICMP flows .....");
 		long udpBytes = 0, icmpBytes = 0, totalBytes = 0;
 		List<String> flowIDs = Lists.newArrayList();
 		for (String flowId : currentSwitchStats.get(switchId).listOfFlows.keySet()){
 			FlowStatsTuple flowTuple = currentSwitchStats.get(switchId).listOfFlows.get(flowId);
 			if (blockedIPs.contains(flowTuple.srcIPAddress)){continue;}
 			if (throttledIPs.contains(flowTuple.srcIPAddress)){continue;}
+			if (serverIPs.contains(flowTuple.srcIPAddress)){continue;}
+			if (whiteListedSources.contains(flowTuple.srcIPAddress)){continue;}
 			totalBytes += flowTuple.byteCount;
 			if (flowTuple.traffic == TrafficProtocolType.ICMP) {
 				icmpBytes += flowTuple.byteCount;
@@ -1511,8 +1460,9 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		}
 	}
 	
-
 	public float calculateNewComersRatio(int slidingWindowSize, int newComerThreshold){
+		LOG.debug(" .... Not found ...");
+		LOG.debug("Checking for ratio of new comers ....");
 		List<String> whiteListedIPs = Lists.newArrayList();
 		int currentNumberofFlows = 0; //This is to check how many total flows we have seen in current
 		/// windows so that we can calculate the ratio of new comers
@@ -1520,6 +1470,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		for (String srcIp : sourceIpConfidence.keySet()){
 			if (throttledIPs.contains(srcIp)){continue;} //if some IP has already been throttled then we'll not condier it
 			if (blockedIPs.contains(srcIp)){continue;}
+			if (whiteListedSources.contains(srcIp)){continue;}
 			//LOG.debug("---------------Current Source IP {} ", srcIp);
 			int noOfSnapshots = sourceIpConfidence.get(srcIp).size();
 			if (sourceIpConfidence.get(srcIp).get(noOfSnapshots - 1) == true){
@@ -1546,12 +1497,10 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		return (((float) listOfNewComers.size()) / ((float) currentNumberofFlows)) ;
 	}
 	
-
 	public int calculateWhiteList(int slidingWindowSize) {
 		return 0;
 	}
 
-	
 	@Override
 	public void onIsLinkFlooded(IsLinkFlooded notification) {
 		LOG.debug("");
@@ -1563,15 +1512,16 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		int newComerThreshold = 3; ///If there exists even a single entry in the previous windows then it is not a new comer
 		for (FloodedLinks floodedLink : floodedLinkList){
 			String linkId = floodedLink.getLinkId();
-			LOG.debug("--- Link flooded is {}", linkId);
 			int switchId = Integer.parseInt(linkId.split(":")[1]);
 			int floodedLinkId = Integer.parseInt(linkId.split(":")[2]);
+			LOG.debug("*************************************************************");
+			LOG.debug("      Port {} of Switch {} is flooded", floodedLinkId, switchId);
+			LOG.debug("*************************************************************");
 			ddosMitigation(switchId, floodedLinkId, anomalousThreshold, 
 					anomalousUDPRate, historySize, newComerThreshold);	
 		}		
 	}
 	
-
 	public boolean blockFlow(int switchId, String flowId, String type){
 		//LOG.debug("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 		//LOG.debug("");
@@ -1580,6 +1530,9 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		SwitchStatsSnapshot snapshot = networkStatistics.get(switchId).get(currentSnapshotIndex);
 		if (snapshot.listOfFlows.containsKey(flowId)){
 			FlowStatsTuple flowTuple = snapshot.listOfFlows.get(flowId);
+			if (serverIPs.contains(flowTuple.srcIPAddress)){
+				return false;
+			}
 			InstallFlowRuleInputBuilder flowRuleInputBuilder = new InstallFlowRuleInputBuilder();
 			//LOG.debug("switchid {} ", switchId);
 			//LOG.debug("Source IP {} ", flowTuple.srcIPAddress);
@@ -1625,7 +1578,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		
 			if (blockedIPs.contains(flowTuple.srcIPAddress) == false){
 				LOG.debug("");
-				LOG.debug("Source IP {} is blocked. ", flowTuple.srcIPAddress);
+				LOG.debug("&&&&&&&&&&  Source IP {} is blocked. &&&&&&&&&&", flowTuple.srcIPAddress);
+				LOG.debug("");
 				blockedIPs.add(flowTuple.srcIPAddress);
 			}
 			return true;
@@ -1633,7 +1587,6 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		return false;
 	}
 	
-
 	public boolean limitFlowRate(int switchId, int floodedLink, String srcIP){
 		//LOG.debug("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 		//LOG.debug("");
@@ -1687,7 +1640,6 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		return true;
 	}
 
-
 	public boolean migrateFlow(int switchId, int troubledLink, List<String>whiteListedSources){
 		deletedLink = topology.findLinkUsingOneSide(switchId, troubledLink);
 		topology.removelinkInfo(deletedLink.getLeftSwitch(), deletedLink.getRightSwitch());
@@ -1697,8 +1649,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		deletedLink = null;
 		return true;
 	}
-	
-	
+		
 	public void ddosMitigation(int switchId, int floodedLink, 
 			int anomalousThreshold, int anomalousUDPRate, int historySize, int newComerThreshold){
 		LOG.debug("");
@@ -1707,7 +1658,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		
 		if ((flowIds = checkRateOfSuspiciousTraffic(switchId, anomalousUDPRate)) != null ){
 			//Block all UDP traffic as they represents majority of the traffic
-			LOG.debug("Malicious Flows with high rate UDP traffic are found and now blocking.");
+			LOG.debug("High rate UDP/ICMP flow found ....");
 			for (String flowId : flowIds){
 				boolean result = blockFlow(switchId, flowId, "UDP");
 				//boolean result = limitFlowRate(switchId, floodedLink, flowId, "UDP");
@@ -1715,7 +1666,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		}
 		else if ((flowIds = findElephantFlows(switchId, anomalousThreshold)).isEmpty() == false){ 
 			//there exists maliciously aggressive flows and we have block them
-			LOG.debug("Elephant flows are found and now blocking");
+			LOG.debug("Elephant flows are found ....");
 			for (String flowId : flowIds){
 				LOG.debug("Elephant Flow ID {}", flowId);
 				boolean result = blockFlow(switchId, flowId, "Elephant");
@@ -1725,7 +1676,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		else if ((calculateNewComersRatio(historySize, newComerThreshold)) > newComersRatio){
 			//There exists significant number of new comers and now we have to throttle them
 			//all new comers source IP addresses are saved if listOfNewComers
-			LOG.debug("Significant number of New Comers found, now throtteling their connection speed.");
+			LOG.debug("Found high ratio of new comers ....");
 			for (String srcIP : listOfNewComers){
 				LOG.debug("New Comer IP", srcIP);
 				boolean result = limitFlowRate(switchId, floodedLink, srcIP);

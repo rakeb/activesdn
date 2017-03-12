@@ -437,6 +437,35 @@ module activesdn {
 			}
 		}
     }
+    
+    rpc install-path-segment {
+		input {
+			leaf src-ip-address {
+                type string;
+            }
+			leaf dst-ip-address {
+                type string;
+            }
+			leaf-list switches-in-path {
+				min-elements 1;
+				type int32;
+			}
+			leaf flow-priority {
+				type int32;
+			}
+			leaf idle-timeout {
+				type int32;
+			}
+			leaf hard-timeout {
+				type int32;
+			}
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
     /////////////////////////////////////////////////////////////////////////////
 	////--------------------Create End-to-End-Tunnels -----------------------//// 
 	/////////////////////////////////////////////////////////////////////////////
@@ -965,7 +994,7 @@ module activesdn {
     			type string;
     		}
     		leaf packet-drop-observed {
-    			type int32;
+    			type uint32;
     		}
     	}
     }

@@ -29,23 +29,23 @@ print("----Sending TCP SYN packet for dropbox (Destination Port 100)")
 #sendp(pkt)
 sendp(pkt)
 time.sleep(3)
-data = "this is complex world payload message"
+data = "Source " + srcIP + " is accessing folder name Benign 1"
 pkt = Ether()/ipPkt/tcpPkt/Raw(load=data)
 sendp(pkt)
 time.sleep(3)
-data = "this is Rakeb world payload message"
+data = "Source " + srcIP + " is accessing folder name Benign 2"
 pkt = Ether()/ipPkt/tcpPkt/Raw(load=data)
 sendp(pkt)
 time.sleep(3)
-data = "this is fida world payload message"
+data = "Source " + srcIP + " is accessing folder name Benign 3"
 pkt = Ether()/ipPkt/tcpPkt/Raw(load=data)
 sendp(pkt)
 time.sleep(3)
-data = "this is malicious world payload message"
+data = "Source " + srcIP + " is accessing folder name malicious"
 pkt = Ether()/ipPkt/tcpPkt/Raw(load=data)
 sendp(pkt)
 time.sleep(3)
-data = "this is Ehab world payload message"
+data = "this is the following up message"
 pkt = Ether()/ipPkt/tcpPkt/Raw(load=data)
 sendp(pkt)
 

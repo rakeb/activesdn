@@ -27,7 +27,9 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.acti
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.list.Action;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.address.address.Ipv4;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.FlowCapableNode;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.FlowCapableNodeConnector;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.FlowId;
+//import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.Queue;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.tables.Table;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.tables.TableKey;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.tables.table.Flow;
@@ -37,6 +39,11 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.statistics.rev130819.F
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.statistics.rev130819.FlowsStatisticsUpdate;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.statistics.rev130819.OpendaylightFlowStatisticsListener;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.statistics.rev130819.OpendaylightFlowStatisticsService;
+//import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.port.rev130925.queues.QueueKey;
+//import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.queue.rev130925.QueueId;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.port.rev130925.queues.Queue;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.port.rev130925.queues.QueueKey; 
+import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.queue.rev130925.QueueId;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.flow.Instructions;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.instruction.ApplyActionsCase;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.instruction.apply.actions._case.ApplyActions;
@@ -55,12 +62,15 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026
 //import org.opendaylight.yang.gen.v1.urn.opendaylight.openflow.protocol.rev130731.multipart.reply.multipart.reply.body.multipart.reply.flow._case.multipart.reply.flow.FlowStatsBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.PacketProcessingService;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.TransmitPacketInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.FlowCapableNodeConnectorStatisticsData;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.FlowCapableNodeConnectorStatisticsData; 
+import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.flow.capable.node.connector.statistics.FlowCapableNodeConnectorStatistics; 
+import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.FlowCapableNodeConnectorQueueStatisticsData; 
 import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.NodeConnectorStatisticsUpdate;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.OpendaylightPortStatisticsListener;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.node.connector.statistics.and.port.number.map.NodeConnectorStatisticsAndPortNumberMap;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.OpendaylightQueueStatisticsListener;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.QueueStatisticsUpdate;
+//import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.flow.capable.node.connector.queue.statistics.FlowCapableNodeConnectorQueueStatistics;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.queue.id.and.statistics.map.QueueIdAndStatisticsMap;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ActivesdnService;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateDstOnlyTunnelInput;
@@ -92,6 +102,9 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallNetworkPathInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallNetworkPathOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallNetworkPathOutputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentInput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentOutput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IsLinkFloodedBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInputBuilder;
@@ -147,6 +160,9 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.Instal
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallFlowOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallInspectionPathInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallInspectionPathOutput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathBwNodesInputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathBwNodesOutput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathBwNodesOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.LocalIpv4Prefix;
@@ -240,9 +256,13 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
     public HashMap<String, Integer> listOfSwitchPortsForStats = new HashMap<String, Integer>(); //this will contain node connector id in string 
     private boolean firstTime = true;
     private boolean portFirstTime = true;
-    private long startTime, previousTime, reportingTime = 30; 
-    private long portStartTime, portPreviousTime, portReportingTime = 30;
+    private boolean queueFirstTime = true;
+    private long startTime, previousTime, reportingTime = 50; 
+    private long portStartTime, portPreviousTime, portReportingTime = 50;
+    private long queueStartTime, queuePreviousTime, queueReportingTime = 51;
+    private long observedQueueErrors = 0, observedReceiveDrops = 0, observedTransmitDrops = 0;
     private long delayedNotification = 0; 
+    private boolean skip = true; 
     
 	public ActivesdnServiceImpl(DataBroker dataBroker, NotificationProviderService notificationService, RpcProviderRegistry rpcProviderRegistry) {
 		//Store the data broker for reading/writing from inventory store
@@ -941,11 +961,13 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		
 		Table table = GenericTransactionUtils.readData(this.dataBroker, LogicalDatastoreType.CONFIGURATION, tableIID);
 		if (table != null){
+			//LOG.debug("Table is not empty");
 			if (table.getFlow() != null) {
 				int flowCount = 0;
 				List<Flow> flows = table.getFlow();
 				GetAllFlowRulesFromASwitchOutputBuilder flowRulesOutputBuilder = new GetAllFlowRulesFromASwitchOutputBuilder();
 				List<FlowRules> flowRuleList = Lists.newArrayList();
+				//LOG.debug("Number of Flow Rules in Node {}", flows.size());
 				for (Iterator<Flow> iterator = flows.iterator(); iterator.hasNext();) {
 					flowCount++;
 					FlowKey flowKey = iterator.next().getKey();
@@ -955,54 +977,74 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			        		.child(Table.class, tableKey)
 			        		.child(Flow.class, flowKey);
 			        Flow flow = GenericTransactionUtils.readData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID);
+			        //LOG.debug("Flow is read from Configuration database");
 			        if (flow != null){
+			        	//LOG.debug("Flow is not null");
 			        	FlowRulesBuilder flowBuilder = new FlowRulesBuilder();
 			        	////---------Extract Flow properties information
 			        	if (flow.getId() != null){
 			        		flowBuilder.setFlowId(flow.getId().getValue());
+			        		//LOG.debug("FlowID {}", flow.getId().getValue());
+			        		if (flow.getId().getValue().equals("0")) continue;
 			        	}
-			        	flowBuilder.setFlowPriority(flow.getPriority());
-			        	flowBuilder.setIdleTimeout(flow.getIdleTimeout());
-			        	flowBuilder.setHardTimeout(flow.getHardTimeout());
+			        	flowBuilder.setFlowPriority(flow.getPriority() != null ? flow.getPriority() : 0);
+			        	flowBuilder.setIdleTimeout(flow.getIdleTimeout() != null ? flow.getIdleTimeout() : 0);
+			        	flowBuilder.setHardTimeout(flow.getHardTimeout() != null ? flow.getHardTimeout() : 0);
 			        	flowBuilder.setSwitchId(input.getSwitchId());
+			        	//LOG.debug("Setting matching criteria");
 			        	///---------------Extract IP and MAC address information
+			        	//LOG.debug("Source MAC");
 			        	if (flow.getMatch().getEthernetMatch().getEthernetSource() != null){
 			        		flowBuilder.setSrcMacAddress(
 			        				flow.getMatch().getEthernetMatch().getEthernetSource().getAddress().getValue());
+			        		//LOG.debug("Source Mac Address {}", flowBuilder.getSrcMacAddress());
 			        	}
+			        	//LOG.debug("DST MAC");
 			        	if (flow.getMatch().getEthernetMatch().getEthernetDestination() != null){
 			        		flowBuilder.setDstMacAddress(
 			        				flow.getMatch().getEthernetMatch().getEthernetDestination().getAddress().getValue());
+			        		//LOG.debug("Dst Mac Address {}", flowBuilder.getDstMacAddress());
 			        	}
+			        	//LOG.debug("INPORT");
 			        	if (flow.getMatch().getInPort() != null){
 			        		flowBuilder.setInPortId((long)Integer.parseInt(flow.getMatch().getInPort().getValue().split(":")[2]));
+			        		//LOG.debug("Inport {}", flowBuilder.getInPortId());
 			        	}
+			        	//LOG.debug("SRC DST IP");
 			        	if (flow.getMatch().getLayer3Match() != null){
 			        		Ipv4Match ipv4Match = (Ipv4Match) flow.getMatch().getLayer3Match();
 			        		if (ipv4Match.getIpv4Source() != null) {
 			        			flowBuilder.setSrcIpAddress(ipv4Match.getIpv4Source().getValue());
+			        			//LOG.debug("Src IP Address {}", flowBuilder.getSrcIpAddress());
 			        		}
 			        		if (ipv4Match.getIpv4Destination() != null) {
 			        			flowBuilder.setDstIpAddress(ipv4Match.getIpv4Destination().getValue());
+			        			//LOG.debug("Dst IP Address {}", flowBuilder.getDstIpAddress());
 			        		}
 			        	}
 			        	//----------Extract Port Information
+			        	//LOG.debug("SRC DST Port");
 			        	if (flow.getMatch().getLayer4Match() != null) {
 			        		TcpMatch tcpMatch = (TcpMatch) flow.getMatch().getLayer4Match();
 			        		if (tcpMatch.getTcpDestinationPort() != null) {
 			        			flowBuilder.setDstPort(tcpMatch.getTcpDestinationPort().getValue());
+			        			//LOG.debug("Dst Port {}", flowBuilder.getDstPort());
 			        		}
 			        		if (tcpMatch.getTcpSourcePort() != null) {
 			        			flowBuilder.setSrcPort(tcpMatch.getTcpSourcePort().getValue());
+			        			//LOG.debug("Src Port {}", flowBuilder.getSrcPort());
 			        		}
 			        	}
 			        	///---------------Extract Network Protocol information
-			        	if (flow.getMatch().getIpMatch().getIpProto() != null){
-			        		if (flow.getMatch().getIpMatch().getIpProto().getIntValue() == 1){
+			        	//LOG.debug("ICMP HTTP HTTPS");
+			        	if (flow.getMatch().getIpMatch().getIpProtocol() != null){
+			        		if (flow.getMatch().getIpMatch().getIpProtocol().shortValue() == 1){
 			        			flowBuilder.setTypeOfTraffic(TrafficType.ICMP);
+			        			//LOG.debug("ICMP Protocol");
 			        		}
-			        		if (flow.getMatch().getIpMatch().getIpProto().getIntValue() == 6){
+			        		if (flow.getMatch().getIpMatch().getIpProtocol().shortValue() == 6){
 			        			flowBuilder.setTypeOfTraffic(TrafficType.TCP);
+			        			//LOG.debug("TCP Protocol");
 			        			if (flow.getMatch().getEthernetMatch().getEthernetType() != null) {
 					        		if (flow.getMatch().getEthernetMatch().getEthernetType().getType().getValue() == 0x0800){
 					        			if (flow.getMatch().getLayer4Match() != null) {
@@ -1010,17 +1052,20 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 					        				if (tcpMatch.getTcpDestinationPort() != null) {
 					        					if (tcpMatch.getTcpDestinationPort().getValue() == 80) {
 					        						flowBuilder.setTypeOfTraffic(TrafficType.HTTP);
+					        						//LOG.debug("HTTP Protocol");
 					        					}
 					        					if (tcpMatch.getTcpDestinationPort().getValue() == 443) {
 					        						flowBuilder.setTypeOfTraffic(TrafficType.HTTPS);
+					        						//LOG.debug("HTTPS Protocol");
 					        					}
 					        				}
 					        			}
 					        		}
 					        	}
 			        		}
-			        		if (flow.getMatch().getIpMatch().getIpProto().getIntValue() == 17){
+			        		if (flow.getMatch().getIpMatch().getIpProtocol().shortValue() == 17){
 			        			flowBuilder.setTypeOfTraffic(TrafficType.UDP);
+			        			//LOG.debug("UDP Protocol");
 			        			if (flow.getMatch().getEthernetMatch().getEthernetType() != null) {
 					        		if (flow.getMatch().getEthernetMatch().getEthernetType().getType().getValue() == 0x0800){
 					        			if (flow.getMatch().getLayer4Match() != null) {
@@ -1028,9 +1073,11 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 					        				if (tcpMatch.getTcpDestinationPort() != null) {
 					        					if (tcpMatch.getTcpDestinationPort().getValue() == 53) {
 					        						flowBuilder.setTypeOfTraffic(TrafficType.DNS);
+					        						//LOG.debug("DNS Protocol");
 					        					}
 					        					if (tcpMatch.getTcpDestinationPort().getValue() == 67) {
 					        						flowBuilder.setTypeOfTraffic(TrafficType.DHCP);
+					        						//LOG.debug("DHCP Protocol");
 					        					}
 					        				}
 					        			}
@@ -1043,8 +1090,10 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			        	if (flow.getMatch().getEthernetMatch().getEthernetType() != null) {
 			        		if (flow.getMatch().getEthernetMatch().getEthernetType().getType().getValue() == 0x0806){
 			        			flowBuilder.setTypeOfTraffic(TrafficType.ARP);
+			        			//LOG.debug("ARP Protocol");
 			        		}
 			        	}
+			        	//LOG.debug("Creating Instructions ....");
 			        	//----------------------------Extract Action Information ---------------------
 			        	Instructions instructions = flow.getInstructions();
 			        	for (Instruction instruction : instructions.getInstruction()){
@@ -1055,8 +1104,10 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			        				OutputActionCase outputCase = (OutputActionCase) action.getAction();
 			        				String outputPort = outputCase.getOutputAction().getOutputNodeConnector().getValue().split(":")[2];
 			        				flowBuilder.setActionOutputPort(outputPort);
+			        				//LOG.debug("Outport Case and port {}", outputPort);
 			        			} else if (action.getAction() instanceof DropActionCase){
 			        				flowBuilder.setActionOutputPort("0");
+			        				//LOG.debug("Drop Action Case");
 			        			} else if (action.getAction() instanceof SetNwSrcActionCase) {
 			        				SetNwSrcActionCase setNwSrcCase = (SetNwSrcActionCase) action.getAction();
 			        				Ipv4 ipv4Address = (Ipv4) setNwSrcCase.getSetNwSrcAction().getAddress();
@@ -1085,11 +1136,14 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			        			}
 			        		}
 			        	}
+			        	//LOG.debug("Adding Flow Builder to list");
 			        	flowRuleList.add(flowBuilder.build());
 			        }///////////////////--------------------End of IF Flow != NULL
 				} //...................End of For loop Iterating through Flows
 				// ------------ Create output object of the RPC
+				//LOG.debug("Generating List");
 				flowRulesOutputBuilder.setFlowRules(flowRuleList);
+				//LOG.debug("Exiting");
 				return RpcResultBuilder.success(flowRulesOutputBuilder.build()).buildFuture();
 			} // End of IF No Flows IN Table 0
 		} //End of IF There Are no Tables in the Switch
@@ -1181,7 +1235,63 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		//Handle the Drop Port Case explicitly not just by ignoring.
 	}
 
-	
+	@Override
+	public Future<RpcResult<InstallPathSegmentOutput>> installPathSegment(
+			InstallPathSegmentInput input) {
+		InstallPathBwNodesInputBuilder installPathBuilder = new InstallPathBwNodesInputBuilder();
+		try {
+			if (input.getDstIpAddress() != null){
+				installPathBuilder.setDstIpAddress(new Ipv4Prefix(input.getDstIpAddress()));
+			}
+			else {
+				String exception = "No Destination IP is provided.";
+				throw new Exception(exception);
+			}
+			if (input.getSrcIpAddress() != null) {
+				installPathBuilder.setSrcIpAddress(new Ipv4Prefix(input.getSrcIpAddress()));
+			}
+			else {
+				String exception = "No Source IP is provided.";
+				throw new Exception(exception);
+			}
+			if (input.getSwitchesInPath()!= null){
+				List<NodeId> nodeList = Lists.newArrayList();
+				for (int node: input.getSwitchesInPath()){
+					NodeId nodeId = new NodeId("openflow:" + Integer.toString(node));
+					nodeList.add(nodeId);
+				}
+				installPathBuilder.setPathNodes(nodeList);
+			}
+			else {
+				String exception = "No Path is provided.";
+				throw new Exception(exception);
+			}
+			//if (input.getTypeOfTraffic() != null){
+			//	installPathBuilder.setTrafficMatch(input.getTypeOfTraffic());
+			//}
+			//else {
+			//	installPathBuilder.setTrafficMatch(TrafficType.TCP);
+			//}
+			installPathBuilder.setFlowPriority(input.getFlowPriority());
+			installPathBuilder.setIdleTimeout(input.getIdleTimeout());
+			installPathBuilder.setHardTimeout(input.getHardTimeout());
+			///-------------------------------
+			Future<RpcResult<InstallPathBwNodesOutput>> pathFutureOutput =  
+			tapService.installPathBwNodes(installPathBuilder.build());
+			if (pathFutureOutput != null) {
+				InstallPathSegmentOutput output = new InstallPathSegmentOutputBuilder().
+						setStatus(pathFutureOutput.get().getResult().getStatus()).build();
+				return RpcResultBuilder.success(output).buildFuture();
+			}
+			else {
+				String exception = "No Path could be installed.";
+				throw new Exception(exception);
+			}
+		} catch (Exception e){
+			LOG.error("Exception reached in InstallNetworkPath RPC {} --------", e);
+			return null;
+		}
+	}
 	////////////////////////////-------------------------------/////////////////////////////////
 	//////----------------------Events generated---------------------------------------/////////
 	////////////////////////////---------------------------------///////////////////////////////
@@ -1205,7 +1315,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	
 	@Override
 	public Future<RpcResult<GetFlowStatisticsOutput>> getFlowStatistics(GetFlowStatisticsInput input) {
-		LOG.debug("--------Fetching Flow Statistics for Switch {}------", input.getSwitchId());
+		//LOG.debug("--------Fetching Flow Statistics for Switch {}------", input.getSwitchId());
 		int flowCount = 0;
 		int flowStatsCount = 0;
 		NodeId nodeId = new NodeId("openflow:" + input.getSwitchId().toString());
@@ -1421,10 +1531,10 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		List<SwitchStatistics> switchStats = Lists.newArrayList();
 
 		if (listOfSwitchesForStats.isEmpty()){
-			LOG.debug("There are no subscribed switches available for statistic collection");
+			LOG.debug("There are no subscribed switches and links available for statistic collection");
 			return;
 		}
-		
+		LOG.debug("Fetching statistics from the subscribed switches and links in the network ....");
 		for (Iterator<Integer> swItr = listOfSwitchesForStats.iterator(); swItr.hasNext();){
 			int switchId = swItr.next();
 			//LOG.debug(" ");
@@ -1531,11 +1641,13 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	public void onNodeConnectorStatisticsUpdate(
 			NodeConnectorStatisticsUpdate notification) {
 
+		//if (skip == true) return;
 		for (Iterator<NodeConnectorStatisticsAndPortNumberMap> portStatItr = 
 				notification.getNodeConnectorStatisticsAndPortNumberMap().iterator(); 
 				portStatItr.hasNext();){
 			NodeConnectorStatisticsAndPortNumberMap portStats = portStatItr.next();
-			if (portStats.getReceiveDrops().intValue() > 0 || portStats.getTransmitDrops().intValue() > 0){
+			if (portStats.getReceiveDrops().intValue() > 0 || portStats.getTransmitDrops().intValue() > 0
+					|| portStats.getReceiveErrors().intValue() > 0 || portStats.getTransmitErrors().intValue() > 0){
 				LOG.debug("NodeConnectorID {}", portStats.getNodeConnectorId().getValue());
 				LOG.debug("PacketReceiveDrops {}", portStats.getReceiveDrops());
 				LOG.debug("PacketTransmitDrops {}", portStats.getTransmitDrops());
@@ -1562,7 +1674,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		//List<SwitchStatistics> switchStats = Lists.newArrayList();
 
 		if (listOfSwitchPortsForStats.isEmpty()){
-			LOG.debug("There are no ports (links) subscribed for flood checking.");
+			//LOG.debug("There are no ports (links) subscribed for flood checking.");
 			return;
 		}
 		delayedNotification += 1;
@@ -1570,10 +1682,6 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		List<FloodedLinks> listOfFloodedLinks = Lists.newArrayList(); 
 
 		for (String portId : listOfSwitchPortsForStats.keySet()){
-			//int firstIndex = portId.indexOf(":");
-			//int secondIndex = portId.indexOf(":", firstIndex + 1);
-			//int switchId = Integer.parseInt(portId.substring(firstIndex + 1, secondIndex - 1));
-			//int connectorId = Integer.parseInt(portId.substring(secondIndex + 1, portId.length() - 1));
 			int switchId = Integer.parseInt(portId.split(":")[1]);
 			int connectorId = Integer.parseInt(portId.split(":")[2]);
 			GetPortStatisticsInputBuilder portStatsInputBuilder = new GetPortStatisticsInputBuilder();
@@ -1588,17 +1696,29 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 						FloodedLinksBuilder floodedLinkBuilder = new FloodedLinksBuilder();
 						//--------For the time being there is only one link and we assume that is flooded
 						floodedLinkBuilder.setLinkId(portId);
-						floodedLinkBuilder.setPacketDropObserved(5);
+						floodedLinkBuilder.setPacketDropObserved((long)5);
 						listOfFloodedLinks.add(floodedLinkBuilder.build());
 						//--------------------------------------------
 						if (portStatsOutput.getReceiveDrops() > 0){
+							LOG.debug("");
 							LOG.debug("GetReceivedDrops = {} ", portStatsOutput.getReceiveDrops());
 							floodedLinkBuilder.setLinkId(portId);
+							floodedLinkBuilder.setPacketDropObserved(portStatsOutput.getReceiveDrops() - observedReceiveDrops);
 							listOfFloodedLinks.add(floodedLinkBuilder.build());
+							observedReceiveDrops = portStatsOutput.getReceiveDrops();
+							LOG.debug("------------------------------------------------------------------");
+							LOG.debug("Packet Received Dropped {0} on Switch {1} and Port {2}",floodedLinkBuilder.getPacketDropObserved(), switchId, portId);
+							LOG.debug("------------------------------------------------------------------");
 						} else if (portStatsOutput.getTransmitDrops() > 0){
+							LOG.debug("");
 							LOG.debug("GetTransmitDrops = {} ", portStatsOutput.getTransmitDrops());
 							floodedLinkBuilder.setLinkId(portId);
+							floodedLinkBuilder.setPacketDropObserved(portStatsOutput.getTransmitDrops() - observedTransmitDrops);
 							listOfFloodedLinks.add(floodedLinkBuilder.build());
+							observedTransmitDrops = portStatsOutput.getTransmitDrops();
+							LOG.debug("------------------------------------------------------------------");
+							LOG.debug("Packet Transmit Dropped {0} on Switch {1} and Port {2}",floodedLinkBuilder.getPacketDropObserved(), switchId, portId);
+							LOG.debug("------------------------------------------------------------------");
 						} else if (portStatsOutput.getTotalTransmitted() > 0){
 							//LOG.debug("GetTotalTransmitted = {} ", portStatsOutput.getTotalTransmitted());							
 						} else if (portStatsOutput.getTotalReceived() > 0){
@@ -1611,12 +1731,12 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 				LOG.debug("Exception Reached {}", e);
 			}
 		}
-		if (delayedNotification > 0) {
-			if (listOfFloodedLinks.isEmpty() == false){
-				linkFlooded.setFloodedLinks(listOfFloodedLinks);
-				this.notificationService.publish(linkFlooded.build());
-			}
+		//if (delayedNotification > 0) {
+		if (listOfFloodedLinks.isEmpty() == false){
+			linkFlooded.setFloodedLinks(listOfFloodedLinks);
+			this.notificationService.publish(linkFlooded.build());
 		}
+		//}
 	}
 
 	@Override
@@ -1656,8 +1776,8 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	@Override
 	public Future<RpcResult<GetPortStatisticsOutput>> getPortStatistics(
 			GetPortStatisticsInput input) {
-		LOG.debug("");
-		LOG.debug("Fetching Port Statistics for Switch {} and Port {}", input.getSwitchId(), input.getConnectorId());
+		//LOG.debug("");
+		//LOG.debug("Fetching Port Statistics for Switch {} and Port {}", input.getSwitchId(), input.getConnectorId());
 		int nodeConnectorCount = 0;
 		int nodeConnectorStatsCount = 0;
 		NodeId nodeId = new NodeId("openflow:" + input.getSwitchId().toString());
@@ -1674,6 +1794,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			if (node != null) {
 				if (node.getNodeConnector() != null) {
 					List<NodeConnector> ports = node.getNodeConnector();
+					//FlowCapableNodeConnectorQueueStatistics queueData = ports.get(0).getAugmentation(FlowCapableNodeConnectorQueueStatistics.class);
 					for (Iterator<NodeConnector> iterator2 = ports.iterator(); 
 							iterator2.hasNext();) {
 						nodeConnectorCount++;
@@ -1684,15 +1805,18 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 								.create(Nodes.class).child(Node.class, nodeKey)
 								.child(NodeConnector.class, nodeConnectorKey);
 						NodeConnector nodeConnector = GenericTransactionUtils.readData(dataBroker, 
-								LogicalDatastoreType.OPERATIONAL, connectorRef); 
+								LogicalDatastoreType.OPERATIONAL, connectorRef);
 						if (nodeConnector != null) {
 							FlowCapableNodeConnectorStatisticsData data = nodeConnector
 									.getAugmentation(FlowCapableNodeConnectorStatisticsData.class);
+							//FlowCapableNodeConnectorQueueStatistics queueData = nodeConnector.getAugmentation(FlowCapableNodeConnectorQueueStatistics.class);
+							
+							
 							if (null != data) {
 								nodeConnectorStatsCount++;
-								LOG.debug("ReceivedDrops {}", data.getFlowCapableNodeConnectorStatistics().getReceiveDrops());
-								LOG.debug("TransmitDrops {}", data.getFlowCapableNodeConnectorStatistics().getTransmitDrops());
-								LOG.debug("Packets {}", data.getFlowCapableNodeConnectorStatistics().getPackets());
+								//LOG.debug("ReceivedDrops {}", data.getFlowCapableNodeConnectorStatistics().getReceiveDrops());
+								//LOG.debug("TransmitDrops {}", data.getFlowCapableNodeConnectorStatistics().getTransmitDrops());
+								//LOG.debug("Packets {}", data.getFlowCapableNodeConnectorStatistics().getPackets());
 								
 								GetPortStatisticsOutputBuilder output = new GetPortStatisticsOutputBuilder();
 								output.setTotalReceived(data.getFlowCapableNodeConnectorStatistics().getPackets().getReceived().longValue());
@@ -1712,21 +1836,91 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 
 	@Override
 	public void onQueueStatisticsUpdate(QueueStatisticsUpdate notification) {
-		for (Iterator<QueueIdAndStatisticsMap> queueStatItr = notification.getQueueIdAndStatisticsMap().iterator(); 
-				queueStatItr.hasNext();){
-			QueueIdAndStatisticsMap queueStatMap = queueStatItr.next();
-			if (queueStatMap.getTransmissionErrors().getValue().intValue() > 0){
-				LOG.debug("Link ID {}", queueStatMap.getNodeConnectorId().getValue());
-				LOG.debug("QueueID {}", queueStatMap.getQueueId().getValue());
-				LOG.debug("Transmission Errors {}", queueStatMap.getTransmissionErrors().getValue());
-				LOG.debug("Transmitted Packets {}", queueStatMap.getTransmittedPackets().getValue());
-				LOG.debug("------------------------------");
-			}
+		//LOG.debug("Queue Statistics is called -----------");
+		long timeMillis = System.currentTimeMillis();
+		long seconds = TimeUnit.MILLISECONDS.toSeconds(timeMillis);
+		if (queueFirstTime == true){
+			queuePreviousTime = queueStartTime = seconds;
+			//listOfSwitchPortsForStats.put("openflow:1:1", 10);
+			queueFirstTime = false;
+		}
+		else if (seconds - queuePreviousTime < queueReportingTime){
+			return;
+		}
+		//LOG.debug("--------------------------onPortStatisticUpdate Called -----------------");
+		//LOG.debug(" ");
+		queuePreviousTime = seconds;
+		//List<SwitchStatistics> switchStats = Lists.newArrayList();
+	
+		if (listOfSwitchPortsForStats.isEmpty()){
+			//LOG.debug("There are no ports (Queues)  ------ subscribed.");
+			return;
+		}
+		IsLinkFloodedBuilder linkFlooded = new IsLinkFloodedBuilder();
+		List<FloodedLinks> listOfFloodedLinks = Lists.newArrayList();
+		
+		for (String portId : listOfSwitchPortsForStats.keySet()){
+			NodeConnectorId nodeConnectorId = new NodeConnectorId(portId);
+			NodeId nodeId = InventoryUtils.getNodeId(nodeConnectorId);
+			int switchId = Integer.parseInt(portId.split(":")[1]);
+			int connectorId = Integer.parseInt(portId.split(":")[2]);
 			
+			InstanceIdentifier<FlowCapableNodeConnectorQueueStatisticsData> queue0IID = InstanceIdentifier.create(Nodes.class)
+					.child(Node.class, new NodeKey(nodeId)) 
+	                .child(NodeConnector.class, new NodeConnectorKey(new NodeConnectorId(nodeConnectorId))) 
+	                .augmentation(FlowCapableNodeConnector.class) 
+	                .child(Queue.class, new QueueKey(new QueueId((long)0))) 
+	                .augmentation(FlowCapableNodeConnectorQueueStatisticsData.class);
+			FlowCapableNodeConnectorQueueStatisticsData queue0Stats = GenericTransactionUtils
+					.readData(dataBroker, LogicalDatastoreType.OPERATIONAL, queue0IID);
+			if (queue0Stats != null){
+				long transmittedPackets = queue0Stats.getFlowCapableNodeConnectorQueueStatistics().getTransmittedPackets().getValue().longValue();
+				long transmissionErrors = queue0Stats.getFlowCapableNodeConnectorQueueStatistics().getTransmissionErrors().getValue().longValue();
+				if (transmissionErrors - observedQueueErrors > listOfSwitchPortsForStats.get(portId)){
+					LOG.debug("");
+					LOG.debug("SwitchID {} , LinkID {}", switchId, connectorId);
+					//LOG.debug("QueueID {}", 0);
+					LOG.debug("Dropped Packets {}", transmissionErrors - observedQueueErrors);
+					LOG.debug("Transmitted Packets {}", transmittedPackets);
+					LOG.debug("------------------------------");
+					
+					FloodedLinksBuilder floodedLinkBuilder = new FloodedLinksBuilder();
+					floodedLinkBuilder.setLinkId(portId);
+					floodedLinkBuilder.setPacketDropObserved(transmissionErrors - observedQueueErrors);
+					listOfFloodedLinks.add(floodedLinkBuilder.build());
+					observedQueueErrors = transmissionErrors;
+				}
+				else {
+					LOG.debug("");
+					LOG.debug("SwitchID {} , LinkID {}", switchId, connectorId);
+					//LOG.debug("QueueID {}", 0);
+					LOG.debug("Dropped Packets {}", transmissionErrors - observedQueueErrors);
+					LOG.debug("Transmitted Packets {}", transmittedPackets);
+					LOG.debug("------------------------------");
+				}
+			}
+			/*InstanceIdentifier<FlowCapableNodeConnectorQueueStatisticsData> queue1IID = InstanceIdentifier.create(Nodes.class)
+					.child(Node.class, new NodeKey(nodeId)) 
+	                .child(NodeConnector.class, new NodeConnectorKey(new NodeConnectorId(nodeConnectorId))) 
+	                .augmentation(FlowCapableNodeConnector.class) 
+	                .child(Queue.class, new QueueKey(new QueueId((long)1))) 
+	                .augmentation(FlowCapableNodeConnectorQueueStatisticsData.class);
+			FlowCapableNodeConnectorQueueStatisticsData queue1Stats = GenericTransactionUtils
+					.readData(dataBroker, LogicalDatastoreType.OPERATIONAL, queue0IID);*/
 		}
 		
+		if (listOfFloodedLinks.isEmpty() == false){
+			linkFlooded.setFloodedLinks(listOfFloodedLinks);
+			this.notificationService.publish(linkFlooded.build());
+		}
 	}
 
+//<<<<<<< HEAD:tapapp/implementation/src/main/java/org/sdnhub/odl/tutorial/tapapp/impl/ActiveSDNApi.java
+	
+
+
+//=======
+//>>>>>>> master:tapapp/implementation/src/main/java/org/sdnhub/odl/tutorial/tapapp/impl/ActivesdnServiceImpl.java
 //	@Override
 //	public Future<RpcResult<CanReachOutput>> canReach(CanReachInput input) {
 //		// TODO Auto-generated method stub
