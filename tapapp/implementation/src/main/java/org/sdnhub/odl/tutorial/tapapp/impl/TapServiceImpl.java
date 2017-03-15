@@ -1,7 +1,5 @@
 package org.sdnhub.odl.tutorial.tapapp.impl;
 
-import java.awt.Event;
-import java.awt.event.ActionEvent;
 import java.math.BigInteger;
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -11,41 +9,19 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.Ipv4Address;
-
-import javax.xml.ws.handler.PortInfo;
-
-//import org.opendaylight.controller.sal.core.spi.data.statistics.DOMStoreStatsTracker;
-//import org.opendaylight.controller.sal.reader.NodeConnectorStatistics;
-
-
-
-
-
-
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.api.DataChangeListener;
-import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
-import org.opendaylight.controller.md.sal.binding.api.ReadWriteTransaction;
-import org.opendaylight.controller.md.sal.binding.api.WriteTransaction;
 import org.opendaylight.controller.md.sal.common.api.data.AsyncDataBroker;
-import org.opendaylight.controller.md.sal.common.api.data.AsyncDataBroker.DataChangeScope;
 import org.opendaylight.controller.md.sal.common.api.data.AsyncDataChangeEvent;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
-//import org.opendaylight.controller.sal.binding.api.BindingAwareBroker.ProviderContext;
-//import org.opendaylight.controller.sal.binding.api.BindingAwareProvider;
 import org.opendaylight.controller.sal.binding.api.NotificationProviderService;
 import org.opendaylight.controller.sal.binding.api.RpcProviderRegistry;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.Ipv4Prefix;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.PortNumber;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.Uri;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.ControllerActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.DropActionCaseBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.FloodActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.OutputActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.SetDlDstActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.SetDlSrcActionCaseBuilder;
@@ -56,13 +32,10 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.acti
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.SetQueueActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.SetTpDstActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.SetTpSrcActionCaseBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.controller.action._case.ControllerActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.drop.action._case.DropActionBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.flood.action._case.FloodActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.output.action._case.OutputActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.dl.dst.action._case.SetDlDstActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.dl.src.action._case.SetDlSrcActionBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.field._case.SetField;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.nw.dst.action._case.SetNwDstActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.nw.src.action._case.SetNwSrcActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.nw.tos.action._case.SetNwTosActionBuilder;
@@ -70,15 +43,12 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.acti
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.queue.action._case.SetQueueActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.tp.dst.action._case.SetTpDstActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.set.tp.src.action._case.SetTpSrcActionBuilder;
-import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev130715.IpAddress;
-import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev130715.MacAddress;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.list.Action;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.list.ActionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.list.ActionKey;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.address.address.Ipv4;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.address.address.Ipv4Builder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.FlowCapableNode;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.FlowCapableNodeConnectorUpdated;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.FlowCapableNodeUpdated;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.FlowId;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.tables.Table;
@@ -86,43 +56,15 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.ta
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.tables.table.Flow;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.tables.table.FlowBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.tables.table.FlowKey;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.service.rev130819.RemoveFlowInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.service.rev130819.SalFlowService;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.FlowCookie;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.FlowModFlags;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.flow.InstructionsBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.flow.MatchBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.instruction.ApplyActionsCaseBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.instruction.MeterCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.instruction.apply.actions._case.ApplyActionsBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.instruction.meter._case.*;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.list.Instruction;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.list.InstructionBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.list.InstructionKey;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.meters.Meter;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.meters.MeterBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.meters.MeterKey;
-/*
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.meters.StaleMeter;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.meters.StaleMeterBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.meters.StaleMeterKey;
-*/
-import org.opendaylight.yang.gen.v1.urn.opendaylight.l2.types.rev130827.EtherType;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.service.rev130918.AddMeterInput;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.service.rev130918.RemoveMeterInput;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.service.rev130918.UpdateMeterInput;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.MeterBandType;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.MeterFlags;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.MeterId;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.band.type.band.type.DropBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.meter.MeterBandHeaders;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.meter.MeterBandHeadersBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.meter.meter.band.headers.MeterBandHeader;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.meter.meter.band.headers.MeterBandHeaderBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.meter.meter.band.headers.meter.band.header.MeterBandTypes;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.meter.meter.band.headers.meter.band.header.MeterBandTypesBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.band.type.band.type.Drop;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.band.type.band.type.DropBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorId;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRef;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeConnectorRemoved;
@@ -136,8 +78,8 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.Openday
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.node.NodeConnector;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.node.NodeConnectorKey;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.Node;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.NodeBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.NodeKey;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.meter.types.rev130918.MeterId;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.AddTapInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.AddTapOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.AddTapOutputBuilder;
@@ -147,11 +89,8 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.Checki
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.ConnectedHosts;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.CookieToFlowid;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.CookieToFlowidBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.EventActions;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.FieldType;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.GetAllHostsOnSwitchInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.GetAllHostsOnSwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.GetAllHostsOnSwitchOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.GetAllLinksOfSwitchInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.GetAllLinksOfSwitchOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.GetAllLinksOfSwitchOutputBuilder;
@@ -159,7 +98,6 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.GetAll
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.GetAllSwitchesOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.GetNetworkTopologyOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.GetNetworkTopologyOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.HostInfo;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallFlowInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallFlowInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallFlowOutput;
@@ -188,7 +126,6 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MovePa
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MutateIpInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MutateIpOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MutateIpOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.NetworkLink;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.NodeNeighbors;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.NodeNeighborsBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.RemoveAFlowFromSwitchInput;
@@ -203,37 +140,42 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.Remove
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.RemoveFlowsFromSwitchInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.RemoveFlowsFromSwitchOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.RemoveFlowsFromSwitchOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.TapSpecBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.TrafficType;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.event.actions.TapActions;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.event.actions.tap.actions.BlockCase;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.event.actions.tap.actions.NotifyCase;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.forward.to.controller._case.*;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.forward.to.flood._case.ForwardToFloodBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.forward.to.port._case.ForwardToPortBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.set.dst.ipv4.address._case.SetDstIpv4AddressBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.set.dst.mac.address._case.SetDstMacAddressBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.set.source.ipv4.address._case.SetSourceIpv4AddressBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.set.src.mac.address._case.SetSrcMacAddressBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.*;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.*;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MalEvents;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MalEventsBuilder;
-
-//import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.ProtocolInfo;
-//import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.ProtocolInfoBuilder;
-
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.TapService;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.TapSpec;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.TapSpecBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.add.tap.input.Tap1;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.connected.hosts.ConnectedHost;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.connected.hosts.ConnectedHostKey;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.cookie.to.flowid.Cookie;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.cookie.to.flowid.CookieBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.cookie.to.flowid.CookieKey;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.FlowActions;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.DropPacketCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.ForwardToControllerCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.ForwardToControllerCaseBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.ForwardToFloodCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.ForwardToPortCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.ForwardToPortCaseBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetDstIpv4AddressCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetDstIpv4AddressCaseBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetDstMacAddressCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetDstMacAddressCaseBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetIpv4TosCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetIpv4TtlCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetPortQueueCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetRateLimitCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetSourceIpv4AddressCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetSourceIpv4AddressCaseBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetSrcMacAddressCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetSrcMacAddressCaseBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetTcpDstPortCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.SetTcpSrcPortCase;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.forward.to.controller._case.ForwardToControllerBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.forward.to.port._case.ForwardToPortBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.set.dst.ipv4.address._case.SetDstIpv4AddressBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.set.dst.mac.address._case.SetDstMacAddressBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.set.source.ipv4.address._case.SetSourceIpv4AddressBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.actions.flow.actions.set.src.mac.address._case.SetSrcMacAddressBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.getallhostsonswitch.output.HostsInfo;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.getallhostsonswitch.output.HostsInfoBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.getnetworktopology.output.NetworkLinks;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.getnetworktopology.output.NetworkLinksBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.install.flow.input.AssociatedActions;
@@ -241,8 +183,6 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.instal
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.install.flow.input.NewFlow;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.install.flow.input.NewFlowBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.install.flow.repository.NewFlow1;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.mal.events.MalEvent;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.mal.events.MalEventBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.mutate.ip.input.mutation.end.BothCase;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.mutate.ip.input.mutation.end.DstOnlyCase;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.mutate.ip.input.mutation.end.SourceOnlyCase;
@@ -255,36 +195,15 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.node.n
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.tap.spec.Tap;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.tap.spec.TapBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.tap.spec.TapKey;
-import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev130712.link.attributes.SourceBuilder;
-import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev130712.network.topology.topology.LinkBuilder;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.NetworkTopology;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.TopologyId;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.Topology;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.TopologyKey;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.topology.Link;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.arp.match.fields.ArpSourceHardwareAddress;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.arp.match.fields.ArpTargetHardwareAddress;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.ethernet.match.fields.EthernetTypeBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.EthernetMatchBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._3.match.ArpMatch;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._3.match.Ipv4Match;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._3.match.Ipv4MatchBuilder;
-//import org.opendaylight.yang.gen.v1.urn.opendaylight.openflow.common.action.rev150203.action.grouping.action.choice.set.queue._case.SetQueueActionBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.ConnectionCookie;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.PacketInReason;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.PacketReceived;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.packet.received.Match;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.table.types.rev131026.TableId;
-
-//import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.arp.rev140528.ArpPacketReceived;
-
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.concepts.Registration;
-import org.opendaylight.yangtools.yang.binding.Augmentation;
-import org.opendaylight.yangtools.yang.binding.DataContainer;
 import org.opendaylight.yangtools.yang.binding.DataObject;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier.PathArgument;
 import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.opendaylight.yangtools.yang.common.RpcResultBuilder;
 import org.sdnhub.odl.tutorial.utils.GenericTransactionUtils;
@@ -293,10 +212,10 @@ import org.sdnhub.odl.tutorial.utils.openflow13.MatchUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import org.opendaylight.controller.md.sal.binding.api.DataBroker;
+import org.opendaylight.controller.md.sal.binding.api.WriteTransaction;
 
 // Previously it is called TutorialTapProvider
 public class TapServiceImpl implements AutoCloseable, DataChangeListener, OpendaylightInventoryListener, TapService {
@@ -2868,376 +2787,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 		return RpcResultBuilder.success(output).buildFuture();
 	}
 	
-	@Override
-	public Future<RpcResult<MutateIpOutput>> mutateIp(final MutateIpInput input) {
-		
-		LOG.debug("     ==================================================================     ");
-		LOG.debug("          In mutateIp function: SourceIp {} and DestinationIp {}", input.getSrcIpAddress().getValue(), input.getDstIpAddress().getValue());
-		LOG.debug("      ==================================================================     ");
-		// This function will mutate the Ip addresses
-		RepeatFunction func = new RepeatFunction() {	
-			@Override
-			public InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix curDstIp,
-					Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp,  boolean setMac,
-					NodeId nodeid) {
-				
-				LOG.debug("     ==================================================================     ");
-				LOG.debug("     In mutateIp install Flow function: curDstIp {} and newDstIp {}"
-						+ " curSrcIp {} newSrcIp {}", curDstIp.getValue(), newDstIp.getValue(), curSrcIp.getValue(), newSrcIp.getValue());
-				LOG.debug("     ===================================================================     ");
-				
-				List<AssociatedActions> actionList = Lists.newArrayList();
-				AssociatedActionsBuilder actionBuilder = new AssociatedActionsBuilder();
-				long actionKey = 1;
-				if (curSrcIp.equals(newSrcIp) == false){
-					SetSourceIpv4AddressBuilder srcIpBuilder = new SetSourceIpv4AddressBuilder();
-					srcIpBuilder.setValue(newSrcIp);
-					actionBuilder.setFlowActions(new SetSourceIpv4AddressCaseBuilder().
-							setSetSourceIpv4Address(srcIpBuilder.build()).build());
-					actionBuilder.setId(actionKey++);
-					actionList.add(actionBuilder.build());
-					/////////////////////////////////////
-					ConnectedHost host = getHostInfo(newSrcIp.getValue());
-					if (host != null){
-						SetSrcMacAddressBuilder srcMacBuilder = new SetSrcMacAddressBuilder();
-						srcMacBuilder.setValue(host.getHostMacAddress());
-						actionBuilder.setFlowActions(new SetSrcMacAddressCaseBuilder().
-								setSetSrcMacAddress(srcMacBuilder.build()).build());
-						actionBuilder.setId(actionKey++);
-						actionList.add(actionBuilder.build());
-					}
-				}
-				if (curDstIp.equals(newDstIp) == false){
-					SetDstIpv4AddressBuilder dstIpBuilder = new SetDstIpv4AddressBuilder();
-					dstIpBuilder.setValue(newDstIp);
-					actionBuilder.setFlowActions(new SetDstIpv4AddressCaseBuilder().
-							setSetDstIpv4Address(dstIpBuilder.build()).build());
-					actionBuilder.setId(actionKey++);
-					actionList.add(actionBuilder.build());
-					//////////////////////////
-					ConnectedHost host = getHostInfo(newDstIp.getValue());
-					if (host != null){
-						SetDstMacAddressBuilder dstMacBuilder = new SetDstMacAddressBuilder();
-						dstMacBuilder.setValue(host.getHostMacAddress());
-						actionBuilder.setFlowActions(new SetDstMacAddressCaseBuilder().
-								setSetDstMacAddress(dstMacBuilder.build()).build());
-						actionBuilder.setId(actionKey++);
-						actionList.add(actionBuilder.build());
-					}
-				}
-				
-				ForwardToPortBuilder forwardBuilder = new ForwardToPortBuilder();
-				forwardBuilder.setOutputNodeConnector(outputPort);
-				
-				actionBuilder.setFlowActions(new ForwardToPortCaseBuilder().
-						setForwardToPort(forwardBuilder.build()).build());
-				actionBuilder.setId(actionKey++);
-				actionList.add(actionBuilder.build());
-				
-				NewFlowBuilder newFlowBuilder = new NewFlowBuilder();
-				newFlowBuilder.setDstIpAddress(curDstIp);
-				newFlowBuilder.setSrcIpAddress(curSrcIp);
-				newFlowBuilder.setFlowPriority(input.getFlowPriority());
-				newFlowBuilder.setIdleTimeout(input.getIdleTimeout());
-				newFlowBuilder.setHardTimeout(input.getHardTimeout());
-				
-				InstallFlowInputBuilder installFlowBuilder = new InstallFlowInputBuilder();
-				installFlowBuilder.setNode(nodeid);
-				installFlowBuilder.setNewFlow(newFlowBuilder.build());
-				
-				installFlowBuilder.setAssociatedActions(actionList);
-				return installFlowBuilder.build();
-				
-			}
-
-			@Override
-			public InstallFlowInput performFunction(NodeConnectorId outputPort,
-					Ipv4Prefix dstIp, Ipv4Prefix srcIp, NodeId nodeid) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-		};
-		
-		MutateIpOutputBuilder output = new MutateIpOutputBuilder();
-		try{
-			//LOG.debug("  ===========================================   ");
-			//LOG.debug(input.getPathNodes().toString());
-			//LOG.debug("  ===========================================   ");
-			
-//			ConnectedHost srcHost = getHostInfo(input.getSrcIpAddress().getValue());
-//			if (srcHost == null){
-//				String exception = "Source Host " + input.getSrcIpAddress().getValue() + 
-//						" is not known to controller ";
-//				throw new Exception(exception);
-//			} else if (srcHost.getNodeConnectedTo().equals(input.getPathNodes().get(0)) == false ){
-//				//LOG.debug("  ===========================================   ");
-//				//LOG.debug(input.getPathNodes().get(0).getValue());
-//				//LOG.debug("  ===========================================   ");
-//				String exception = "Source Host " + input.getSrcIpAddress().getValue() + 
-//						" is not known connected to node " + input.getPathNodes().get(0).getValue();
-//				throw new Exception(exception);
-//			}
-			/////////////////
-			ConnectedHost dstHost = getHostInfo(input.getDstIpAddress().getValue());
-			if (dstHost == null){
-				String exception = "Dst Host " + input.getDstIpAddress().getValue() + 
-						" is not known to controller ";
-				throw new Exception(exception);
-			} 
-//			else if (dstHost.getNodeConnectedTo().equals(input.getPathNodes().get(input.getPathNodes().size()-1)) == false ){
-//				String exception = "Dst Host " + input.getDstIpAddress().getValue() + 
-//						" is not known connected to node " + input.getPathNodes().get(input.getPathNodes().size()-1).getValue();
-//				throw new Exception(exception);
-//			}
-			//////////////////////
-			Neighbors srcEdgeNeighbor = getPortInformation(input.getPathNodes().get(0), input.getPathNodes().get(1));
-//			if (srcEdgeNeighbor == null){
-//				String exception = "Soure Edge Node" + input.getPathNodes().get(0).getValue() + 
-//						" is not neighbor with " + input.getPathNodes().get(1).getValue();
-//				throw new Exception(exception);
-//			}
-			Neighbors dstEdgeNeighbor = getPortInformation(input.getPathNodes().get(input.getPathNodes().size()-1), 
-					input.getPathNodes().get(input.getPathNodes().size()-2));
-//			if (dstEdgeNeighbor == null){
-//				String exception = "Dst Edge Node" + input.getPathNodes().get(input.getPathNodes().size()-1).getValue() + 
-//						" is not neighbor with " + input.getPathNodes().get(input.getPathNodes().size()-2).getValue();
-//				throw new Exception(exception);
-//			}
-			////////////////////////////////////////////////
-			/*
-			if (input.getMutationEnd() instanceof SourceOnlyCase){
-				SourceOnlyCase srcOnlyCase = (SourceOnlyCase) input.getMutationEnd();
-				InstallPathBwNodesInputBuilder pathInputBuilder = new InstallPathBwNodesInputBuilder();
-				pathInputBuilder.setDstIpAddress(input.getDstIpAddress());
-				pathInputBuilder.setSrcIpAddress(srcOnlyCase.getSourceOnly().getNewSrcIpAddress());
-				pathInputBuilder.setPathNodes(input.getPathNodes());
-				pathInputBuilder.setFlowPriority(input.getFlowPriority());
-				pathInputBuilder.setIdleTimeout(input.getIdleTimeout());
-				pathInputBuilder.setHardTimeout(input.getHardTimeout());
-				this.installPathBwNodes(pathInputBuilder.build());
-				
-				//On source edge node, SrcHost will be the destination and its traffic will reach with changed DstIp 
-				//so we have to revert it back to original srcHost IP
-				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(), 
-						srcOnlyCase.getSourceOnly().getNewSrcIpAddress(),
-						input.getSrcIpAddress(), input.getDstIpAddress(), input.getDstIpAddress(), 
-						input.getPathNodes().get(0)));
-				
-				//On source edge node, if SrcHost is the source then going to dstHost then we need to change its identity 
-				//for the network and change the srcIp of packet to newSrcIP and leave the dstHost intact
-				this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(), 
-						input.getDstIpAddress(), input.getDstIpAddress(), 
-						input.getSrcIpAddress(), srcOnlyCase.getSourceOnly().getNewSrcIpAddress(), 
-						input.getPathNodes().get(0)));
-				
-				//On Destination edge node, if newSrcHostIP is the source then going to dstHost then we need to change its identity 
-				//back to original srcHost IP so that the dstHost can recognize it
-				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
-						input.getDstIpAddress(), input.getDstIpAddress(),
-						srcOnlyCase.getSourceOnly().getNewSrcIpAddress(),
-						input.getSrcIpAddress(),
-						input.getPathNodes().get(input.getPathNodes().size()-1)));
-				
-				//On Destination edge node, SrcHostIP will be the destination and its traffic Identity should be hidden from the  
-				//network, so the DstIP of the packet will be changed from actualSrcHostIP to newIP
-				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
-						input.getSrcIpAddress(), 
-						srcOnlyCase.getSourceOnly().getNewSrcIpAddress(),
-						input.getDstIpAddress(), input.getDstIpAddress(), 
-						input.getPathNodes().get(input.getPathNodes().size()-1)));
-				
-			} ///////////////////////////////
-			else if (input.getMutationEnd() instanceof DstOnlyCase){
-				DstOnlyCase dstOnlyCase = (DstOnlyCase) input.getMutationEnd();
-<<<<<<< HEAD
-				
-//				InstallPathBwNodesInputBuilder pathInputBuilder = new InstallPathBwNodesInputBuilder();
-//				pathInputBuilder.setDstIpAddress(dstOnlyCase.getDstOnly().getNewDstIpAddress());
-//				pathInputBuilder.setSrcIpAddress(input.getSrcIpAddress());
-//				pathInputBuilder.setPathNodes(input.getPathNodes());
-//				pathInputBuilder.setFlowPriority(input.getFlowPriority());
-//				pathInputBuilder.setIdleTimeout(input.getIdleTimeout());
-//				pathInputBuilder.setHardTimeout(input.getHardTimeout());
-//				this.installPathBwNodes(pathInputBuilder.build());
-=======
-				InstallPathBwNodesInputBuilder pathInputBuilder = new InstallPathBwNodesInputBuilder();
-				pathInputBuilder.setDstIpAddress(dstOnlyCase.getDstOnly().getNewDstIpAddress());
-				pathInputBuilder.setSrcIpAddress(input.getSrcIpAddress());
-				pathInputBuilder.setPathNodes(input.getPathNodes());
-				pathInputBuilder.setFlowPriority(input.getFlowPriority());
-				pathInputBuilder.setIdleTimeout(input.getIdleTimeout());
-				pathInputBuilder.setHardTimeout(input.getHardTimeout());
-				//this.installPathBwNodes(pathInputBuilder.build());
->>>>>>> 7edbdd9c6d5550e8d69859d7b10e48d5f9aa8092
-				
-				//On source edge node, dstHostIP is the actual destination, however its traffic should be hidden from the network 
-				//so we change the IP destination of packets from actual dstHostIP to new IP
-				this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(), 
-						input.getDstIpAddress(), dstOnlyCase.getDstOnly().getNewDstIpAddress(), 
-						input.getSrcIpAddress(), input.getSrcIpAddress(), 
-						input.getPathNodes().get(0)));
-				
-				//On source edge node, if SrcHost is the destination then all packets coming from actual dstHostIP are mutated 
-				//in their srcIP address field, so before we forward these packets to srcHost, we need to switch them back original dstIP
-				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(), 
-<<<<<<< HEAD
-=======
-						input.getSrcIpAddress(),  input.getSrcIpAddress(),
-						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
-						input.getDstIpAddress(),					 
-						input.getPathNodes().get(0)));
-				
-				ConnectedHost newDstHost = getHostInfo(dstOnlyCase.getDstOnly().getNewDstIpAddress().getValue());
-				if (newDstHost == null){
-					String exception = "New Dst Host " + input.getDstIpAddress().getValue() + 
-							" is not known to controller ";
-					throw new Exception(exception);
-				}
-				//LOG.debug("((((((((((((((((((((((((New Dst Host is {} )))))))))))))))))))))", newDstHost.getHostIpAddress().getValue());
-				////-------------------------------------------------------------------------------------------------------------/////
-				///-----This code is only temporary fix for the video to install flow rules at the destination edge router ------/////
-				////------------------------------------------------------------------------------------------------------------/////
-				//on Dst Edge node, if traffic coming from SrcHost for dstHost will be mutated in dstIP as we hide the identity of dstHost  
-				//from network. So, we have to now change the mutated dstIP to original dstIp of the dstHost
-				this.installFlow(func.performFunction(newDstHost.getNodeConnectorConnectedTo(), 
-						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
-						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
-						input.getSrcIpAddress(), input.getSrcIpAddress(),
-						input.getPathNodes().get(input.getPathNodes().size()-1)));
-				
-				//On Destination edge node, any traffic originating from dstHost will have its IP address and we have to hide its identity from   
-				//the network. So we change the srcIP of packets from actual dstHost to mutated IP
-				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
-						input.getSrcIpAddress(), input.getSrcIpAddress(),
-						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
-						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
-						input.getPathNodes().get(input.getPathNodes().size()-1)));
-				
-				/*
-				//on Dst Edge node, if traffic coming from SrcHost for dstHost will be mutated in dstIP as we hide the identity of dstHost  
-				//from network. So, we have to now change the mutated dstIP to original dstIp of the dstHost
-				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
-						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
-						input.getDstIpAddress(),
->>>>>>> 7edbdd9c6d5550e8d69859d7b10e48d5f9aa8092
-						input.getSrcIpAddress(), input.getSrcIpAddress(),
-						input.getDstIpAddress(), dstOnlyCase.getDstOnly().getNewDstIpAddress(),					 
-						input.getPathNodes().get(0)));
-				
-<<<<<<< HEAD
-//				//on Dst Edge node, if traffic coming from SrcHost for dstHost will be mutated in dstIP as we hide the identity of dstHost  
-//				//from network. So, we have to now change the mutated dstIP to original dstIp of the dstHost
-//				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
-//						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
-//						input.getDstIpAddress(),
-//						input.getSrcIpAddress(), input.getSrcIpAddress(),
-//						input.getPathNodes().get(input.getPathNodes().size()-1)));
-//				
-//				//On Destination edge node, any traffic originating from dstHost will have its IP address and we have to hide its identity from   
-//				//the network. So we change the srcIP of packets from actual dstHost to mutated IP
-//				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
-//						input.getSrcIpAddress(), input.getSrcIpAddress(),
-//						input.getDstIpAddress(),
-//						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
-//						input.getPathNodes().get(input.getPathNodes().size()-1)));
-=======
-				//On Destination edge node, any traffic originating from dstHost will have its IP address and we have to hide its identity from   
-				//the network. So we change the srcIP of packets from actual dstHost to mutated IP
-				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
-						input.getSrcIpAddress(), input.getSrcIpAddress(),
-						input.getDstIpAddress(),
-						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
-						input.getPathNodes().get(input.getPathNodes().size()-1)));
-			else */
-				
-			if (input.getMutationEnd() instanceof BothCase){
-				BothCase bothCase = (BothCase) input.getMutationEnd();
-				Ipv4Prefix rIpSrc = bothCase.getBoth().getNewSrcIpAddress();
-				Ipv4Prefix rIpDst = bothCase.getBoth().getNewDstIpAddress();
-				Ipv4Prefix vIpSrc = input.getSrcIpAddress();
-				Ipv4Prefix vIpDst = input.getDstIpAddress();
-						
-				
-				LOG.debug("     ==================================================================     ");
-				LOG.debug("     For mutation we found, rIpSrc {}, rIpDst{}, vIpSrc {}, vIpDst{}", rIpSrc.getValue(), rIpDst.getValue(),
-						vIpSrc.getValue(), vIpDst.getValue());
-				LOG.debug("     ==================================================================     ");
-				
-				List<NodeId> pathNodes = Lists.newArrayList();
-				pathNodes.add(input.getPathNodes().get(0));
-				pathNodes.add(input.getPathNodes().get(input.getPathNodes().size() -1));
-				
-//				removeAllFlowRulesInPath(pathNodes , bothCase.getBoth().getNewSrcIpAddress(), bothCase.getBoth().getNewDstIpAddress());
-//				removeAllFlowRulesInPath(pathNodes , rIpSrc, rIpDst);
-				
-//				ConnectedHost srcHost = getHostInfo(input.getSrcIpAddress().getValue());
-				ConnectedHost srcHost = getHostInfo(rIpSrc.getValue());
-//				ConnectedHost dstHost = getHostInfo(input.getDstIpAddress().getValue());
-				ConnectedHost dstHost1 = getHostInfo(rIpDst.getValue());
-				
-
-				LOG.debug("     ==================================================================     ");
-				LOG.debug("     And srcHost {}, dstHost{}", srcHost.getNodeConnectedTo().getValue(), dstHost1.getNodeConnectedTo().getValue());
-				LOG.debug("     ==================================================================     ");
-				//On source edge node, traffic generated by actual srcHost for actual dstHost but we have to 
-				//mutate their identities
-//				this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(), 
-//						input.getDstIpAddress(), bothCase.getBoth().getNewDstIpAddress(),
-//						input.getSrcIpAddress(), bothCase.getBoth().getNewSrcIpAddress(), 
-//						input.getPathNodes().get(0)));
-				this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(), 
-						vIpDst, rIpDst,	vIpSrc, rIpSrc, false,
-						input.getPathNodes().get(0)));
-				
-				//On source edge node, traffic coming from mutated dstHost IP to mutated srcHost IP should be 
-				//reverted back to their identities
-//				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(), 
-//						bothCase.getBoth().getNewSrcIpAddress(), input.getSrcIpAddress(),
-//						bothCase.getBoth().getNewDstIpAddress(), input.getDstIpAddress(), 
-//						input.getPathNodes().get(0)));
-				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(),
-						rIpSrc, vIpSrc, rIpDst, vIpDst, false,
-						input.getPathNodes().get(0)));
-				
-				//On dst edge node, traffic coming for actual dstHost is mutated in both src and dst IPs
-				//so we have to revert it back before we hand this over to dstHost
-//				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
-//						bothCase.getBoth().getNewDstIpAddress(), input.getDstIpAddress(),
-//						bothCase.getBoth().getNewSrcIpAddress(), input.getSrcIpAddress(),
-//						input.getPathNodes().get(input.getPathNodes().size()-1)));
-				
-//				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
-//						rIpDst, rIpDst, rIpSrc, vIpSrc,
-//						input.getPathNodes().get(input.getPathNodes().size()-1)));
-				
-				//On dst edge node, traffic originated from dstHost for srcHost, we have to mutate both IPs 
-				//to hide their identities from the network
-//				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
-//						input.getSrcIpAddress(), bothCase.getBoth().getNewSrcIpAddress(),
-//						input.getDstIpAddress(), bothCase.getBoth().getNewDstIpAddress(),
-//						input.getPathNodes().get(input.getPathNodes().size()-1)));
-
-//				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
-//						vIpSrc, rIpSrc, rIpDst, rIpDst,
-//						input.getPathNodes().get(input.getPathNodes().size()-1)));
-				
-//				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
-//						vIpSrc, rIpSrc, vIpDst, rIpDst,
-//						input.getPathNodes().get(input.getPathNodes().size()-1)));
-				
-			}
-			
-			
-		} catch (Exception e) {
-            LOG.error("Exception reached in MutateIP RPC {} --------", e);
-            output.setStatus("IP couldn't be mutated.");
-    		return RpcResultBuilder.success(output).buildFuture();
-        }
-		
-		output.setStatus("IP is successfully mutated.");
-		return RpcResultBuilder.success(output).buildFuture();
-	}
-	
+//	@Override
 //	public Future<RpcResult<MutateIpOutput>> mutateIp(final MutateIpInput input) {
 //		
 //		LOG.debug("     ==================================================================     ");
@@ -3247,8 +2797,14 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 //		RepeatFunction func = new RepeatFunction() {	
 //			@Override
 //			public InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix curDstIp,
-//					Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp,
+//					Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp,  boolean setMac,
 //					NodeId nodeid) {
+//				
+//				LOG.debug("     ==================================================================     ");
+//				LOG.debug("     In mutateIp install Flow function: curDstIp {} and newDstIp {}"
+//						+ " curSrcIp {} newSrcIp {}", curDstIp.getValue(), newDstIp.getValue(), curSrcIp.getValue(), newSrcIp.getValue());
+//				LOG.debug("     ===================================================================     ");
+//				
 //				List<AssociatedActions> actionList = Lists.newArrayList();
 //				AssociatedActionsBuilder actionBuilder = new AssociatedActionsBuilder();
 //				long actionKey = 1;
@@ -3259,6 +2815,16 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 //							setSetSourceIpv4Address(srcIpBuilder.build()).build());
 //					actionBuilder.setId(actionKey++);
 //					actionList.add(actionBuilder.build());
+//					/////////////////////////////////////
+//					ConnectedHost host = getHostInfo(newSrcIp.getValue());
+//					if (host != null){
+//						SetSrcMacAddressBuilder srcMacBuilder = new SetSrcMacAddressBuilder();
+//						srcMacBuilder.setValue(host.getHostMacAddress());
+//						actionBuilder.setFlowActions(new SetSrcMacAddressCaseBuilder().
+//								setSetSrcMacAddress(srcMacBuilder.build()).build());
+//						actionBuilder.setId(actionKey++);
+//						actionList.add(actionBuilder.build());
+//					}
 //				}
 //				if (curDstIp.equals(newDstIp) == false){
 //					SetDstIpv4AddressBuilder dstIpBuilder = new SetDstIpv4AddressBuilder();
@@ -3267,6 +2833,16 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 //							setSetDstIpv4Address(dstIpBuilder.build()).build());
 //					actionBuilder.setId(actionKey++);
 //					actionList.add(actionBuilder.build());
+//					//////////////////////////
+//					ConnectedHost host = getHostInfo(newDstIp.getValue());
+//					if (host != null){
+//						SetDstMacAddressBuilder dstMacBuilder = new SetDstMacAddressBuilder();
+//						dstMacBuilder.setValue(host.getHostMacAddress());
+//						actionBuilder.setFlowActions(new SetDstMacAddressCaseBuilder().
+//								setSetDstMacAddress(dstMacBuilder.build()).build());
+//						actionBuilder.setId(actionKey++);
+//						actionList.add(actionBuilder.build());
+//					}
 //				}
 //				
 //				ForwardToPortBuilder forwardBuilder = new ForwardToPortBuilder();
@@ -3307,45 +2883,47 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 //			//LOG.debug(input.getPathNodes().toString());
 //			//LOG.debug("  ===========================================   ");
 //			
-//			ConnectedHost srcHost = getHostInfo(input.getSrcIpAddress().getValue());
-//			if (srcHost == null){
-//				String exception = "Source Host " + input.getSrcIpAddress().getValue() + 
-//						" is not known to controller ";
-//				throw new Exception(exception);
-//			} else if (srcHost.getNodeConnectedTo().equals(input.getPathNodes().get(0)) == false ){
-//				//LOG.debug("  ===========================================   ");
-//				//LOG.debug(input.getPathNodes().get(0).getValue());
-//				//LOG.debug("  ===========================================   ");
-//				String exception = "Source Host " + input.getSrcIpAddress().getValue() + 
-//						" is not known connected to node " + input.getPathNodes().get(0).getValue();
-//				throw new Exception(exception);
-//			}
+////			ConnectedHost srcHost = getHostInfo(input.getSrcIpAddress().getValue());
+////			if (srcHost == null){
+////				String exception = "Source Host " + input.getSrcIpAddress().getValue() + 
+////						" is not known to controller ";
+////				throw new Exception(exception);
+////			} else if (srcHost.getNodeConnectedTo().equals(input.getPathNodes().get(0)) == false ){
+////				//LOG.debug("  ===========================================   ");
+////				//LOG.debug(input.getPathNodes().get(0).getValue());
+////				//LOG.debug("  ===========================================   ");
+////				String exception = "Source Host " + input.getSrcIpAddress().getValue() + 
+////						" is not known connected to node " + input.getPathNodes().get(0).getValue();
+////				throw new Exception(exception);
+////			}
 //			/////////////////
 //			ConnectedHost dstHost = getHostInfo(input.getDstIpAddress().getValue());
 //			if (dstHost == null){
 //				String exception = "Dst Host " + input.getDstIpAddress().getValue() + 
 //						" is not known to controller ";
 //				throw new Exception(exception);
-//			} else if (dstHost.getNodeConnectedTo().equals(input.getPathNodes().get(input.getPathNodes().size()-1)) == false ){
-//				String exception = "Dst Host " + input.getDstIpAddress().getValue() + 
-//						" is not known connected to node " + input.getPathNodes().get(input.getPathNodes().size()-1).getValue();
-//				throw new Exception(exception);
-//			}
+//			} 
+////			else if (dstHost.getNodeConnectedTo().equals(input.getPathNodes().get(input.getPathNodes().size()-1)) == false ){
+////				String exception = "Dst Host " + input.getDstIpAddress().getValue() + 
+////						" is not known connected to node " + input.getPathNodes().get(input.getPathNodes().size()-1).getValue();
+////				throw new Exception(exception);
+////			}
 //			//////////////////////
 //			Neighbors srcEdgeNeighbor = getPortInformation(input.getPathNodes().get(0), input.getPathNodes().get(1));
-//			if (srcEdgeNeighbor == null){
-//				String exception = "Soure Edge Node" + input.getPathNodes().get(0).getValue() + 
-//						" is not neighbor with " + input.getPathNodes().get(1).getValue();
-//				throw new Exception(exception);
-//			}
+////			if (srcEdgeNeighbor == null){
+////				String exception = "Soure Edge Node" + input.getPathNodes().get(0).getValue() + 
+////						" is not neighbor with " + input.getPathNodes().get(1).getValue();
+////				throw new Exception(exception);
+////			}
 //			Neighbors dstEdgeNeighbor = getPortInformation(input.getPathNodes().get(input.getPathNodes().size()-1), 
 //					input.getPathNodes().get(input.getPathNodes().size()-2));
-//			if (dstEdgeNeighbor == null){
-//				String exception = "Dst Edge Node" + input.getPathNodes().get(input.getPathNodes().size()-1).getValue() + 
-//						" is not neighbor with " + input.getPathNodes().get(input.getPathNodes().size()-2).getValue();
-//				throw new Exception(exception);
-//			}
+////			if (dstEdgeNeighbor == null){
+////				String exception = "Dst Edge Node" + input.getPathNodes().get(input.getPathNodes().size()-1).getValue() + 
+////						" is not neighbor with " + input.getPathNodes().get(input.getPathNodes().size()-2).getValue();
+////				throw new Exception(exception);
+////			}
 //			////////////////////////////////////////////////
+//			/*
 //			if (input.getMutationEnd() instanceof SourceOnlyCase){
 //				SourceOnlyCase srcOnlyCase = (SourceOnlyCase) input.getMutationEnd();
 //				InstallPathBwNodesInputBuilder pathInputBuilder = new InstallPathBwNodesInputBuilder();
@@ -3390,6 +2968,17 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 //			} ///////////////////////////////
 //			else if (input.getMutationEnd() instanceof DstOnlyCase){
 //				DstOnlyCase dstOnlyCase = (DstOnlyCase) input.getMutationEnd();
+//<<<<<<< HEAD
+//				
+////				InstallPathBwNodesInputBuilder pathInputBuilder = new InstallPathBwNodesInputBuilder();
+////				pathInputBuilder.setDstIpAddress(dstOnlyCase.getDstOnly().getNewDstIpAddress());
+////				pathInputBuilder.setSrcIpAddress(input.getSrcIpAddress());
+////				pathInputBuilder.setPathNodes(input.getPathNodes());
+////				pathInputBuilder.setFlowPriority(input.getFlowPriority());
+////				pathInputBuilder.setIdleTimeout(input.getIdleTimeout());
+////				pathInputBuilder.setHardTimeout(input.getHardTimeout());
+////				this.installPathBwNodes(pathInputBuilder.build());
+//=======
 //				InstallPathBwNodesInputBuilder pathInputBuilder = new InstallPathBwNodesInputBuilder();
 //				pathInputBuilder.setDstIpAddress(dstOnlyCase.getDstOnly().getNewDstIpAddress());
 //				pathInputBuilder.setSrcIpAddress(input.getSrcIpAddress());
@@ -3397,29 +2986,41 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 //				pathInputBuilder.setFlowPriority(input.getFlowPriority());
 //				pathInputBuilder.setIdleTimeout(input.getIdleTimeout());
 //				pathInputBuilder.setHardTimeout(input.getHardTimeout());
-//				this.installPathBwNodes(pathInputBuilder.build());
+//				//this.installPathBwNodes(pathInputBuilder.build());
+//>>>>>>> 7edbdd9c6d5550e8d69859d7b10e48d5f9aa8092
 //				
 //				//On source edge node, dstHostIP is the actual destination, however its traffic should be hidden from the network 
 //				//so we change the IP destination of packets from actual dstHostIP to new IP
 //				this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(), 
-//						input.getDstIpAddress(),
-//						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
-//						input.getSrcIpAddress(),  input.getSrcIpAddress(), 
+//						input.getDstIpAddress(), dstOnlyCase.getDstOnly().getNewDstIpAddress(), 
+//						input.getSrcIpAddress(), input.getSrcIpAddress(), 
 //						input.getPathNodes().get(0)));
 //				
 //				//On source edge node, if SrcHost is the destination then all packets coming from actual dstHostIP are mutated 
 //				//in their srcIP address field, so before we forward these packets to srcHost, we need to switch them back original dstIP
 //				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(), 
+//<<<<<<< HEAD
+//=======
 //						input.getSrcIpAddress(),  input.getSrcIpAddress(),
 //						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
 //						input.getDstIpAddress(),					 
 //						input.getPathNodes().get(0)));
 //				
+//				ConnectedHost newDstHost = getHostInfo(dstOnlyCase.getDstOnly().getNewDstIpAddress().getValue());
+//				if (newDstHost == null){
+//					String exception = "New Dst Host " + input.getDstIpAddress().getValue() + 
+//							" is not known to controller ";
+//					throw new Exception(exception);
+//				}
+//				//LOG.debug("((((((((((((((((((((((((New Dst Host is {} )))))))))))))))))))))", newDstHost.getHostIpAddress().getValue());
+//				////-------------------------------------------------------------------------------------------------------------/////
+//				///-----This code is only temporary fix for the video to install flow rules at the destination edge router ------/////
+//				////------------------------------------------------------------------------------------------------------------/////
 //				//on Dst Edge node, if traffic coming from SrcHost for dstHost will be mutated in dstIP as we hide the identity of dstHost  
 //				//from network. So, we have to now change the mutated dstIP to original dstIp of the dstHost
-//				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
+//				this.installFlow(func.performFunction(newDstHost.getNodeConnectorConnectedTo(), 
 //						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
-//						input.getDstIpAddress(),
+//						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
 //						input.getSrcIpAddress(), input.getSrcIpAddress(),
 //						input.getPathNodes().get(input.getPathNodes().size()-1)));
 //				
@@ -3427,56 +3028,121 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 //				//the network. So we change the srcIP of packets from actual dstHost to mutated IP
 //				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
 //						input.getSrcIpAddress(), input.getSrcIpAddress(),
+//						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+//						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+//						input.getPathNodes().get(input.getPathNodes().size()-1)));
+//				
+//				/*
+//				//on Dst Edge node, if traffic coming from SrcHost for dstHost will be mutated in dstIP as we hide the identity of dstHost  
+//				//from network. So, we have to now change the mutated dstIP to original dstIp of the dstHost
+//				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
+//						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+//						input.getDstIpAddress(),
+//>>>>>>> 7edbdd9c6d5550e8d69859d7b10e48d5f9aa8092
+//						input.getSrcIpAddress(), input.getSrcIpAddress(),
+//						input.getDstIpAddress(), dstOnlyCase.getDstOnly().getNewDstIpAddress(),					 
+//						input.getPathNodes().get(0)));
+//				
+//<<<<<<< HEAD
+////				//on Dst Edge node, if traffic coming from SrcHost for dstHost will be mutated in dstIP as we hide the identity of dstHost  
+////				//from network. So, we have to now change the mutated dstIP to original dstIp of the dstHost
+////				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
+////						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+////						input.getDstIpAddress(),
+////						input.getSrcIpAddress(), input.getSrcIpAddress(),
+////						input.getPathNodes().get(input.getPathNodes().size()-1)));
+////				
+////				//On Destination edge node, any traffic originating from dstHost will have its IP address and we have to hide its identity from   
+////				//the network. So we change the srcIP of packets from actual dstHost to mutated IP
+////				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
+////						input.getSrcIpAddress(), input.getSrcIpAddress(),
+////						input.getDstIpAddress(),
+////						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+////						input.getPathNodes().get(input.getPathNodes().size()-1)));
+//=======
+//				//On Destination edge node, any traffic originating from dstHost will have its IP address and we have to hide its identity from   
+//				//the network. So we change the srcIP of packets from actual dstHost to mutated IP
+//				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
+//						input.getSrcIpAddress(), input.getSrcIpAddress(),
 //						input.getDstIpAddress(),
 //						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
 //						input.getPathNodes().get(input.getPathNodes().size()-1)));
-//			}/////////////////////////////////////////////////////////////////
-//			else if (input.getMutationEnd() instanceof BothCase){
-//				BothCase bothCase = (BothCase) input.getMutationEnd();
-//				InstallPathBwNodesInputBuilder pathInputBuilder = new InstallPathBwNodesInputBuilder();
-//				pathInputBuilder.setDstIpAddress(bothCase.getBoth().getNewDstIpAddress());
-//				pathInputBuilder.setSrcIpAddress(bothCase.getBoth().getNewSrcIpAddress());
-//				pathInputBuilder.setPathNodes(input.getPathNodes());
-//				pathInputBuilder.setFlowPriority(input.getFlowPriority());
-//				pathInputBuilder.setIdleTimeout(input.getIdleTimeout());
-//				pathInputBuilder.setHardTimeout(input.getHardTimeout());
-//				this.installPathBwNodes(pathInputBuilder.build());
+//			else */
 //				
+//			if (input.getMutationEnd() instanceof BothCase){
+//				BothCase bothCase = (BothCase) input.getMutationEnd();
+//				Ipv4Prefix rIpSrc = bothCase.getBoth().getNewSrcIpAddress();
+//				Ipv4Prefix rIpDst = bothCase.getBoth().getNewDstIpAddress();
+//				Ipv4Prefix vIpSrc = input.getSrcIpAddress();
+//				Ipv4Prefix vIpDst = input.getDstIpAddress();
+//						
+//				
+//				LOG.debug("     ==================================================================     ");
+//				LOG.debug("     For mutation we found, rIpSrc {}, rIpDst{}, vIpSrc {}, vIpDst{}", rIpSrc.getValue(), rIpDst.getValue(),
+//						vIpSrc.getValue(), vIpDst.getValue());
+//				LOG.debug("     ==================================================================     ");
+//				
+//				List<NodeId> pathNodes = Lists.newArrayList();
+//				pathNodes.add(input.getPathNodes().get(0));
+//				pathNodes.add(input.getPathNodes().get(input.getPathNodes().size() -1));
+//				
+////				removeAllFlowRulesInPath(pathNodes , bothCase.getBoth().getNewSrcIpAddress(), bothCase.getBoth().getNewDstIpAddress());
+////				removeAllFlowRulesInPath(pathNodes , rIpSrc, rIpDst);
+//				
+////				ConnectedHost srcHost = getHostInfo(input.getSrcIpAddress().getValue());
+//				ConnectedHost srcHost = getHostInfo(rIpSrc.getValue());
+////				ConnectedHost dstHost = getHostInfo(input.getDstIpAddress().getValue());
+//				ConnectedHost dstHost1 = getHostInfo(rIpDst.getValue());
+//				
+//
+//				LOG.debug("     ==================================================================     ");
+//				LOG.debug("     And srcHost {}, dstHost{}", srcHost.getNodeConnectedTo().getValue(), dstHost1.getNodeConnectedTo().getValue());
+//				LOG.debug("     ==================================================================     ");
 //				//On source edge node, traffic generated by actual srcHost for actual dstHost but we have to 
 //				//mutate their identities
+////				this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(), 
+////						input.getDstIpAddress(), bothCase.getBoth().getNewDstIpAddress(),
+////						input.getSrcIpAddress(), bothCase.getBoth().getNewSrcIpAddress(), 
+////						input.getPathNodes().get(0)));
 //				this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(), 
-//						input.getDstIpAddress(),
-//						bothCase.getBoth().getNewDstIpAddress(),
-//						input.getSrcIpAddress(), 
-//						bothCase.getBoth().getNewSrcIpAddress(), 
+//						vIpDst, rIpDst,	vIpSrc, rIpSrc, false,
 //						input.getPathNodes().get(0)));
 //				
 //				//On source edge node, traffic coming from mutated dstHost IP to mutated srcHost IP should be 
 //				//reverted back to their identities
-//				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(), 
-//						bothCase.getBoth().getNewSrcIpAddress(),
-//						input.getSrcIpAddress(),
-//						bothCase.getBoth().getNewDstIpAddress(),
-//						input.getDstIpAddress(), 
+////				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(), 
+////						bothCase.getBoth().getNewSrcIpAddress(), input.getSrcIpAddress(),
+////						bothCase.getBoth().getNewDstIpAddress(), input.getDstIpAddress(), 
+////						input.getPathNodes().get(0)));
+//				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(),
+//						rIpSrc, vIpSrc, rIpDst, vIpDst, false,
 //						input.getPathNodes().get(0)));
 //				
 //				//On dst edge node, traffic coming for actual dstHost is mutated in both src and dst IPs
 //				//so we have to revert it back before we hand this over to dstHost
-//				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
-//						bothCase.getBoth().getNewDstIpAddress(),
-//						input.getDstIpAddress(),
-//						bothCase.getBoth().getNewSrcIpAddress(),
-//						input.getSrcIpAddress(),
-//						input.getPathNodes().get(input.getPathNodes().size()-1)));
+////				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
+////						bothCase.getBoth().getNewDstIpAddress(), input.getDstIpAddress(),
+////						bothCase.getBoth().getNewSrcIpAddress(), input.getSrcIpAddress(),
+////						input.getPathNodes().get(input.getPathNodes().size()-1)));
+//				
+////				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
+////						rIpDst, rIpDst, rIpSrc, vIpSrc,
+////						input.getPathNodes().get(input.getPathNodes().size()-1)));
 //				
 //				//On dst edge node, traffic originated from dstHost for srcHost, we have to mutate both IPs 
 //				//to hide their identities from the network
-//				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
-//						input.getSrcIpAddress(),
-//						bothCase.getBoth().getNewSrcIpAddress(),
-//						input.getDstIpAddress(),
-//						bothCase.getBoth().getNewDstIpAddress(),
-//						input.getPathNodes().get(input.getPathNodes().size()-1)));
+////				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
+////						input.getSrcIpAddress(), bothCase.getBoth().getNewSrcIpAddress(),
+////						input.getDstIpAddress(), bothCase.getBoth().getNewDstIpAddress(),
+////						input.getPathNodes().get(input.getPathNodes().size()-1)));
+//
+////				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
+////						vIpSrc, rIpSrc, rIpDst, rIpDst,
+////						input.getPathNodes().get(input.getPathNodes().size()-1)));
+//				
+////				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
+////						vIpSrc, rIpSrc, vIpDst, rIpDst,
+////						input.getPathNodes().get(input.getPathNodes().size()-1)));
 //				
 //			}
 //			
@@ -3490,6 +3156,259 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 //		output.setStatus("IP is successfully mutated.");
 //		return RpcResultBuilder.success(output).buildFuture();
 //	}
+	
+	public Future<RpcResult<MutateIpOutput>> mutateIp(final MutateIpInput input) {
+		
+		LOG.debug("     ==================================================================     ");
+		LOG.debug("          In mutateIp function: SourceIp {} and DestinationIp {}", input.getSrcIpAddress().getValue(), input.getDstIpAddress().getValue());
+		LOG.debug("      ==================================================================     ");
+		// This function will mutate the Ip addresses
+		RepeatFunction func = new RepeatFunction() {	
+			@Override
+			public InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix curDstIp,
+					Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp, boolean setMac,
+					NodeId nodeid) {
+				List<AssociatedActions> actionList = Lists.newArrayList();
+				AssociatedActionsBuilder actionBuilder = new AssociatedActionsBuilder();
+				long actionKey = 1;
+				if (curSrcIp.equals(newSrcIp) == false){
+					SetSourceIpv4AddressBuilder srcIpBuilder = new SetSourceIpv4AddressBuilder();
+					srcIpBuilder.setValue(newSrcIp);
+					actionBuilder.setFlowActions(new SetSourceIpv4AddressCaseBuilder().
+							setSetSourceIpv4Address(srcIpBuilder.build()).build());
+					actionBuilder.setId(actionKey++);
+					actionList.add(actionBuilder.build());
+				}
+				if (curDstIp.equals(newDstIp) == false){
+					SetDstIpv4AddressBuilder dstIpBuilder = new SetDstIpv4AddressBuilder();
+					dstIpBuilder.setValue(newDstIp);
+					actionBuilder.setFlowActions(new SetDstIpv4AddressCaseBuilder().
+							setSetDstIpv4Address(dstIpBuilder.build()).build());
+					actionBuilder.setId(actionKey++);
+					actionList.add(actionBuilder.build());
+				}
+				
+				ForwardToPortBuilder forwardBuilder = new ForwardToPortBuilder();
+				forwardBuilder.setOutputNodeConnector(outputPort);
+				
+				actionBuilder.setFlowActions(new ForwardToPortCaseBuilder().
+						setForwardToPort(forwardBuilder.build()).build());
+				actionBuilder.setId(actionKey++);
+				actionList.add(actionBuilder.build());
+				
+				NewFlowBuilder newFlowBuilder = new NewFlowBuilder();
+				newFlowBuilder.setDstIpAddress(curDstIp);
+				newFlowBuilder.setSrcIpAddress(curSrcIp);
+				newFlowBuilder.setFlowPriority(input.getFlowPriority());
+				newFlowBuilder.setIdleTimeout(input.getIdleTimeout());
+				newFlowBuilder.setHardTimeout(input.getHardTimeout());
+				
+				InstallFlowInputBuilder installFlowBuilder = new InstallFlowInputBuilder();
+				installFlowBuilder.setNode(nodeid);
+				installFlowBuilder.setNewFlow(newFlowBuilder.build());
+				
+				installFlowBuilder.setAssociatedActions(actionList);
+				return installFlowBuilder.build();
+				
+			}
+
+			@Override
+			public InstallFlowInput performFunction(NodeConnectorId outputPort,
+					Ipv4Prefix dstIp, Ipv4Prefix srcIp, NodeId nodeid) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+		};
+		
+		MutateIpOutputBuilder output = new MutateIpOutputBuilder();
+		try{
+			//LOG.debug("  ===========================================   ");
+			//LOG.debug(input.getPathNodes().toString());
+			//LOG.debug("  ===========================================   ");
+			
+			ConnectedHost srcHost = getHostInfo(input.getSrcIpAddress().getValue());
+			if (srcHost == null){
+				String exception = "Source Host " + input.getSrcIpAddress().getValue() + 
+						" is not known to controller ";
+				throw new Exception(exception);
+			} else if (srcHost.getNodeConnectedTo().equals(input.getPathNodes().get(0)) == false ){
+				//LOG.debug("  ===========================================   ");
+				//LOG.debug(input.getPathNodes().get(0).getValue());
+				//LOG.debug("  ===========================================   ");
+				String exception = "Source Host " + input.getSrcIpAddress().getValue() + 
+						" is not known connected to node " + input.getPathNodes().get(0).getValue();
+				throw new Exception(exception);
+			}
+			/////////////////
+			ConnectedHost dstHost = getHostInfo(input.getDstIpAddress().getValue());
+			if (dstHost == null){
+				String exception = "Dst Host " + input.getDstIpAddress().getValue() + 
+						" is not known to controller ";
+				throw new Exception(exception);
+			} else if (dstHost.getNodeConnectedTo().equals(input.getPathNodes().get(input.getPathNodes().size()-1)) == false ){
+				String exception = "Dst Host " + input.getDstIpAddress().getValue() + 
+						" is not known connected to node " + input.getPathNodes().get(input.getPathNodes().size()-1).getValue();
+				throw new Exception(exception);
+			}
+			//////////////////////
+			Neighbors srcEdgeNeighbor = getPortInformation(input.getPathNodes().get(0), input.getPathNodes().get(1));
+			if (srcEdgeNeighbor == null){
+				String exception = "Soure Edge Node" + input.getPathNodes().get(0).getValue() + 
+						" is not neighbor with " + input.getPathNodes().get(1).getValue();
+				throw new Exception(exception);
+			}
+			Neighbors dstEdgeNeighbor = getPortInformation(input.getPathNodes().get(input.getPathNodes().size()-1), 
+					input.getPathNodes().get(input.getPathNodes().size()-2));
+			if (dstEdgeNeighbor == null){
+				String exception = "Dst Edge Node" + input.getPathNodes().get(input.getPathNodes().size()-1).getValue() + 
+						" is not neighbor with " + input.getPathNodes().get(input.getPathNodes().size()-2).getValue();
+				throw new Exception(exception);
+			}
+			////////////////////////////////////////////////
+			if (input.getMutationEnd() instanceof SourceOnlyCase){
+				SourceOnlyCase srcOnlyCase = (SourceOnlyCase) input.getMutationEnd();
+				InstallPathBwNodesInputBuilder pathInputBuilder = new InstallPathBwNodesInputBuilder();
+				pathInputBuilder.setDstIpAddress(input.getDstIpAddress());
+				pathInputBuilder.setSrcIpAddress(srcOnlyCase.getSourceOnly().getNewSrcIpAddress());
+				pathInputBuilder.setPathNodes(input.getPathNodes());
+				pathInputBuilder.setFlowPriority(input.getFlowPriority());
+				pathInputBuilder.setIdleTimeout(input.getIdleTimeout());
+				pathInputBuilder.setHardTimeout(input.getHardTimeout());
+				this.installPathBwNodes(pathInputBuilder.build());
+				
+				//On source edge node, SrcHost will be the destination and its traffic will reach with changed DstIp 
+				//so we have to revert it back to original srcHost IP
+				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(), 
+						srcOnlyCase.getSourceOnly().getNewSrcIpAddress(),
+						input.getSrcIpAddress(), input.getDstIpAddress(), input.getDstIpAddress(), 
+						false, input.getPathNodes().get(0)));
+				
+				//On source edge node, if SrcHost is the source then going to dstHost then we need to change its identity 
+				//for the network and change the srcIp of packet to newSrcIP and leave the dstHost intact
+				this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(), 
+						input.getDstIpAddress(), input.getDstIpAddress(), 
+						input.getSrcIpAddress(), srcOnlyCase.getSourceOnly().getNewSrcIpAddress(), 
+						false, input.getPathNodes().get(0)));
+				
+				//On Destination edge node, if newSrcHostIP is the source then going to dstHost then we need to change its identity 
+				//back to original srcHost IP so that the dstHost can recognize it
+				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
+						input.getDstIpAddress(), input.getDstIpAddress(),
+						srcOnlyCase.getSourceOnly().getNewSrcIpAddress(),
+						input.getSrcIpAddress(),
+						false, input.getPathNodes().get(input.getPathNodes().size()-1)));
+				
+				//On Destination edge node, SrcHostIP will be the destination and its traffic Identity should be hidden from the  
+				//network, so the DstIP of the packet will be changed from actualSrcHostIP to newIP
+				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
+						input.getSrcIpAddress(), 
+						srcOnlyCase.getSourceOnly().getNewSrcIpAddress(),
+						input.getDstIpAddress(), input.getDstIpAddress(), 
+						false, input.getPathNodes().get(input.getPathNodes().size()-1)));
+				
+			} ///////////////////////////////
+			else if (input.getMutationEnd() instanceof DstOnlyCase){
+				DstOnlyCase dstOnlyCase = (DstOnlyCase) input.getMutationEnd();
+				InstallPathBwNodesInputBuilder pathInputBuilder = new InstallPathBwNodesInputBuilder();
+				pathInputBuilder.setDstIpAddress(dstOnlyCase.getDstOnly().getNewDstIpAddress());
+				pathInputBuilder.setSrcIpAddress(input.getSrcIpAddress());
+				pathInputBuilder.setPathNodes(input.getPathNodes());
+				pathInputBuilder.setFlowPriority(input.getFlowPriority());
+				pathInputBuilder.setIdleTimeout(input.getIdleTimeout());
+				pathInputBuilder.setHardTimeout(input.getHardTimeout());
+				this.installPathBwNodes(pathInputBuilder.build());
+				
+				//On source edge node, dstHostIP is the actual destination, however its traffic should be hidden from the network 
+				//so we change the IP destination of packets from actual dstHostIP to new IP
+				this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(), 
+						input.getDstIpAddress(),
+						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+						input.getSrcIpAddress(),  input.getSrcIpAddress(), 
+						false, input.getPathNodes().get(0)));
+				
+				//On source edge node, if SrcHost is the destination then all packets coming from actual dstHostIP are mutated 
+				//in their srcIP address field, so before we forward these packets to srcHost, we need to switch them back original dstIP
+				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(), 
+						input.getSrcIpAddress(),  input.getSrcIpAddress(),
+						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+						input.getDstIpAddress(),					 
+						false, input.getPathNodes().get(0)));
+				
+				//on Dst Edge node, if traffic coming from SrcHost for dstHost will be mutated in dstIP as we hide the identity of dstHost  
+				//from network. So, we have to now change the mutated dstIP to original dstIp of the dstHost
+				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
+						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+						input.getDstIpAddress(),
+						input.getSrcIpAddress(), input.getSrcIpAddress(),
+						false, input.getPathNodes().get(input.getPathNodes().size()-1)));
+				
+				//On Destination edge node, any traffic originating from dstHost will have its IP address and we have to hide its identity from   
+				//the network. So we change the srcIP of packets from actual dstHost to mutated IP
+				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
+						input.getSrcIpAddress(), input.getSrcIpAddress(),
+						input.getDstIpAddress(),
+						dstOnlyCase.getDstOnly().getNewDstIpAddress(),
+						false, input.getPathNodes().get(input.getPathNodes().size()-1)));
+			}/////////////////////////////////////////////////////////////////
+			else if (input.getMutationEnd() instanceof BothCase){
+				BothCase bothCase = (BothCase) input.getMutationEnd();
+				InstallPathBwNodesInputBuilder pathInputBuilder = new InstallPathBwNodesInputBuilder();
+				pathInputBuilder.setDstIpAddress(bothCase.getBoth().getNewDstIpAddress());
+				pathInputBuilder.setSrcIpAddress(bothCase.getBoth().getNewSrcIpAddress());
+				pathInputBuilder.setPathNodes(input.getPathNodes());
+				pathInputBuilder.setFlowPriority(input.getFlowPriority());
+				pathInputBuilder.setIdleTimeout(input.getIdleTimeout());
+				pathInputBuilder.setHardTimeout(input.getHardTimeout());
+				this.installPathBwNodes(pathInputBuilder.build());
+				
+				//On source edge node, traffic generated by actual srcHost for actual dstHost but we have to 
+				//mutate their identities
+				this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(), 
+						input.getDstIpAddress(),
+						bothCase.getBoth().getNewDstIpAddress(),
+						input.getSrcIpAddress(), 
+						bothCase.getBoth().getNewSrcIpAddress(), 
+						false, input.getPathNodes().get(0)));
+				
+				//On source edge node, traffic coming from mutated dstHost IP to mutated srcHost IP should be 
+				//reverted back to their identities
+				this.installFlow(func.performFunction(srcHost.getNodeConnectorConnectedTo(), 
+						bothCase.getBoth().getNewSrcIpAddress(),
+						input.getSrcIpAddress(),
+						bothCase.getBoth().getNewDstIpAddress(),
+						input.getDstIpAddress(), 
+						false, input.getPathNodes().get(0)));
+				
+				//On dst edge node, traffic coming for actual dstHost is mutated in both src and dst IPs
+				//so we have to revert it back before we hand this over to dstHost
+				this.installFlow(func.performFunction(dstHost.getNodeConnectorConnectedTo(), 
+						bothCase.getBoth().getNewDstIpAddress(),
+						input.getDstIpAddress(),
+						bothCase.getBoth().getNewSrcIpAddress(),
+						input.getSrcIpAddress(),
+						false, input.getPathNodes().get(input.getPathNodes().size()-1)));
+				
+				//On dst edge node, traffic originated from dstHost for srcHost, we have to mutate both IPs 
+				//to hide their identities from the network
+				this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
+						input.getSrcIpAddress(),
+						bothCase.getBoth().getNewSrcIpAddress(),
+						input.getDstIpAddress(),
+						bothCase.getBoth().getNewDstIpAddress(),
+						false, input.getPathNodes().get(input.getPathNodes().size()-1)));
+				
+			}
+			
+			
+		} catch (Exception e) {
+            LOG.error("Exception reached in MutateIP RPC {} --------", e);
+            output.setStatus("IP couldn't be mutated.");
+    		return RpcResultBuilder.success(output).buildFuture();
+        }
+		
+		output.setStatus("IP is successfully mutated.");
+		return RpcResultBuilder.success(output).buildFuture();
+	}
 
 	@Override
 	public Future<RpcResult<RemoveAllTapsFromSwitchOutput>> removeAllTapsFromSwitch(
@@ -3641,14 +3560,6 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 				LOG.debug("NodeConnectorID {}", input.getInpsectionSwitchPort());
 				try {
 					for (; index < pathNodes.size(); index++){
-//<<<<<<< HEAD:tapapp/implementation/src/main/java/org/sdnhub/odl/tutorial/tapapp/impl/TutorialTapProvider.java
-//						LOG.debug(pathNodes.get(index).getValue() , "=", input.getInspectionSwitchId().getValue());
-//=======
-//						String debugMessage = pathNodes.get(index).getValue() + "=" + input.getInspectionSwitchId().getValue();
-//						LOG.debug(debugMessage);
-//>>>>>>> master:tapapp/implementation/src/main/java/org/sdnhub/odl/tutorial/tapapp/impl/TapServiceImpl.java
-						//Future<RpcResult<InstallFlowOutput>> futureOutput = null;
-						//Future<RpcResult<InstallFlowOutput>> futureOutput1 = null;
 						if (index == 0){ // got the first switch
 							
 							ConnectedHost host = getHostInfo(input.getSrcIpAddress().getValue());

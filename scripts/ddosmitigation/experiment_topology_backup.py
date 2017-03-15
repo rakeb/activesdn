@@ -43,10 +43,6 @@ class MyTopo( Topo ):
 	host12 = self.addHost( 'h12' )
         host13 = self.addHost( 'h13' )
 	host14 = self.addHost( 'h14' )
-        host = [("h%s" % (i+15)) for i in range(20)]
-        for i in range(20):
-            self.addHost(host[i])
-        #self.dist_from_controller = [Ints("dist_from_controller_%s" % (i)) for i in range(self.top.no_of_nodes)]
 
         switch1 = self.addSwitch( 's1' )
         switch2 = self.addSwitch( 's2' )
@@ -71,15 +67,11 @@ class MyTopo( Topo ):
 	self.addLink( host2, switch6)
 	self.addLink( host3, switch6)
         self.addLink( host13, switch6)
-        for i in range(10):
-            self.addLink( host[i], switch6 )
 
 	self.addLink( host4, switch7)
 	self.addLink( host5, switch7)
 	self.addLink( host6, switch7)
         self.addLink( host14, switch7)
-        for i in range(10):
-            self.addLink( host[i+10], switch7 )
 
 	self.addLink( host7, switch10)
 	self.addLink( host8, switch10)
@@ -90,8 +82,8 @@ class MyTopo( Topo ):
 	self.addLink( host12, switch11)
 
         self.addLink( switch6, switch4, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True use_hfsc = False, use_tbf = False)
-	#self.addLink( switch6, switch5, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-        #self.addLink( switch7, switch4, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+	self.addLink( switch6, switch5, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+        self.addLink( switch7, switch4, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
 	self.addLink( switch7, switch5, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
 
         self.addLink( switch4, switch1, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
@@ -104,17 +96,16 @@ class MyTopo( Topo ):
 
         self.addLink( switch10, switch8, use_htb=True)#bw=10, delay='5ms', loss=1, max_queue_size=10, use_htb=True)
 	self.addLink( switch10, switch9, use_htb=True)#bw=10, delay='5ms', loss=1, max_queue_size=10, use_htb=True)
-        #self.addLink( switch11, switch8, use_htb=True)#bw=10, delay='5ms', loss=1, max_queue_size=10, use_htb=True)
+        self.addLink( switch11, switch8, use_htb=True)#bw=10, delay='5ms', loss=1, max_queue_size=10, use_htb=True)
 	self.addLink( switch11, switch9, use_htb=True)#bw=10, delay='5ms', loss=1, max_queue_size=10, use_htb=True)
 
         self.addLink( switch8, switch1, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-	#self.addLink( switch8, switch2, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-        #self.addLink( switch8, switch3, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+	self.addLink( switch8, switch2, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+        self.addLink( switch8, switch3, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
 
         self.addLink( switch9, switch1, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-	#self.addLink( switch9, switch2, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-        #self.addLink( switch9, switch3, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-        self.addLink( switch10, switch11, use_htb=True)
+	self.addLink( switch9, switch2, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+        self.addLink( switch9, switch3, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
 '''
 def ifconfigTest( net ):
     "Run ifconfig on all hosts in net."
@@ -136,39 +127,33 @@ def pingTest( net ):
     host13 = net.hosts[12]
     host14 = net.hosts[13]
 
-    time.sleep(10)
+    time.sleep(15)
     host1.cmd('bash host1.sh &')
-    time.sleep(10)
+    time.sleep(15)
     host2.cmd('bash host2.sh &')
-    time.sleep(10)
+    time.sleep(15)
     host4.cmd('bash host4.sh &')
-    #host10.cmd('bash host10_tcp_iperf.sh &')
     time.sleep(3)
     host10.cmd('bash host10_tcp.sh &')
-    #host4.cmd('bash host4_iperf.sh &')
-    time.sleep(6)
-    host5.cmd('bash host5.sh &')
-    time.sleep(3)
-    host10.cmd('bash host10_udp.sh &')
+    time.sleep(10)
+    #host5.cmd('bash host5.sh &')
+    #time.sleep(3)
+    #host10.cmd('bash host10_udp.sh &')
     #cmd = "read -p 'press any key to start sending elephant flows'"
     #os.popen(cmd)
-    
+    '''
     time.sleep(40)
     host7.cmd('bash host7.sh')
     #new comers test start here
     host3.cmd('bash host3.sh &')
-    time.sleep(2)
+    time.sleep(3)
     host6.cmd('bash host6.sh &')
-    time.sleep(2)
+    time.sleep(3)
     host13.cmd('bash host13.sh &')
-    time.sleep(2)
+    time.sleep(3)
     host14.cmd('bash host14.sh &')
-    for i in range(19):
-        time.sleep(1.5)
-        print(i)
-        host = net.hosts[i+15]
-        host.cmd('bash send_ping.sh &')
-        
+    '''
+
 def find_all(a_str, sub_str):
     start = 0
     b_starts = []
@@ -233,7 +218,7 @@ def createQueues():
                 prt = line[start + 1:len(line) - 1]
                 prts.append(prt)
                 #print(prt)
-    restricted_ports = ["s1-eth3", "s1-eth4"]#, "s2-eth3", "s2-eth4", "s3-eth3", "s3-eth4"]    
+    restricted_ports = ["s1-eth3", "s1-eth4", "s2-eth3", "s2-eth4", "s3-eth3", "s3-eth4"]    
     config_strings = defaultdict(list)
     restricted_config_strings = defaultdict(list)
 
@@ -256,13 +241,10 @@ def createQueues():
         restricted_config_strings[switches[i]].append(restricted_tempStr)
         #print("\n")
         #print(config_strings[switches[i]][0])
-    for port in restricted_ports:
-        cmd = ("sudo ip link set dev %s txqueuelen %s" % (port, "40"))
-        os.system(cmd)
 
     for sw in switches:
         if restricted_config_strings[sw][0] != "":
-            queuecmd = "sudo ovs-vsctl %s -- --id=@newqos create qos type=linux-htb other-config:max-rate=3000000000 queues=0=@q0,1=@q1 -- --id=@q0 create queue other-config:max-rate=10 -- --id=@q1 create queue other-config:max-rate=2" % restricted_config_strings[sw][0]
+            queuecmd = "sudo ovs-vsctl %s -- --id=@newqos create qos type=linux-htb other-config:max-rate=1000000000 queues=0=@q0,1=@q1 -- --id=@q0 create queue other-config:max-rate=800 -- --id=@q1 create queue other-config:max-rate=2" % restricted_config_strings[sw][0]
             #print("Restricted Port %s " % (restricted_config_strings[sw][0]))
             q_res = os.popen(queuecmd).read()
             print q_res
@@ -281,7 +263,6 @@ def createQueues():
     #cmd2 = "ovs-vsctl list port"
     #p = os.popen(cmd2).read()
     #print p
-    
 
 '''
             queuecmd = "sudo ovs-vsctl %s -- --id=@newqos create qos type=linux-htb other-config:max-rate=1000000000 queues=0=@q0,1=@q1 -- --id=@q0 create queue other-config:min-rate=10 other-config:max-rate=10 other_config:dpdk-rxq-size=1 other_config:dpdk-txq-size=1 -- --id=@q1 create queue other-config:max-rate=2 other_config:dpdk-rxq-size=1 other_config:dpdk-txq-size=1" % restricted_config_strings[sw][0]
@@ -299,7 +280,7 @@ def simpleTest():
     dumpNodeConnections(net.hosts)
     print "Testing network connectivity"
     #ifconfigTest(net)
-    time.sleep(10)
+    time.sleep(5)
     createQueues()
     pingTest(net)
     #net.pingAll()
