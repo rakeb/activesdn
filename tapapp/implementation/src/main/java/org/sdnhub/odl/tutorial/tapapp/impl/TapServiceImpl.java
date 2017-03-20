@@ -2461,18 +2461,87 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 				}
 
 				@Override
-				public InstallFlowInput performFunction(
-						NodeConnectorId outputPort, Ipv4Prefix curDstIp,
-						Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp,
-						Ipv4Prefix newSrcIp, boolean setMac, NodeId nodeid) {
-					// TODO Auto-generated method stub
-					return null;
+				public InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix curDstIp,
+						Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp, Ipv4Prefix newSrcIp, boolean setMac,
+						NodeId nodeid) {
+					
+					LOG.debug("     ==================================================================     ");
+					LOG.debug("     In mutateIp install Flow function: curDstIp {} and newDstIp {}"
+							+ " curSrcIp {} newSrcIp {}", curDstIp.getValue(), newDstIp.getValue(), curSrcIp.getValue(), newSrcIp.getValue());
+					LOG.debug("     ===================================================================     ");
+					
+					List<AssociatedActions> actionList = Lists.newArrayList();
+					AssociatedActionsBuilder actionBuilder = new AssociatedActionsBuilder();
+					long actionKey = 1;
+					if (curSrcIp.equals(newSrcIp) == false){
+						SetSourceIpv4AddressBuilder srcIpBuilder = new SetSourceIpv4AddressBuilder();
+						srcIpBuilder.setValue(newSrcIp);
+						actionBuilder.setFlowActions(new SetSourceIpv4AddressCaseBuilder().
+								setSetSourceIpv4Address(srcIpBuilder.build()).build());
+						actionBuilder.setId(actionKey++);
+						actionList.add(actionBuilder.build());
+						/////////////////////////////////////
+						ConnectedHost host = getHostInfo(newSrcIp.getValue());
+						if (host != null && setMac){
+							SetSrcMacAddressBuilder srcMacBuilder = new SetSrcMacAddressBuilder();
+							srcMacBuilder.setValue(host.getHostMacAddress());
+							actionBuilder.setFlowActions(new SetSrcMacAddressCaseBuilder().
+									setSetSrcMacAddress(srcMacBuilder.build()).build());
+							actionBuilder.setId(actionKey++);
+							actionList.add(actionBuilder.build());
+						}
+					}
+					if (curDstIp.equals(newDstIp) == false){
+						SetDstIpv4AddressBuilder dstIpBuilder = new SetDstIpv4AddressBuilder();
+						dstIpBuilder.setValue(newDstIp);
+						actionBuilder.setFlowActions(new SetDstIpv4AddressCaseBuilder().
+								setSetDstIpv4Address(dstIpBuilder.build()).build());
+						actionBuilder.setId(actionKey++);
+						actionList.add(actionBuilder.build());
+						//////////////////////////
+						ConnectedHost host = getHostInfo(newDstIp.getValue());
+						if (host != null && setMac){
+							SetDstMacAddressBuilder dstMacBuilder = new SetDstMacAddressBuilder();
+							dstMacBuilder.setValue(host.getHostMacAddress());
+							actionBuilder.setFlowActions(new SetDstMacAddressCaseBuilder().
+									setSetDstMacAddress(dstMacBuilder.build()).build());
+							actionBuilder.setId(actionKey++);
+							actionList.add(actionBuilder.build());
+						}
+					}
+					
+					ForwardToPortBuilder forwardBuilder = new ForwardToPortBuilder();
+					forwardBuilder.setOutputNodeConnector(outputPort);
+					
+					actionBuilder.setFlowActions(new ForwardToPortCaseBuilder().
+							setForwardToPort(forwardBuilder.build()).build());
+					actionBuilder.setId(actionKey++);
+					actionList.add(actionBuilder.build());
+					
+					NewFlowBuilder newFlowBuilder = new NewFlowBuilder();
+					newFlowBuilder.setDstIpAddress(curDstIp);
+					newFlowBuilder.setSrcIpAddress(curSrcIp);
+					newFlowBuilder.setFlowPriority(input.getFlowPriority());
+					newFlowBuilder.setIdleTimeout(input.getIdleTimeout());
+					newFlowBuilder.setHardTimeout(input.getHardTimeout());
+					
+					InstallFlowInputBuilder installFlowBuilder = new InstallFlowInputBuilder();
+					installFlowBuilder.setNode(nodeid);
+					installFlowBuilder.setNewFlow(newFlowBuilder.build());
+					
+					installFlowBuilder.setAssociatedActions(actionList);
+					return installFlowBuilder.build();
+					
 				}
+
 			};
 			
 			
 			//Delete flow rule from the old paths
 			removeAllFlowRulesInPath(oldpathNodes, oldSrcIpAddress, oldDstIpAddress);
+			
+			
+			transateIp(newSrcIpAddress, newDstIpAddress, oldSrcIpAddress, oldDstIpAddress, newpathNodes, func);
 			
 			//Install flow rule in the new paths
 			installFlowRulesInPath(newpathNodes, newSrcIpAddress, newDstIpAddress, func);
@@ -2738,8 +2807,8 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 					vIpDst, rIpDst,	rIpSrc, rIpSrc, true,
 					input.getPathNodes().get(0)));
 
-			//			Lets assume the condition, rIp's are h1,h2 and vIp's are h3,h4
-//			First switch: going to destination
+//			Lets assume the condition, rIp's are h1,h2 and vIp's are h3,h4
+//			First switch: going to source
 //			What we got 	h2 --> h1 
 //			What we want	h4 --> h1 NO MAC change
 //			rIpSrc = h1 //these four are fixed
@@ -3667,10 +3736,52 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 				return RpcResultBuilder.success(output).buildFuture();
 	}
 	
+	private void transateIp(Ipv4Prefix rIpSrc, Ipv4Prefix rIpDst,
+			Ipv4Prefix vIpSrc, Ipv4Prefix vIpDst, List<NodeId> pathNodes,
+			RepeatFunction func) {
+
+		Neighbors srcEdgeNeighbor = getPortInformation(pathNodes.get(0),
+				pathNodes.get(1));
+
+		ConnectedHost srcHost = getHostInfo(rIpSrc.getValue());
+
+		LOG.debug("     ==================================================================     ");
+		LOG.debug("     Inside translate IP : ");
+		LOG.debug("     rIpSrc {}, rIpDst {}, vIpSrc {}, vIpDst {}", rIpSrc,
+				rIpDst, vIpSrc, vIpDst);
+		LOG.debug("     ==================================================================     ");
+
+		// Lets assume the condition, rIp's are h1,h3 and vIp's are h1,h2
+		// First switch: going to destination
+		// What we got h1 --> h2
+		// what we want h1 --> h3 MAC change
+		// rIpSrc = h1 //these four are fixed
+		// rIpDst = h3
+		// vIpSrc = h1
+		// vIpDst = h2
+		// So change will be like: for destination: h2->h3, for source: h1->h1
+		this.installFlow(func.performFunction(srcEdgeNeighbor.getSrcPort(),
+				vIpDst, rIpDst, vIpSrc, rIpSrc, true, pathNodes.get(0)));
+
+		// Lets assume the condition, rIp's are h1,h3 and vIp's are h1,h2
+		// First switch: going to source
+		// What we got h3 --> h1
+		// What we want h2 --> h1 MAC change
+		// rIpSrc = h1 //these four are fixed
+		// rIpDst = h3
+		// vIpSrc = h1
+		// vIpDst = h2
+		// So change will be like: for destination: h1->h1, for source: h3->h2
+		this.installFlow(func.performFunction(
+				srcHost.getNodeConnectorConnectedTo(), rIpSrc, vIpSrc, rIpDst,
+				vIpDst, true, pathNodes.get(0)));
+
+	}
+	
 	public void installFlowRulesInPath(List<NodeId> pathNodes, Ipv4Prefix srcIpAddress, 
 			Ipv4Prefix dstIpAddress, RepeatFunction func) {
 		int index;
-		for (index = 0; index < pathNodes.size(); index++){
+		for (index = 1; index < pathNodes.size(); index++){
 			if (index == 0){ // got the first switch
 				ConnectedHost srcHost = getHostInfo(srcIpAddress.getValue());
 				//Reverse direction rule i.e., switch -> src

@@ -200,8 +200,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		NodeId sourceNode = new NodeId("openflow:" + leftSwitch);
 		NodeId dstNode = new NodeId("openflow:" + rightSwitch);
 		
-		updateInstalledPaths(sourceNode, dstNode, whiteListedSources);
-//		migratePath(sourceNode, dstNode, whiteListedSources);
+//		updateInstalledPaths(sourceNode, dstNode, whiteListedSources);
+		migratePath(sourceNode, dstNode, whiteListedSources);
 		
 	}
 
@@ -269,51 +269,68 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		}
 	}
 	
-	public void testMigratePath (String srcIp, String dstIp){
+	public void testMigratePath (EventTriggered notification){
 		
 		LOG.debug("		==============---------------=================----------------------");
-    	LOG.debug("		Test MigratePath");
+    	LOG.debug("		Testing MigratePath...");
     	LOG.debug("		==============---------------=================----------------------");
-		
-		for (String pair : installedPaths.keySet()){
+    	
+		IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
 
-			String newDstIp = "10.0.0.6/32";
-				
-        	MigrateNetworkPathInputBuilder migrateNetworkPathInputBuilder = new MigrateNetworkPathInputBuilder();
-        	migrateNetworkPathInputBuilder.setOldSrcIpAddress(srcIp);
-        	migrateNetworkPathInputBuilder.setOldDstIpAddress(dstIp);
-        	migrateNetworkPathInputBuilder.setNewDstIpAddress(newDstIp);
-        	migrateNetworkPathInputBuilder.setFlowPriority(300);
+		ConnectedHostInfo srcHost = hostTable.get(icmpPacket.getSourceAddress());
+		ConnectedHostInfo dstHost = hostTable.get(icmpPacket.getDestinationAddress());
+		String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
+		String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
+		
+		List<String> oldPath;
+		
+		if (installedPaths.containsKey(forwardPathKey)){
+			oldPath = installedPaths.get(forwardPathKey);
+		} else {
+			oldPath = installedPaths.get(reversePathKey);
+		}
+		
+		LOG.debug("     ==================================================================     ");
+		LOG.debug("   Inside testing migratePath oldPath {}", oldPath.toString());
+		LOG.debug("     ==================================================================     ");
+		
+		
+		String newDstIp = "10.0.0.12/32";
 			
-			List<Integer> oldPathNodes = Lists.newArrayList(); //List of switches along the old path
-			for (String node : installedPaths.get(pair)){
-				oldPathNodes.add(Integer.parseInt(node));
+    	MigrateNetworkPathInputBuilder migrateNetworkPathInputBuilder = new MigrateNetworkPathInputBuilder();
+    	migrateNetworkPathInputBuilder.setOldSrcIpAddress(srcHost.getHostIP());
+    	migrateNetworkPathInputBuilder.setOldDstIpAddress(dstHost.getHostIP());
+    	migrateNetworkPathInputBuilder.setNewDstIpAddress(newDstIp);
+    	migrateNetworkPathInputBuilder.setFlowPriority(300);
+		
+		List<Integer> oldPathNodes = Lists.newArrayList(); //List of switches along the old path
+		for (String node : oldPath){
+			oldPathNodes.add(Integer.parseInt(node));
+		}
+		migrateNetworkPathInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
+		
+		int srcSwitchNumber = srcHost.getSwitchConnectedTo();
+		int dstSwitchNumber = hostTable.get(newDstIp).getSwitchConnectedTo();
+		
+		List<Integer> newPathNodes = Lists.newArrayList();
+		
+		List<String> path = topology.findShortestPath(srcSwitchNumber, dstSwitchNumber);
+		if (path != null) {
+			for (String node : path){
+				newPathNodes.add(Integer.parseInt(node));
 			}
-			migrateNetworkPathInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
 			
-			List<Integer> newPathNodes = Lists.newArrayList();
-			int srcSwitchNumber = hostTable.get(srcIp).getSwitchConnectedTo();
-			int dstSwitchNumber = hostTable.get(newDstIp).getSwitchConnectedTo();
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("   	Inside testing migratePath newPath {}", path.toString());
+			LOG.debug("     ==================================================================     ");
 			
-			List<String> path = topology.findShortestPath(srcSwitchNumber, dstSwitchNumber);
-			
-			if (path != null) {
-				for (String node : path){
-					newPathNodes.add(Integer.parseInt(node));
-				}
-				migrateNetworkPathInputBuilder.setSwitchesInNewPath(newPathNodes);
-				LOG.debug("     ==================================================================     ");
-				LOG.debug("   Path of Pair {} is changed from {}  to  {} ", pair, 
-						installedPaths.get(pair).toString(), path.toString());
-				LOG.debug("      ==================================================================     ");
-				installedPaths.put(pair, path);
-				this.activeSDNService.migrateNetworkPath(migrateNetworkPathInputBuilder.build());
-			}
-			else {
-				LOG.debug("     ==================================================================     ");
-				LOG.debug("   No new Path is found for Pair {}  ", pair);
-				LOG.debug("      ==================================================================     ");
-			}
+			migrateNetworkPathInputBuilder.setSwitchesInNewPath(newPathNodes);
+			this.activeSDNService.migrateNetworkPath(migrateNetworkPathInputBuilder.build());
+		}
+		else {
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("   	No new Path is found for Migrate Path");
+			LOG.debug("     ==================================================================     ");
 		}
 	}
 	
@@ -332,7 +349,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				
 				String sourceIp = pair.split(":")[0];
 				String dstIp = pair.split(":")[1];
-				String newDstIp = "10.0.0.11/32";
+				String newDstIp = "10.0.0.13/32";
 					
 				if (whiteListSources.isEmpty() == false) {
 					if (whiteListSources.contains(sourceIp) == false) {continue;}
