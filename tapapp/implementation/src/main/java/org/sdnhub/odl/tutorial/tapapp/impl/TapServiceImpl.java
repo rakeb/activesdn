@@ -2178,18 +2178,20 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 		// This function migrates the traffic from one path to another
 		List<NodeId> oldpathNodes = input.getOldPathNodes();
 		List<NodeId> newpathNodes = input.getNewPathNodes();
+		Ipv4Prefix srcIp = input.getSrcIpAddress();
+		Ipv4Prefix dstIp = input.getDstIpAddress();
 		//Validation Check-----First and last nodes of both paths should be same
 		MovePathOutputBuilder output = new MovePathOutputBuilder();
-		if ((oldpathNodes.get(0).equals(newpathNodes.get(0)) == false) || 
-				(oldpathNodes.get(oldpathNodes.size()-1).equals(newpathNodes.get(newpathNodes.size()-1)) == false)){
-			
-			LOG.debug("         -------------------------------------------             ");
-			LOG.debug("Invalid Migration: First and Last nodes are not identical.");
-			LOG.debug("         -------------------------------------------             ");
-			
-			output.setStatus("Invalid Migration: First and Last nodes are not identical.");
-			return RpcResultBuilder.success(output).buildFuture();
-		}
+//		if ((oldpathNodes.get(0).equals(newpathNodes.get(0)) == false) || 
+//				(oldpathNodes.get(oldpathNodes.size()-1).equals(newpathNodes.get(newpathNodes.size()-1)) == false)){
+//			
+//			LOG.debug("         -------------------------------------------             ");
+//			LOG.debug("Invalid Migration: First and Last nodes are not identical.");
+//			LOG.debug("         -------------------------------------------             ");
+//			
+//			output.setStatus("Invalid Migration: First and Last nodes are not identical.");
+//			return RpcResultBuilder.success(output).buildFuture();
+//		}
 		///////////////////////////////////
 		try {
 			RepeatFunction func = new RepeatFunction() {	
@@ -2230,150 +2232,13 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 					return null;
 				}
 			};
-			int index = 0;
 			
-			for (; index < newpathNodes.size(); index++){
-				if (index == 0 || index == newpathNodes.size() - 1) continue;
-				//Future<RpcResult<InstallFlowOutput>> futureOutput = null;
-				//forwarding direction rule i.e., src -> dst
-				//LOG.debug("         ---------------------------------------------------------------------     ");
-       		 	//LOG.debug(newpathNodes.get(index).getValue() + "  index & index+1     " + newpathNodes.get(index + 1));
-       		 	//LOG.debug("         ---------------------------------------------------------------------     ");
-				
-				//"Lets say, s1 has a link with s2, output port of s1 is x and input port of s2 is y. 
-				//Then neighbor-node-id means s1, src-port means x and neigh-port means y";
-				//newpathNodes.get(index) == s1
-				//newpathNodes.get(index+1) == s2
-				Neighbors neighbor = getPortInformation(newpathNodes.get(index), newpathNodes.get(index+1));
-				if (neighbor != null){
-					pathRule = true;
-					this.installFlow(func.performFunction(neighbor.getSrcPort(), 
-							input.getDstIpAddress(), input.getSrcIpAddress(), newpathNodes.get(index)));
-					//LOG.debug("         ---------------------------------------------------------------------     ");
-	       		 	//LOG.debug(neighbor.getSrcPort().getValue() + "     " + input.getDstIpAddress().getValue());
-	       		 	//LOG.debug("         ---------------------------------------------------------------------     ");
-				} else {
-					String exception = "Neighbor " + newpathNodes.get(index).getValue() + 
-							" is not available for Node " + newpathNodes.get(index+1).getValue();
-					throw new Exception(exception);
-				}
-				//Reverse direction rule  i.e., dst -> src
-				//LOG.debug("         ---------------------------------------------------------------------     ");
-       		 	//LOG.debug(newpathNodes.get(index).getValue() + "   index & index-1    " + newpathNodes.get(index - 1));
-       		 	//LOG.debug("         ---------------------------------------------------------------------     ");
-				Neighbors neighbor1 = getPortInformation(newpathNodes.get(index), newpathNodes.get(index-1));
-				if (neighbor1 != null){
-					pathRule = true;
-					this.installFlow(func.performFunction(neighbor1.getSrcPort(), 
-							input.getSrcIpAddress(), input.getDstIpAddress(), newpathNodes.get(index)));
-					//LOG.debug("         ---------------------------------------------------------------------     ");
-	       		 	//LOG.debug(neighbor1.getSrcPort().getValue() + "     " + input.getSrcIpAddress().getValue());
-	       		 	//LOG.debug("         ---------------------------------------------------------------------     ");
-				} else {
-					String exception = "Neighbor " + newpathNodes.get(index).getValue() + 
-							" is not available for Node " + newpathNodes.get(index-1).getValue();
-					throw new Exception(exception);
-				}
-				/*
-				try {		
-					if (futureOutput != null){
-						InstallFlowOutput installOutput = futureOutput.get().getResult();
-						pathFlows.put(newpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue(), installOutput.getFlowId());
-					}else {
-						String exception = "No Flow ID is provided as output from installFlowRule RPC";
-						throw new Exception(exception);
-					}
-				} catch (Exception e) {
-					LOG.error("Exception reached in MovePathRPC {} --------", e);
-					return null;
-				}
-				*/
-			}
-			//Switch for for both First and Last nodes
-			Neighbors neighbor = getPortInformation(newpathNodes.get(0), newpathNodes.get(1));
-			Neighbors neighbor1 = getPortInformation(newpathNodes.get(newpathNodes.size()-1), newpathNodes.get(newpathNodes.size()-2));
-			//Future<RpcResult<InstallFlowOutput>> futureOutput = null;
-			//Future<RpcResult<InstallFlowOutput>> futureOutput1 = null;
-			if (neighbor != null){
-				pathRule = true;
-				this.installFlow(func.performFunction(neighbor.getSrcPort(), 
-						input.getDstIpAddress(), input.getSrcIpAddress(), newpathNodes.get(0)));
-			} else {
-				String exception = "Neighbor " + newpathNodes.get(0).getValue() + 
-						" is not available for Node " + newpathNodes.get(1).getValue();
-				throw new Exception(exception);
-			}
-			if (neighbor1 != null){
-				pathRule = true;
-				this.installFlow(func.performFunction(neighbor1.getSrcPort(), 
-						input.getSrcIpAddress(), input.getDstIpAddress(), newpathNodes.get(newpathNodes.size()-1)));
-			} else {
-				String exception = "Neighbor " + newpathNodes.get(newpathNodes.size()-1).getValue() + 
-						" is not available for Node " + newpathNodes.get(newpathNodes.size()-2).getValue();
-				throw new Exception(exception);
-			}
-			/*
-			if (futureOutput != null && futureOutput1 != null){
-				InstallFlowOutput installOutput = futureOutput.get().getResult();
-				InstallFlowOutput installOutput1 = futureOutput1.get().getResult();
-				pathFlows.put(newpathNodes.get(0).getValue() + ":" + input.getDstIpAddress().getValue(), installOutput.getFlowId());
-				pathFlows.put(newpathNodes.get(newpathNodes.size()-1).getValue() + ":" + input.getDstIpAddress().getValue(), installOutput1.getFlowId());
-			}
-			else {
-				String exception = "No Flow ID is provided as output from installFlowRule RPC";
-				throw new Exception(exception);
-			}
-			*/
-			index = 0;
-			for (; index < oldpathNodes.size(); index++){
-				if (newpathNodes.contains(oldpathNodes.get(index))) continue;
-				//delete flow from the switch
-				if (pathFlows.containsKey(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue())){
-					String flowIdStr = pathFlows.get(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue());
-                	
-	            	FlowBuilder flowBuilder = new FlowBuilder();
-	            	FlowKey key = new FlowKey(new FlowId(flowIdStr));
-	            	flowBuilder.setFlowName(flowIdStr);
-	            	flowBuilder.setKey(key);
-	            	flowBuilder.setId(new FlowId(flowIdStr));
-	            	flowBuilder.setTableId((short)0);
-	                	
-	            	InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)
-	            			.child(Node.class, new NodeKey(oldpathNodes.get(index)))
-	            			.augmentation(FlowCapableNode.class)
-	            			.child(Table.class, new TableKey(flowBuilder.getTableId()))
-	            			.child(Flow.class, new FlowKey(flowBuilder.getKey()))
-	            			.build();
-	                	
-	            	GenericTransactionUtils.writeData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID, flowBuilder.build(), false);
-	            	flowsInstalled.get(oldpathNodes.get(index)).remove(flowIdStr);
-	            	pathFlows.remove(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue());
-				}
-                
-            	////=============================================
-				if (pathFlows.containsKey(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue())){
-					String flowIdStr1 = pathFlows.get(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue());
-	            	
-					FlowBuilder flowBuilder = new FlowBuilder();
-					FlowKey key = new FlowKey(new FlowId(flowIdStr1));
-	            	flowBuilder.setFlowName(flowIdStr1);
-	            	flowBuilder.setKey(key);
-	            	flowBuilder.setId(new FlowId(flowIdStr1));
-	            	flowBuilder.setTableId((short)0);
-	                	
-	            	InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)
-	            			.child(Node.class, new NodeKey(oldpathNodes.get(index)))
-	            			.augmentation(FlowCapableNode.class)
-	            			.child(Table.class, new TableKey(flowBuilder.getTableId()))
-	            			.child(Flow.class, new FlowKey(flowBuilder.getKey()))
-	            			.build();
-	                	
-	            	GenericTransactionUtils.writeData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID, flowBuilder.build(), false);
-	            	flowsInstalled.get(oldpathNodes.get(index)).remove(flowIdStr1);
-	            	pathFlows.remove(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue());
-				}
-			}
-			////////////////////////////////////////////////////////////////////////////
+			//Delete flow rule from the old paths
+			removeAllFlowRulesInPath(oldpathNodes, srcIp, dstIp);
+			
+			//Install flow rule in the new paths
+			installFlowRulesInPath(0, newpathNodes, srcIp, dstIp, func);
+			
 			
 		} catch (Exception e) {
             LOG.error("Exception reached in MovePath RPC {} --------", e);
@@ -2394,6 +2259,229 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 		return RpcResultBuilder.success(output).buildFuture();
 		//return null;
 	}
+	
+	
+//	@Override
+//	public Future<RpcResult<MovePathOutput>> movePath(final MovePathInput input) {
+//		// This function migrates the traffic from one path to another
+//		List<NodeId> oldpathNodes = input.getOldPathNodes();
+//		List<NodeId> newpathNodes = input.getNewPathNodes();
+//		//Validation Check-----First and last nodes of both paths should be same
+//		MovePathOutputBuilder output = new MovePathOutputBuilder();
+//		if ((oldpathNodes.get(0).equals(newpathNodes.get(0)) == false) || 
+//				(oldpathNodes.get(oldpathNodes.size()-1).equals(newpathNodes.get(newpathNodes.size()-1)) == false)){
+//			
+//			LOG.debug("         -------------------------------------------             ");
+//			LOG.debug("Invalid Migration: First and Last nodes are not identical.");
+//			LOG.debug("         -------------------------------------------             ");
+//			
+//			output.setStatus("Invalid Migration: First and Last nodes are not identical.");
+//			return RpcResultBuilder.success(output).buildFuture();
+//		}
+//		///////////////////////////////////
+//		try {
+//			RepeatFunction func = new RepeatFunction() {	
+//				@Override
+//				public InstallFlowInput performFunction(NodeConnectorId outputPort, Ipv4Prefix dstIp,
+//						Ipv4Prefix srcIp, NodeId nodeid) {
+//					AssociatedActionsBuilder actionBuilder = new AssociatedActionsBuilder();
+//					ForwardToPortBuilder forwardBuilder = new ForwardToPortBuilder();
+//					forwardBuilder.setOutputNodeConnector(outputPort);
+//					
+//					actionBuilder.setFlowActions(new ForwardToPortCaseBuilder().
+//							setForwardToPort(forwardBuilder.build()).build());
+//					actionBuilder.setId((long)1);
+//					List<AssociatedActions> actionList = Lists.newArrayList();
+//					actionList.add(actionBuilder.build());
+//					
+//					NewFlowBuilder newFlowBuilder = new NewFlowBuilder();
+//					newFlowBuilder.setDstIpAddress(dstIp);
+//					//newFlowBuilder.setTrafficMatch(input.get)
+//					newFlowBuilder.setFlowPriority(input.getFlowPriority());
+//					newFlowBuilder.setIdleTimeout(input.getIdleTimeout());
+//					newFlowBuilder.setHardTimeout(input.getHardTimeout());
+//					
+//					InstallFlowInputBuilder installFlowBuilder = new InstallFlowInputBuilder();
+//					installFlowBuilder.setNode(nodeid);
+//					installFlowBuilder.setNewFlow(newFlowBuilder.build());
+//					installFlowBuilder.setAssociatedActions(actionList);
+//					return installFlowBuilder.build();
+//					
+//				}
+//
+//				@Override
+//				public InstallFlowInput performFunction(
+//						NodeConnectorId outputPort, Ipv4Prefix curDstIp,
+//						Ipv4Prefix newDstIp, Ipv4Prefix curSrcIp,
+//						Ipv4Prefix newSrcIp, boolean setMac, NodeId nodeid) {
+//					// TODO Auto-generated method stub
+//					return null;
+//				}
+//			};
+//			int index = 0;
+//			
+//			for (; index < newpathNodes.size(); index++){
+//				if (index == 0 || index == newpathNodes.size() - 1) continue;
+//				//Future<RpcResult<InstallFlowOutput>> futureOutput = null;
+//				//forwarding direction rule i.e., src -> dst
+//				//LOG.debug("         ---------------------------------------------------------------------     ");
+//       		 	//LOG.debug(newpathNodes.get(index).getValue() + "  index & index+1     " + newpathNodes.get(index + 1));
+//       		 	//LOG.debug("         ---------------------------------------------------------------------     ");
+//				
+//				//"Lets say, s1 has a link with s2, output port of s1 is x and input port of s2 is y. 
+//				//Then neighbor-node-id means s1, src-port means x and neigh-port means y";
+//				//newpathNodes.get(index) == s1
+//				//newpathNodes.get(index+1) == s2
+//				Neighbors neighbor = getPortInformation(newpathNodes.get(index), newpathNodes.get(index+1));
+//				if (neighbor != null){
+//					pathRule = true;
+//					this.installFlow(func.performFunction(neighbor.getSrcPort(), 
+//							input.getDstIpAddress(), input.getSrcIpAddress(), newpathNodes.get(index)));
+//					//LOG.debug("         ---------------------------------------------------------------------     ");
+//	       		 	//LOG.debug(neighbor.getSrcPort().getValue() + "     " + input.getDstIpAddress().getValue());
+//	       		 	//LOG.debug("         ---------------------------------------------------------------------     ");
+//				} else {
+//					String exception = "Neighbor " + newpathNodes.get(index).getValue() + 
+//							" is not available for Node " + newpathNodes.get(index+1).getValue();
+//					throw new Exception(exception);
+//				}
+//				//Reverse direction rule  i.e., dst -> src
+//				//LOG.debug("         ---------------------------------------------------------------------     ");
+//       		 	//LOG.debug(newpathNodes.get(index).getValue() + "   index & index-1    " + newpathNodes.get(index - 1));
+//       		 	//LOG.debug("         ---------------------------------------------------------------------     ");
+//				Neighbors neighbor1 = getPortInformation(newpathNodes.get(index), newpathNodes.get(index-1));
+//				if (neighbor1 != null){
+//					pathRule = true;
+//					this.installFlow(func.performFunction(neighbor1.getSrcPort(), 
+//							input.getSrcIpAddress(), input.getDstIpAddress(), newpathNodes.get(index)));
+//					//LOG.debug("         ---------------------------------------------------------------------     ");
+//	       		 	//LOG.debug(neighbor1.getSrcPort().getValue() + "     " + input.getSrcIpAddress().getValue());
+//	       		 	//LOG.debug("         ---------------------------------------------------------------------     ");
+//				} else {
+//					String exception = "Neighbor " + newpathNodes.get(index).getValue() + 
+//							" is not available for Node " + newpathNodes.get(index-1).getValue();
+//					throw new Exception(exception);
+//				}
+//				/*
+//				try {		
+//					if (futureOutput != null){
+//						InstallFlowOutput installOutput = futureOutput.get().getResult();
+//						pathFlows.put(newpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue(), installOutput.getFlowId());
+//					}else {
+//						String exception = "No Flow ID is provided as output from installFlowRule RPC";
+//						throw new Exception(exception);
+//					}
+//				} catch (Exception e) {
+//					LOG.error("Exception reached in MovePathRPC {} --------", e);
+//					return null;
+//				}
+//				*/
+//			}
+//			//Switch for for both First and Last nodes
+//			Neighbors neighbor = getPortInformation(newpathNodes.get(0), newpathNodes.get(1));
+//			Neighbors neighbor1 = getPortInformation(newpathNodes.get(newpathNodes.size()-1), newpathNodes.get(newpathNodes.size()-2));
+//			//Future<RpcResult<InstallFlowOutput>> futureOutput = null;
+//			//Future<RpcResult<InstallFlowOutput>> futureOutput1 = null;
+//			if (neighbor != null){
+//				pathRule = true;
+//				this.installFlow(func.performFunction(neighbor.getSrcPort(), 
+//						input.getDstIpAddress(), input.getSrcIpAddress(), newpathNodes.get(0)));
+//			} else {
+//				String exception = "Neighbor " + newpathNodes.get(0).getValue() + 
+//						" is not available for Node " + newpathNodes.get(1).getValue();
+//				throw new Exception(exception);
+//			}
+//			if (neighbor1 != null){
+//				pathRule = true;
+//				this.installFlow(func.performFunction(neighbor1.getSrcPort(), 
+//						input.getSrcIpAddress(), input.getDstIpAddress(), newpathNodes.get(newpathNodes.size()-1)));
+//			} else {
+//				String exception = "Neighbor " + newpathNodes.get(newpathNodes.size()-1).getValue() + 
+//						" is not available for Node " + newpathNodes.get(newpathNodes.size()-2).getValue();
+//				throw new Exception(exception);
+//			}
+//			/*
+//			if (futureOutput != null && futureOutput1 != null){
+//				InstallFlowOutput installOutput = futureOutput.get().getResult();
+//				InstallFlowOutput installOutput1 = futureOutput1.get().getResult();
+//				pathFlows.put(newpathNodes.get(0).getValue() + ":" + input.getDstIpAddress().getValue(), installOutput.getFlowId());
+//				pathFlows.put(newpathNodes.get(newpathNodes.size()-1).getValue() + ":" + input.getDstIpAddress().getValue(), installOutput1.getFlowId());
+//			}
+//			else {
+//				String exception = "No Flow ID is provided as output from installFlowRule RPC";
+//				throw new Exception(exception);
+//			}
+//			*/
+//			index = 0;
+//			for (; index < oldpathNodes.size(); index++){
+//				if (newpathNodes.contains(oldpathNodes.get(index))) continue;
+//				//delete flow from the switch
+//				if (pathFlows.containsKey(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue())){
+//					String flowIdStr = pathFlows.get(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue());
+//                	
+//	            	FlowBuilder flowBuilder = new FlowBuilder();
+//	            	FlowKey key = new FlowKey(new FlowId(flowIdStr));
+//	            	flowBuilder.setFlowName(flowIdStr);
+//	            	flowBuilder.setKey(key);
+//	            	flowBuilder.setId(new FlowId(flowIdStr));
+//	            	flowBuilder.setTableId((short)0);
+//	                	
+//	            	InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)
+//	            			.child(Node.class, new NodeKey(oldpathNodes.get(index)))
+//	            			.augmentation(FlowCapableNode.class)
+//	            			.child(Table.class, new TableKey(flowBuilder.getTableId()))
+//	            			.child(Flow.class, new FlowKey(flowBuilder.getKey()))
+//	            			.build();
+//	                	
+//	            	GenericTransactionUtils.writeData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID, flowBuilder.build(), false);
+//	            	flowsInstalled.get(oldpathNodes.get(index)).remove(flowIdStr);
+//	            	pathFlows.remove(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue());
+//				}
+//                
+//            	////=============================================
+//				if (pathFlows.containsKey(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue())){
+//					String flowIdStr1 = pathFlows.get(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue());
+//	            	
+//					FlowBuilder flowBuilder = new FlowBuilder();
+//					FlowKey key = new FlowKey(new FlowId(flowIdStr1));
+//	            	flowBuilder.setFlowName(flowIdStr1);
+//	            	flowBuilder.setKey(key);
+//	            	flowBuilder.setId(new FlowId(flowIdStr1));
+//	            	flowBuilder.setTableId((short)0);
+//	                	
+//	            	InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)
+//	            			.child(Node.class, new NodeKey(oldpathNodes.get(index)))
+//	            			.augmentation(FlowCapableNode.class)
+//	            			.child(Table.class, new TableKey(flowBuilder.getTableId()))
+//	            			.child(Flow.class, new FlowKey(flowBuilder.getKey()))
+//	            			.build();
+//	                	
+//	            	GenericTransactionUtils.writeData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID, flowBuilder.build(), false);
+//	            	flowsInstalled.get(oldpathNodes.get(index)).remove(flowIdStr1);
+//	            	pathFlows.remove(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue());
+//				}
+//			}
+//			////////////////////////////////////////////////////////////////////////////
+//			
+//		} catch (Exception e) {
+//            LOG.error("Exception reached in MovePath RPC {} --------", e);
+//            output.setStatus("Path Couldn't be migrated.");
+//    		return RpcResultBuilder.success(output).buildFuture();
+//        }
+//		/*
+//		 * ------Do something for old path, one thing that we can readjust their idle timeout to small value
+//		 *  we can start this to begin-with. So, for each migration, the nodes in the oldPath are put to 
+//		 *  no flight zone for this src-destination pair. We can also extend the matching criteria from only
+//		 *  destination to src-destination both. So, whenever a new flow-removed msg is received then we can
+//		 *  do a simple look-up to confirm if flow nees to be restored or just leave it.
+//		 *  
+//		 *  Also Check what should be the flags of these newly installed flows
+//		 */
+//		
+//		output.setStatus("Path is successfully migrated.");
+//		return RpcResultBuilder.success(output).buildFuture();
+//		//return null;
+//	}
 	
 	
 	@Override
@@ -2544,7 +2632,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			transateIp(newSrcIpAddress, newDstIpAddress, oldSrcIpAddress, oldDstIpAddress, newpathNodes, func);
 			
 			//Install flow rule in the new paths
-			installFlowRulesInPath(newpathNodes, newSrcIpAddress, newDstIpAddress, func);
+			installFlowRulesInPath(1, newpathNodes, newSrcIpAddress, newDstIpAddress, func);
 			
 		} catch (Exception e) {
             LOG.error("Exception reached in MovePath RPC {} --------", e);
@@ -3778,10 +3866,10 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 
 	}
 	
-	public void installFlowRulesInPath(List<NodeId> pathNodes, Ipv4Prefix srcIpAddress, 
+	public void installFlowRulesInPath(int startingSwitch, List<NodeId> pathNodes, Ipv4Prefix srcIpAddress, 
 			Ipv4Prefix dstIpAddress, RepeatFunction func) {
 		int index;
-		for (index = 1; index < pathNodes.size(); index++){
+		for (index = startingSwitch; index < pathNodes.size(); index++){
 			if (index == 0){ // got the first switch
 				ConnectedHost srcHost = getHostInfo(srcIpAddress.getValue());
 				//Reverse direction rule i.e., switch -> src

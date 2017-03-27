@@ -138,6 +138,7 @@ public class NetworkGraph
             		//LOG.debug(" ======================================================================== ");
             		List<String> networkPath = Lists.newArrayList();
             		String prevNode = Integer.toString(leftSwitch);
+            		networkPath.add(prevNode);
             		for (DefaultEdge edge : path.getEdgeList()){
                 		String link = edge.toString();
                 		String leftswitchId = link.substring(link.indexOf("(") + 1, link.indexOf(":")).trim();
