@@ -1697,14 +1697,14 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			NodeConnectorStatisticsAndPortNumberMap portStats = portStatItr.next();
 			if (portStats.getReceiveDrops().intValue() > 0 || portStats.getTransmitDrops().intValue() > 0
 					|| portStats.getReceiveErrors().intValue() > 0 || portStats.getTransmitErrors().intValue() > 0){
-				LOG.debug("NodeConnectorID {}", portStats.getNodeConnectorId().getValue());
-				LOG.debug("PacketReceiveDrops {}", portStats.getReceiveDrops());
-				LOG.debug("PacketTransmitDrops {}", portStats.getTransmitDrops());
-				LOG.debug("Packets Received {}", portStats.getPackets().getReceived().intValue());
-				LOG.debug("Packets Transmitted {}", portStats.getPackets().getTransmitted().intValue());
-				LOG.debug("Packets Transmit Errors {}", portStats.getTransmitErrors().intValue());
-				LOG.debug("Packets Receive Errors {}", portStats.getReceiveErrors().intValue());
-				LOG.debug("-----------------------------------------------");
+//				LOG.debug("NodeConnectorID {}", portStats.getNodeConnectorId().getValue());
+//				LOG.debug("PacketReceiveDrops {}", portStats.getReceiveDrops());
+//				LOG.debug("PacketTransmitDrops {}", portStats.getTransmitDrops());
+//				LOG.debug("Packets Received {}", portStats.getPackets().getReceived().intValue());
+//				LOG.debug("Packets Transmitted {}", portStats.getPackets().getTransmitted().intValue());
+//				LOG.debug("Packets Transmit Errors {}", portStats.getTransmitErrors().intValue());
+//				LOG.debug("Packets Receive Errors {}", portStats.getReceiveErrors().intValue());
+//				LOG.debug("-----------------------------------------------");
 			}
 		}
 		long timeMillis = System.currentTimeMillis();
