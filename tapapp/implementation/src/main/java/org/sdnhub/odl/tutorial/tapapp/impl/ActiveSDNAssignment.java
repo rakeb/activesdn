@@ -200,8 +200,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		NodeId sourceNode = new NodeId("openflow:" + leftSwitch);
 		NodeId dstNode = new NodeId("openflow:" + rightSwitch);
 		
-//		updateInstalledPaths(sourceNode, dstNode, whiteListedSources);
-		migratePath(sourceNode, dstNode, whiteListedSources);
+		updateInstalledPaths(sourceNode, dstNode, whiteListedSources);
+//		migratePath(sourceNode, dstNode, whiteListedSources);
 		
 	}
 
