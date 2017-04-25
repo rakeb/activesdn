@@ -4,7 +4,7 @@ CyberDNA Research Team
 University of North Carolina at Charlotte
 February 7, 2017.
 
-#Install scapy.
+# Install scapy.
 
 * You need to install scapy to run the DDoS Mitigation and Dropbox authentication programs. You can use the following instructions to download and install scapy on your virtual machine:
   * Use the following URL to download the scapy zip file http://scapy.net/
@@ -19,7 +19,7 @@ February 7, 2017.
   
 It should run the scapy environment. You can use ```exit()``` command to exit scapy.
 
-#Clone and Pull ActiveSDN Repository:
+# Clone and Pull ActiveSDN Repository:
 * For first time Clone
   * Go to the directory <Downloads> by the command:
     ``` cd /home/ubuntu/Downloads/ ```
@@ -45,8 +45,23 @@ Now you get your local copy of the current remote repository <activesdn>.
 ```
 Now you updated your local copy with the current remote repository <activesdn>. 
 
+# Import Project into IDE (Eclipse).
+The VM we provide includes a Eclipse and IntelliJ Idea IDE. We are using Eclipse. To import the cloned ActiveSDN projectc:
 
-#Compile and Execute Controller.
+ * Open a Terminal and goto home directory
+ ```` cd ````
+ * Remove the existing Eclipse workspace
+ ```` sudo rm -rf eclipse-workspace/````
+ * Run Eclipse writing the following command in the same terminal
+ ```` eclipse````
+ * Now, in Eclipse extract (Click on the small + sign) maven from file->import
+ * Select 'existing maven project' and press 'next'
+ * Select 'Browse...' and find activesdn root directory that we just cloned (in our case /home/ubuntu/Downloads/activesdn) then press 'ok'
+ * Now press 'Finish'
+ * At this point a popup may show that "Import Maven Projects", press 'cancel'.
+ * Our project is successfully imported to Eclipse, at the left sidebar there is a (double box) icon states 'Restore', click on that to extract package hierarchy. 
+
+# Compile and Execute Controller.
 
 * Goto ActiveSDN directory using command
  ```` cd ~/Downloads/ActiveSDN````
