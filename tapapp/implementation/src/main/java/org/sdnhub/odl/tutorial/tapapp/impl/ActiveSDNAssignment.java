@@ -453,6 +453,20 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				return;
 			}
 		}
+		else if (notification.getPacketType() instanceof TcpPacketType) {
+			TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
+			if (!(hostTable.containsKey(tcpPacketType.getSourceAddress()) && 
+					hostTable.containsKey(tcpPacketType.getDestinationAddress()))){
+				LOG.debug("=================================================================================");
+				LOG.debug("    Some host information is missing so skipping rest of the event trigger.");
+				
+				LOG.debug("    SrcIp: {}, dstIp: {}",tcpPacketType.getSourceAddress(), tcpPacketType.getDestinationAddress());
+				
+				LOG.debug("=================================================================================");
+				
+				return;
+			}
+		}
 		//============================================================================================
 		if (notification.getTriggeredEventType() == TriggeredEventType.NoFlowRuleEvent) {
 			//If conditions checks if the Event is triggered because the switch couldn't find any flow rule

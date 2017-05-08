@@ -666,7 +666,8 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
         		}
         		else if (ipv4Packet.getProtocol().getIntValue() == KnownIpProtocols.Tcp.getIntValue()) {
         			TcpPacketHeader tcpPacketHeader = tcpPacketDecode(notification.getPayload());
-        			LOG.debug("We have received TCP packet//////////////////////////////////////////");
+        			LOG.debug("TCP packet received, Payload {}", notification.getPayload());
+        			
         			TcpPacketTypeBuilder tcpPacketTypeBuilder = new TcpPacketTypeBuilder();
         			tcpPacketTypeBuilder.setSourcePort(tcpPacketHeader.getSourcePort());
         			tcpPacketTypeBuilder.setDestPort(tcpPacketHeader.getDestPort());
@@ -696,6 +697,8 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
         			tcpPacketTypeBuilder.setReservedFlag(ipv4Packet.isReservedFlag() ? true : false);
         			tcpPacketTypeBuilder.setIpv4Options(ipv4Packet.getIpv4Options());
         			eventBuilder.setPacketType(tcpPacketTypeBuilder.build());
+        			
+        			LOG.debug("The whole TCP Packet is: {}", tcpPacketTypeBuilder.toString());
 				}
         		else { ////////////Packet Type IP packet only
         			Ipv4PacketTypeBuilder ipv4Builder = new Ipv4PacketTypeBuilder();
