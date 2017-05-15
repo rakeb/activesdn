@@ -973,17 +973,25 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			if (!(hostTable.containsKey(ipv4Packet.getSourceAddress()) && 
 					hostTable.containsKey(ipv4Packet.getDestinationAddress()))){
 				LOG.debug("=====================================================================================");
-				LOG.debug("        Some host information is missing so skipping rest of the event trigger.");
+				LOG.debug("	For this IP Packet, either source or destination host is not available in the Host Table");
 				LOG.debug("=====================================================================================");
 				return;
 			}
-		}
-		else if (notification.getPacketType() instanceof IcmpPacketType) {
+		} else if (notification.getPacketType() instanceof IcmpPacketType) {
 			IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
 			if (!(hostTable.containsKey(icmpPacket.getSourceAddress()) && 
 					hostTable.containsKey(icmpPacket.getDestinationAddress()))){
 				LOG.debug("=================================================================================");
-				LOG.debug("    Some host information is missing so skipping rest of the event trigger.");
+				LOG.debug("	For this ICMP Packet, either source or destination host is not available in the Host Table");
+				LOG.debug("=================================================================================");
+				return;
+			}
+		} else if (notification.getPacketType() instanceof TcpPacketType) {
+			TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
+			if (!(hostTable.containsKey(tcpPacketType.getSourceAddress()) && hostTable
+					.containsKey(tcpPacketType.getDestinationAddress()))) {
+				LOG.debug("=================================================================================");
+				LOG.debug("	For this TCP Packet, either source or destination host is not available in the Host Table");
 				LOG.debug("=================================================================================");
 				return;
 			}
@@ -1104,7 +1112,6 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 						//return null;   /// if you are suppose to return something.
 					}
 				}
-				
 			}
 			////-----------------------------------------------------------------------------------------------------
 			/////////////                   Handling TCP Traffic        /////////////////////////////////////////////  
