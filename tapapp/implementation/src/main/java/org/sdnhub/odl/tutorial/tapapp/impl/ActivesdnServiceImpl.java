@@ -1515,7 +1515,9 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	@Override
 	public void onAggregateFlowStatisticsUpdate(
 			AggregateFlowStatisticsUpdate notification) {
-		//LOG.debug("--------------------------onAggregateFlowStatisticUpdate Called -----------------");
+		
+		LOG.debug("--------------------------onAggregateFlowStatisticUpdate Called -----------------");
+		
 		List<SwitchStatistics> switchStats = Lists.newArrayList();
 
 		if (listOfSwitchesForStats.isEmpty()){
@@ -1564,6 +1566,9 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 
 	@Override
 	public void onFlowsStatisticsUpdate(FlowsStatisticsUpdate notification) {	
+
+		LOG.debug("--------------------------onFlowStatisticUpdate Called -----------------");
+		
 		long timeMillis = System.currentTimeMillis();
 		long seconds = TimeUnit.MILLISECONDS.toSeconds(timeMillis);
 		if (firstTime == true){
@@ -1573,7 +1578,6 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		else if (seconds - previousTime < reportingTime){
 			return;
 		}
-		//LOG.debug("--------------------------onFlowStatisticUpdate Called -----------------");
 		//LOG.debug("SwitchID {}", notification.getId().getValue());
 		//LOG.debug(" ");
 		previousTime = seconds;
@@ -1657,6 +1661,8 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	public Future<RpcResult<UnsubscribeForStatsFromSwitchOutput>> unsubscribeForStatsFromSwitch(
 			UnsubscribeForStatsFromSwitchInput input) {
 		
+		LOG.debug("--------------------------unsubscribeForStatsFromSwitch Called -----------------");
+		
 		if (listOfSwitchesForStats.contains(input.getSwitchId())){
 			listOfSwitchesForStats.remove(input.getSwitchId());
 			LOG.debug("Switch ID {} is un-subscribed and no statistic will be collected for it.", input.getSwitchId());
@@ -1672,6 +1678,8 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	@Override
 	public Future<RpcResult<SubscribeForStatsFromSwitchOutput>> subscribeForStatsFromSwitch(
 			SubscribeForStatsFromSwitchInput input) {
+		
+		LOG.debug("--------------------------subscribeForStatsFromSwitch Called -----------------");
 		
 		if (listOfSwitchesForStats.contains(input.getSwitchId())){
 			LOG.debug("Switch ID {} is already subscribed.", input.getSwitchId());
@@ -1925,6 +1933,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			if (queue0Stats != null){
 				long transmittedPackets = queue0Stats.getFlowCapableNodeConnectorQueueStatistics().getTransmittedPackets().getValue().longValue();
 				long transmissionErrors = queue0Stats.getFlowCapableNodeConnectorQueueStatistics().getTransmissionErrors().getValue().longValue();
+				//Error larger than threshold [=listOfSwitchPortsForStats.get(portId)]
 				if (transmissionErrors - observedQueueErrors > listOfSwitchPortsForStats.get(portId)){
 					LOG.debug("");
 					LOG.debug("SwitchID {} , LinkID {}", switchId, connectorId);
