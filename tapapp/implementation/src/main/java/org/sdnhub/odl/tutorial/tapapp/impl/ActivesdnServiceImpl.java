@@ -1430,8 +1430,8 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 										FlowStatisticBuilder flowStatsBuilder = new FlowStatisticBuilder();
 										//LOG.debug("----------FlowKey {} ", flowKey.getId().getValue());
 										flowStatsBuilder.setFlowId(flowKey.getId().getValue());
-										flowStatsBuilder.setPacketCount(data.getFlowStatistics().getPacketCount().getValue().longValue());
-										flowStatsBuilder.setByteCount(data.getFlowStatistics().getByteCount().getValue().longValue());
+										flowStatsBuilder.setPacketCount(data.getFlowStatistics().getPacketCount().getValue());
+										flowStatsBuilder.setByteCount(data.getFlowStatistics().getByteCount().getValue());
 										flowStatsBuilder.setDuration(data.getFlowStatistics().getDuration().getSecond().getValue());
 										///====================================
 										if (flow.getMatch().getLayer3Match() != null){

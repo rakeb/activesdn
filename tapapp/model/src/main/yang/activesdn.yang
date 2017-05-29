@@ -523,10 +523,10 @@ module activesdn {
 				type string;
 			}
 			leaf packet-count {
-				type uint32;
+				type uint64;
 			}
 			leaf byte-count {
-				type uint32;
+				type uint64;
 			}
 			leaf duration {
 				type uint32;
