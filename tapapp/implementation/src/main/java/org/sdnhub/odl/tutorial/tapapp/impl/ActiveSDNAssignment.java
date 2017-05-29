@@ -90,7 +90,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
     private boolean trigger = false;
     private String floodEventId;
     private String notifyEventId;
-    private float newComersRatio = (float) 0.2;
+    private float newComersRatio = (float) 0.6;
     private boolean firstTime = true;
     private NetworkGraph topology;
    
@@ -864,8 +864,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 					
 					FlowStatsTuple dbflowTuple = new FlowStatsTuple();
 					dbflowTuple.flowId = flowStats.getFlowId();
-					dbflowTuple.byteCount = flowStats.getByteCount();
-					dbflowTuple.packetCount = flowStats.getPacketCount();
+					dbflowTuple.byteCount = flowStats.getByteCount().longValue();
+					dbflowTuple.packetCount = flowStats.getPacketCount().longValue();
 					dbflowTuple.duration = flowStats.getDuration();
 					dbflowTuple.srcIPAddress = (flowStats.getSrcIpAddress() != null ?  flowStats.getSrcIpAddress() : "");
 					dbflowTuple.dstIPAddress = (flowStats.getDstIpAddress() != null ?  flowStats.getDstIpAddress() : "");
