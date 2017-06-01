@@ -1516,7 +1516,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	public void onAggregateFlowStatisticsUpdate(
 			AggregateFlowStatisticsUpdate notification) {
 		
-		LOG.debug("--------------------------onAggregateFlowStatisticUpdate Called -----------------");
+//		LOG.debug("onAggregateFlowStatisticUpdate Called");
 		
 		List<SwitchStatistics> switchStats = Lists.newArrayList();
 
@@ -1524,6 +1524,9 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			LOG.debug("There are no subscribed switches available for statistic collection");
 			return;
 		}
+		
+		LOG.debug("onAggregateFlowStatisticUpdate Called");
+		
 		for (Iterator<Integer> swItr = listOfSwitchesForStats.iterator(); swItr.hasNext();){
 			int switchId = swItr.next();
 			LOG.debug(" ");
@@ -1567,7 +1570,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	@Override
 	public void onFlowsStatisticsUpdate(FlowsStatisticsUpdate notification) {	
 
-		LOG.debug("--------------------------onFlowStatisticUpdate Called -----------------");
+//		LOG.debug("onFlowStatisticUpdate Called");
 		
 		long timeMillis = System.currentTimeMillis();
 		long seconds = TimeUnit.MILLISECONDS.toSeconds(timeMillis);
@@ -1578,8 +1581,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		else if (seconds - previousTime < reportingTime){
 			return;
 		}
-		//LOG.debug("SwitchID {}", notification.getId().getValue());
-		//LOG.debug(" ");
+
 		previousTime = seconds;
 		List<SwitchStatistics> switchStats = Lists.newArrayList();
 
@@ -1587,12 +1589,12 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			LOG.debug("There are no subscribed switches and links available for statistic collection");
 			return;
 		}
-		LOG.debug("Fetching statistics from the subscribed switches and links in the network ....");
+		
+		LOG.debug("onFlowStatisticUpdate Called");
+		LOG.debug("Fetching statistics from the subscribed switches and links in the network...");
+		
 		for (Iterator<Integer> swItr = listOfSwitchesForStats.iterator(); swItr.hasNext();){
 			int switchId = swItr.next();
-			//LOG.debug(" ");
-			//LOG.debug("SwitchID {}", switchId);
-			
 			try {
 				Future<RpcResult<GetFlowStatisticsOutput>> futureOutput = 
 						this.getFlowStatistics(new GetFlowStatisticsInputBuilder().setSwitchId(switchId).build());
@@ -1661,7 +1663,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	public Future<RpcResult<UnsubscribeForStatsFromSwitchOutput>> unsubscribeForStatsFromSwitch(
 			UnsubscribeForStatsFromSwitchInput input) {
 		
-		LOG.debug("--------------------------unsubscribeForStatsFromSwitch Called -----------------");
+		LOG.debug("unsubscribeForStatsFromSwitch Called");
 		
 		if (listOfSwitchesForStats.contains(input.getSwitchId())){
 			listOfSwitchesForStats.remove(input.getSwitchId());
@@ -1679,15 +1681,21 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	public Future<RpcResult<SubscribeForStatsFromSwitchOutput>> subscribeForStatsFromSwitch(
 			SubscribeForStatsFromSwitchInput input) {
 		
-		LOG.debug("--------------------------subscribeForStatsFromSwitch Called -----------------");
+		LOG.debug("subscribeForStatsFromSwitch Called");
 		
-		if (listOfSwitchesForStats.contains(input.getSwitchId())){
-			LOG.debug("Switch ID {} is already subscribed.", input.getSwitchId());
+		List<Integer> switchIDs = input.getSwitchIds();
+		
+		for (Integer switchID : switchIDs) {
+			if (listOfSwitchesForStats.contains(switchID)){
+				LOG.debug("Switch ID {} is already subscribed.", switchID);
+			}
+			else {
+				listOfSwitchesForStats.add(switchID);
+				LOG.debug("Switch ID {} is subscribed for statistic collection", switchID);
+			}
 		}
-		else {
-			listOfSwitchesForStats.add(input.getSwitchId());
-			LOG.debug("Switch ID {} is subscribed for statistic collection", input.getSwitchId());
-		}
+		
+		
 		//LOG.debug("returning control");
 		SubscribeForStatsFromSwitchOutputBuilder outputBuilder = new SubscribeForStatsFromSwitchOutputBuilder();
 		outputBuilder.setStatus("Subscribing was successful");
@@ -1708,10 +1716,10 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 				LOG.debug("NodeConnectorID {}", portStats.getNodeConnectorId().getValue());
 				LOG.debug("PacketReceiveDrops {}", portStats.getReceiveDrops());
 				LOG.debug("PacketTransmitDrops {}", portStats.getTransmitDrops());
-				LOG.debug("Packets Received {}", portStats.getPackets().getReceived().intValue());
-				LOG.debug("Packets Transmitted {}", portStats.getPackets().getTransmitted().intValue());
-				LOG.debug("Packets Transmit Errors {}", portStats.getTransmitErrors().intValue());
-				LOG.debug("Packets Receive Errors {}", portStats.getReceiveErrors().intValue());
+				LOG.debug("Packets Received {}", portStats.getPackets().getReceived());
+				LOG.debug("Packets Transmitted {}", portStats.getPackets().getTransmitted());
+				LOG.debug("Packets Transmit Errors {}", portStats.getTransmitErrors());
+				LOG.debug("Packets Receive Errors {}", portStats.getReceiveErrors());
 				LOG.debug("-----------------------------------------------");
 			}
 		}

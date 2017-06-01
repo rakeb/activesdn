@@ -555,7 +555,7 @@ module activesdn {
 	
 	rpc subscribe-for-stats-from-switch {
 		input {
-			leaf switch-id {
+			leaf-list switch-ids {
 				type int32;
 			}
 		}
