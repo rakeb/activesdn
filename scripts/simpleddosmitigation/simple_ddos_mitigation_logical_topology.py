@@ -37,35 +37,17 @@ class MyTopo( Topo ):
         web_server_ws1		= self.addHost( 'ws1' )
         web_server_ws2		= self.addHost( 'ws2' )
 
-	host3 = self.addHost( 'h3' )
-	host4 = self.addHost( 'h4' )
-        host5 = self.addHost( 'h5' )
-        host6 = self.addHost( 'h6' )
-	host7 = self.addHost( 'h7' )
-	host8 = self.addHost( 'h8' )
-	host9 = self.addHost( 'h9' )
-        host10 = self.addHost( 'h10' )
-	host11 = self.addHost( 'h11' )
-	host12 = self.addHost( 'h12' )
-        host13 = self.addHost( 'h13' )
-	host14 = self.addHost( 'h14' )
-        host = [("h%s" % (i+15)) for i in range(20)]
-	print host
-        for i in range(20):
-            self.addHost(host[i])
-        #self.dist_from_controller = [Ints("dist_from_controller_%s" % (i)) for i in range(self.top.no_of_nodes)]
-
-        switch1 = self.addSwitch( 's1' )
-        switch2 = self.addSwitch( 's2' )
-	switch3 = self.addSwitch( 's3' )
-        switch4 = self.addSwitch( 's4' )
-	switch5 = self.addSwitch( 's5' )
-        switch6 = self.addSwitch( 's6' )
-        switch7 = self.addSwitch( 's7' )
-        switch8 = self.addSwitch( 's8' )
-	switch9 = self.addSwitch( 's9' )
-        switch10 = self.addSwitch( 's10' )
-        switch11 = self.addSwitch( 's11' )                                  
+        switch_w1 = self.addSwitch( 'w1' )
+        switch_w2 = self.addSwitch( 'w2' )
+	    switch_w3 = self.addSwitch( 'w3' )
+        switch_w4 = self.addSwitch( 'w4' )
+	    switch_w5 = self.addSwitch( 'w5' )
+        switch_w6 = self.addSwitch( 'w6' )
+        switch_c1 = self.addSwitch( 'c1' )
+        switch_c2 = self.addSwitch( 'c2' )
+	    switch_c3 = self.addSwitch( 'c3' )
+        switch_c4 = self.addSwitch( 'c4' )
+        switch_d1 = self.addSwitch( 'd1' )
         '''
         # 10 Mbps, 5ms delay, 1% loss,7 1000 packet queue
            self.addLink( host, switch, bw=10, delay='5ms', loss=1, max_queue_size=1000, use_htb=True)
@@ -74,54 +56,37 @@ class MyTopo( Topo ):
            lastSwitch = switch
         '''
         # Add links
-        self.addLink( host1, switch6)
-	self.addLink( host2, switch6)
-	self.addLink( host3, switch6)
-        self.addLink( host13, switch6)
-        for i in range(10):
-            self.addLink( host[i], switch6 )
+        self.addLink( user_u1, switch_w1)
+	    self.addLink( attacker, switch_w2)
+	    self.addLink( attacker_a2, switch_w3)
+        self.addLink( decoy_server, switch_d1)
+        self.addLink( web_server_ws1, switch_c3)
+        self.addLink( web_server_ws1, switch_c4)
+        self.addLink( web_server_ws2, switch_c3)
+        self.addLink( web_server_ws2, switch_c4)
+        
+        
 
-	self.addLink( host4, switch7)
-	self.addLink( host5, switch7)
-	self.addLink( host6, switch7)
-        self.addLink( host14, switch7)
-        for i in range(10):
-            self.addLink( host[i+10], switch7 )
+        self.addLink( switch_w1, switch_w2, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True use_hfsc = False, use_tbf = False)
+	    self.addLink( switch_w1, switch_w3, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+        
+        self.addLink( switch_w2, switch_w4, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+	    
+        self.addLink( switch_w3, switch_w4, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+        self.addLink( switch_w3, switch_w5, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+        
+	    self.addLink( switch_w4, switch_w6, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+        
+        self.addLink( switch_w5, switch_w6, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
 
-	self.addLink( host7, switch10)
-	self.addLink( host8, switch10)
-	self.addLink( host9, switch10)
-
-	self.addLink( host10, switch11)
-	self.addLink( host11, switch11)
-	self.addLink( host12, switch11)
-
-        self.addLink( switch6, switch4, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True use_hfsc = False, use_tbf = False)
-	#self.addLink( switch6, switch5, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-        #self.addLink( switch7, switch4, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-	self.addLink( switch7, switch5, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-
-        self.addLink( switch4, switch1, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-	self.addLink( switch4, switch2, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-        self.addLink( switch4, switch3, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-
-        self.addLink( switch5, switch1, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-	self.addLink( switch5, switch2, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-        self.addLink( switch5, switch3, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-
-        self.addLink( switch10, switch8, use_htb=True)#bw=10, delay='5ms', loss=1, max_queue_size=10, use_htb=True)
-	self.addLink( switch10, switch9, use_htb=True)#bw=10, delay='5ms', loss=1, max_queue_size=10, use_htb=True)
-        #self.addLink( switch11, switch8, use_htb=True)#bw=10, delay='5ms', loss=1, max_queue_size=10, use_htb=True)
-	self.addLink( switch11, switch9, use_htb=True)#bw=10, delay='5ms', loss=1, max_queue_size=10, use_htb=True)
-
-        self.addLink( switch8, switch1, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-	#self.addLink( switch8, switch2, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-        #self.addLink( switch8, switch3, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-
-        self.addLink( switch9, switch1, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-	#self.addLink( switch9, switch2, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-        #self.addLink( switch9, switch3, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
-        #self.addLink( switch10, switch11, use_htb=True)
+        self.addLink( switch_w6, switch_c1, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+	    self.addLink( switch_w6, switch_c2, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+        
+        self.addLink( switch_c1, switch_c3, use_htb=True)#bw=10, delay='5ms',  loss=1, max_queue_size=10, use_htb=True)
+        self.addLink( switch_c1, switch_c4, use_htb=True)#bw=10, delay='5ms', loss=1, max_queue_size=10, use_htb=True)
+        
+	    self.addLink( switch_c2, switch_c3, use_htb=True)#bw=10, delay='5ms', loss=1, max_queue_size=10, use_htb=True)
+        self.addLink( switch_c2, switch_c4, use_htb=True)#bw=10, delay='5ms', loss=1, max_queue_size=10, use_htb=True)
 '''
 def ifconfigTest( net ):
     "Run ifconfig on all hosts in net."
@@ -322,3 +287,4 @@ if __name__ == '__main__':
     print "Starting main..."
     setLogLevel('info')
     simpleTest()
+
