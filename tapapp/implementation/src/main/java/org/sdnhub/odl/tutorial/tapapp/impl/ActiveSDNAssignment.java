@@ -104,7 +104,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
     private boolean trigger = false;
     private String floodEventId;
     private String notifyEventId;
-    private float newComersRatio = (float) 0.6;
+    private double newComersRatio;
     private boolean firstTime = true;
     private NetworkGraph topology;
    
@@ -132,6 +132,14 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		initProperties();
 		//set target ips
 		setTargetIPs();
+		
+		//setting globals
+		String propertyNewComersRatio = properties.getProperty("newComersRatio");
+		newComersRatio = (Integer.parseInt(propertyNewComersRatio)*1.0)/(100.0);
+        
+        System.out.println(newComersRatio);
+        
+		
 	}
 
 	/**
@@ -504,13 +512,25 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				.subscribeForStatsFromSwitch(new SubscribeForStatsFromSwitchInputBuilder()
 						.setSwitchIds(switchIDs).build());
 		
-		LinkInfo link = topology.findLink(1, 9);
+		String propertyLinks = properties.getProperty("links");
+		int dropThreshold = Integer.parseInt(properties.getProperty("dropThreshold"));
 		
-		this.activeSDNService
-				.subscribeForLinkFloodingCheck(new SubscribeForLinkFloodingCheckInputBuilder()
-						.setSwitchId(1)
-						.setConnectorId(link.getLeftSwitchPortNumber())
-						.setDropThreshold(1).build());
+        String[] links = propertyLinks.split(",");
+
+        for (String link :
+                links) {
+            String[] switches = link.split("-");
+            int leftSwitch = Integer.parseInt(switches[0]);
+            int rightSwitch = Integer.parseInt(switches[1]);
+
+            LinkInfo linkInfo = topology.findLink(leftSwitch, rightSwitch);
+    		
+    		this.activeSDNService
+    				.subscribeForLinkFloodingCheck(new SubscribeForLinkFloodingCheckInputBuilder()
+    						.setSwitchId(leftSwitch)
+    						.setConnectorId(linkInfo.getLeftSwitchPortNumber())
+    						.setDropThreshold(dropThreshold).build());
+        }
 	}
 
 	@Override
@@ -983,10 +1003,14 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		LOG.debug("");
 		LOG.debug("--------- IsLinkFloodedNotification is called -----");
 		List<FloodedLinks> floodedLinkList = notification.getFloodedLinks();
-		int anomalousThreshold = 4; //For elephant flows using median based filtering
-		int anomalousUDPRate = 20;  //To decide if there exist too much UDP traffic
-		int historySize = 10; //how many previous windows do we have to consider to decide new comer
-		int newComerThreshold = 3; ///If there exists even a single entry in the previous windows then it is not a new comer
+		//For elephant flows using median based filtering
+		int anomalousThreshold = Integer.parseInt(properties.getProperty("anomalousThreshold")); 
+		//To decide if there exist too much UDP traffic
+		int anomalousUDPRate = Integer.parseInt(properties.getProperty("anomalousUDPRate"));  
+		//how many previous windows do we have to consider to decide new comer
+		int historySize = Integer.parseInt(properties.getProperty("historySize")); 
+		//If there exists even a single entry in the previous windows then it is not a new comer
+		int newComerThreshold = Integer.parseInt(properties.getProperty("newComerThreshold"));
 		for (FloodedLinks floodedLink : floodedLinkList){
 			String linkId = floodedLink.getLinkId();
 			int switchId = Integer.parseInt(linkId.split(":")[1]);
@@ -1158,8 +1182,9 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				LOG.debug("New Comer IP", srcIP);
 				boolean result = limitFlowRate(switchId, floodedLink, srcIP);
 			}
-			if (whiteListedSources.contains("10.0.0.1/32") == false){
-				whiteListedSources.add("10.0.0.1/32");
+			String whitelist = properties.getProperty("whitelist");
+			if (whiteListedSources.contains(whitelist) == false){
+				whiteListedSources.add(whitelist);
 			}
 		}
 		else if (whiteListedSources.isEmpty() == false){ //We have a static list of pre-authenticated whitelist sources
