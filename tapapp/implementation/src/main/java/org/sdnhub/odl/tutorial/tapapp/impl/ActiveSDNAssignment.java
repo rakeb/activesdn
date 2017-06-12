@@ -438,22 +438,25 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	/**
 	 * Checks whether path is already installed or not. If not then install a path for TCP, UDP and ICMP protocol
 	 * @param packetHeaderFields
+	 * @return 
 	 */
-	private void installPath(Ipv4PacketHeaderFields packetHeaderFields) {
+	private boolean installPath(Ipv4PacketHeaderFields packetHeaderFields) {
 		ConnectedHostInfo srcHost = hostTable.get(packetHeaderFields.getSourceAddress());
 		ConnectedHostInfo dstHost = hostTable.get(packetHeaderFields.getDestinationAddress());
 		String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
 		String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
 		
 		LOG.debug("     ==================================================================     ");
-		LOG.debug("     Installing a path using forwardPathKey {}, and installed pathSize {}", forwardPathKey, installedPaths.size());
+		LOG.debug("Installing a path using forwardPathKey {}, and installed pathSize {}", forwardPathKey, installedPaths.size());
 		LOG.debug("     ==================================================================     ");
 		
 		
 		if (installedPaths.containsKey(forwardPathKey) || installedPaths.containsKey(reversePathKey)){
 			LOG.debug("=========================================================================================");
-			LOG.debug("     Path is already installed between nodes     " + srcHost.getHostIP() + " and " + dstHost.getHostIP());
+			LOG.debug("Path is already installed between nodes     " + srcHost.getHostIP() + " and " + dstHost.getHostIP());
 			LOG.debug("=========================================================================================");
+			
+			return false;
 		} else {
 			InstallNetworkPathInputBuilder pathInputBuilder = new InstallNetworkPathInputBuilder();
 			
@@ -472,7 +475,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				installedPaths.put(forwardPathKey, path);
 				//updateLinkCriticality(path);
 				LOG.debug("==================================================================     ");
-				LOG.debug("     Path found for installing is {}", path.toString());
+				LOG.debug("Path found for installing is {}", path.toString());
 				LOG.debug("==================================================================     ");
 			}
 			pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
@@ -483,6 +486,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			
 			pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
 			this.activeSDNService.installNetworkPath(pathInputBuilder.build());
+			
+			return true;
 		}
 	}
 	
@@ -535,6 +540,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 
 	@Override
 	public void onEventTriggered(EventTriggered notification) {
+		boolean isPathAlreadyExist = false;
 //		LOG.debug("     ==================================================================     ");
 //		LOG.debug("                    Event Triggered is called.");
 //		LOG.debug("     ==================================================================     ");
@@ -596,9 +602,14 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				LOG.debug("IPV4 packet found in On Event Triggered");
 				Ipv4PacketType ipv4Packet = (Ipv4PacketType) notification.getPacketType();
 				
-				installPath(ipv4Packet);
+				isPathAlreadyExist = !installPath(ipv4Packet);
 				sendingPacketOut(notification);
-				subscribeSensors();
+				
+				if (isPathAlreadyExist) {
+					return;
+				} else {
+					subscribeSensors();
+				}
 			}
 			////-----------------------------------------------------------------------------------------------------
 			/////////////                   Handling TCP Traffic        /////////////////////////////////////////////  
@@ -607,9 +618,14 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				LOG.debug("TCP packet found in On Event Triggered");
 				TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
 				
-				installPath((Ipv4PacketHeaderFields)tcpPacketType);
+				isPathAlreadyExist = !installPath((Ipv4PacketHeaderFields)tcpPacketType);
 				sendingPacketOut(notification);
-				subscribeSensors();
+				
+				if (isPathAlreadyExist) {
+					return;
+				} else {
+					subscribeSensors();
+				}
 			}
 			////------------------------------------------------------------------------------------------------------
 			/////////////                   Handling ICMP Traffic        /////////////////////////////////////////////  
@@ -618,9 +634,14 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				LOG.debug("ICMP packet found in On Event Triggered");
 				IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
 				
-				installPath(icmpPacket);
+				isPathAlreadyExist = !installPath(icmpPacket);
 				sendingPacketOut(notification);
-				subscribeSensors();
+				
+				if (isPathAlreadyExist) {
+					return;
+				} else {
+					subscribeSensors();
+				}
 			} /// End of ICMP Packet
 		} /// End of ControllerEVentIF
 		
