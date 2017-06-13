@@ -902,6 +902,9 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	}
 	
 	public List<String> findElephantFlows(int switchId, int anomalousThreshold){
+		
+		List<String> elephantFlows = Lists.newArrayList(); 
+		
 		LOG.debug(" .... Not found ...");
 		LOG.debug("Checking Elephant Flows ......................");
 		ArrayList<Long> flowBytes = new ArrayList<Long>();
@@ -915,12 +918,16 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			if (currentSwitchStats.get(switchId).listOfFlows.get(flowId).byteCount > 0){
 				flowBytes.add(currentSwitchStats.get(switchId).listOfFlows.get(flowId).byteCount);
 			}
-			//}
 		}
+		
+		if (flowBytes.size() < 1) {
+			return elephantFlows;
+		}
+		
 		Collections.sort(flowBytes);
 		int median = flowBytes.size() / 2;
 		long baseLineValue = flowBytes.get(median);
-		List<String> elephantFlows = Lists.newArrayList(); 
+		
 		for (String flowId : currentSwitchStats.get(switchId).listOfFlows.keySet()){
 			if (currentSwitchStats.get(switchId).listOfFlows.get(flowId).traffic == TrafficProtocolType.UDP){continue;}
 			if (blockedIPs.contains(currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress)){continue;}
@@ -965,14 +972,11 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				flowIDs.add(flowId);
 			}
 		}
-		//LOG.debug("UDP Bytes {} and Total bytes {}", udpBytes, totalBytes);
-		if (((float)udpBytes / (float)totalBytes) * 100 >= anomalousRate){
-			//LOG.debug("///////////////////////UDP Rate found //////////////");
+		LOG.debug("UDP Bytes {}, Total bytes {} and calculated rate {}, Anomalous Rate {}", udpBytes, totalBytes,
+				(((double)udpBytes / (double)totalBytes) * 100), anomalousRate);
+		if (((double)udpBytes / (double)totalBytes) * 100 >= anomalousRate){
 			return flowIDs;
 		}
-		//else if (((float)udpBytes / (float)totalBytes) * 100 >= anomalousRate){
-		//	return true;
-		//}
 		else {
 			return null;
 		}
@@ -1165,7 +1169,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	public boolean migrateFlow(int switchId, int troubledLink, List<String>whiteListedSources){
 		deletedLink = topology.findLinkUsingOneSide(switchId, troubledLink);
 		topology.removelinkInfo(deletedLink.getLeftSwitch(), deletedLink.getRightSwitch());
-		updatePaths(criticalLink, whiteListedSources);
+		String floodedLink = properties.getProperty("floodedLink");
+		updatePaths(floodedLink, whiteListedSources);
 		topology.addLinkInfo(deletedLink.getLeftSwitch(), deletedLink.getRightSwitch(), 
 				deletedLink.getLeftSwitchPortNumber(), deletedLink.getRightSwitchPortNumber());
 		deletedLink = null;
