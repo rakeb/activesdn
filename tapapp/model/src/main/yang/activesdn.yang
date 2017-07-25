@@ -327,10 +327,12 @@ module activesdn {
             }
 			leaf-list switches-in-old-path {
 				min-elements 1;
+				ordered-by user;
 				type int32;
 			}
 			leaf-list switches-in-new-path {
 				min-elements 1;
+				ordered-by user;
 				type int32;
 			}
 			leaf flow-priority {

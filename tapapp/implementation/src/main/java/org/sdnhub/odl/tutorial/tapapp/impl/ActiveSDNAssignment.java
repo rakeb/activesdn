@@ -608,7 +608,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				if (isPathAlreadyExist) {
 					return;
 				} else {
-					subscribeSensors();
+//					subscribeSensors();
 				}
 			}
 			////-----------------------------------------------------------------------------------------------------
@@ -624,7 +624,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				if (isPathAlreadyExist) {
 					return;
 				} else {
-					subscribeSensors();
+//					subscribeSensors();
 				}
 			}
 			////------------------------------------------------------------------------------------------------------
@@ -640,7 +640,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				if (isPathAlreadyExist) {
 					return;
 				} else {
-					subscribeSensors();
+//					subscribeSensors();
 				}
 			} /// End of ICMP Packet
 		} /// End of ControllerEVentIF
