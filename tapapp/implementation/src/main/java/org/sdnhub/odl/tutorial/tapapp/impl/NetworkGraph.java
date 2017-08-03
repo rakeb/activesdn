@@ -129,7 +129,7 @@ public class NetworkGraph
             			Integer.toString(rightSwitch), true, shortestPathLength);
             	if (paths.size() == 1) {
                 	paths = allPaths.getAllPaths(Integer.toString(leftSwitch), 
-                			Integer.toString(rightSwitch), true, shortestPathLength + 1);
+                			Integer.toString(rightSwitch), true, shortestPathLength + 5);
             	}
             	List<List<String>> networkPaths = Lists.newArrayList();
             	for (GraphPath<String, DefaultEdge> path: paths){
@@ -137,6 +137,7 @@ public class NetworkGraph
             		//LOG.debug(path.toString());
             		//LOG.debug(" ======================================================================== ");
             		List<String> networkPath = Lists.newArrayList();
+            		networkPath.add(Integer.toString(leftSwitch));
             		String prevNode = Integer.toString(leftSwitch);
             		for (DefaultEdge edge : path.getEdgeList()){
                 		String link = edge.toString();

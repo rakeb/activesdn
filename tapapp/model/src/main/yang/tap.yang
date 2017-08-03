@@ -942,6 +942,46 @@ module tap {
 		}
 	}
 	
+	rpc re-route-engine {
+		input {
+			leaf src-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf dst-ip-address {
+                type inet:ipv4-prefix;
+            }
+			leaf-list old-path-nodes {
+				min-elements 1;
+				type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+			}
+			leaf-list new-path-nodes {
+				min-elements 1;
+				type leafref {
+                    path "/inv:nodes/inv:node/inv:id";
+                }
+			}
+			leaf remove-old-path {
+				type boolean;
+			}
+			leaf flow-priority {
+				type int32;
+			}
+			leaf idle-timeout {
+				type int32;
+			}
+			leaf hard-timeout {
+				type int32;
+			}
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
+	
 	rpc migrate-path {
 		description "Migrate old path to a new path using same source but different destination";
 		input {
