@@ -1030,8 +1030,8 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
     		timer.cancel();
     		hasTimerStarted = false;
 		} else {
-			if (hasTimerStarted) {
-				timer.cancel();
+			if (!hasTimerStarted) {
+				timer = new Timer();
 			}
     		TimerTask timerTask = new TimerTask() {
                 @Override
@@ -1039,7 +1039,6 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
                 	doPathMutate(srcIp, dstIp);
                 }
             };
-            timer = new Timer();
             timer.scheduleAtFixedRate(timerTask, 0, pattern * 1000);
             hasTimerStarted = true;
     	}
@@ -1049,90 +1048,6 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
     	status = "Path mutation successfull";
 		output = pathMutateOutputBuilder.setStatus(status).build();
 		return RpcResultBuilder.success(output).buildFuture();
-
-		
-//		ConnectedHostInfo srcHost = activeSdnApp.getHostTable().get(srcIp);
-//		ConnectedHostInfo dstHost = activeSdnApp.getHostTable().get(dstIp);
-//		String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
-//		String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
-//		String key = null;	
-//		
-//		List<String> oldPath = null;
-//		
-//		HashMap<String, List<String>> installedPaths = activeSdnApp.getInstalledPaths();
-//		
-//		if (installedPaths.containsKey(forwardPathKey)){
-//			oldPath = installedPaths.get(forwardPathKey);
-//			key = forwardPathKey;
-//		} 
-//		
-//		if(installedPaths.containsKey(reversePathKey)) {
-//			oldPath = installedPaths.get(reversePathKey);
-//			key = reversePathKey;
-//		}
-//		
-//		if (oldPath == null) {
-//			LOG.debug("     ==================================================================     ");
-//			LOG.debug("   Abroting path mutation as because there is no old path found in src {} <--> dst {}", srcIp, dstIp);
-//			LOG.debug("     ==================================================================     ");
-//			status = "Path mutation failed as there is no current path found";
-//			output = pathMutateOutputBuilder.setStatus(status).build();
-//			return RpcResultBuilder.success(output).buildFuture();
-//		}
-//		
-//		LOG.debug("     ==================================================================     ");
-//		LOG.debug("   	In path mutation oldPath {}", oldPath.toString());
-//		LOG.debug("     ==================================================================     ");
-//			
-//		ReRouteInputBuilder reRouteInputBuilder = new ReRouteInputBuilder();
-//		reRouteInputBuilder.setSrcIpAddress(srcIp);
-//		reRouteInputBuilder.setDstIpAddress(dstIp);
-//		reRouteInputBuilder.setFlowPriority(pathMutationFlowPriority); // staring value 300
-//		pathMutationFlowPriority++;
-//		reRouteInputBuilder.setHardTimeout(input.getPattern());
-//		
-//		List<Integer> oldPathNodes = Lists.newArrayList(); //List of switches along the old path
-//		for (String node : oldPath){
-//			oldPathNodes.add(Integer.parseInt(node));
-//		}
-//		reRouteInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
-//		
-//		int srcSwitchNumber = srcHost.getSwitchConnectedTo();
-//		int dstSwitchNumber = dstHost.getSwitchConnectedTo();
-//		
-//		reRouteInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
-//		
-//		List<Integer> newPathNodes = Lists.newArrayList();
-//		List<String> path = Utility.getDifferntPath(activeSdnApp.getTopology().findAllPaths(srcSwitchNumber, dstSwitchNumber), oldPath);
-//		
-//		if (path != null) {
-//			LOG.debug("     ==================================================================     ");
-//			LOG.debug("   	In path mutation new Path {}", path.toString());
-//			LOG.debug("     ==================================================================     ");
-//			
-//			for (String node : path){
-//				newPathNodes.add(Integer.parseInt(node));
-//			}
-//			reRouteInputBuilder.setSwitchesInNewPath(newPathNodes);
-//			LOG.debug("     ==================================================================     ");
-//			LOG.debug("   	Mutating path form oldPath {} newPath {}", oldPath, path);
-//			LOG.debug("      ==================================================================     ");
-//			installedPaths.put(key, path);
-//			this.reRoute(reRouteInputBuilder.build());
-//			
-//			status = "Path mutation successfull";
-//			output = pathMutateOutputBuilder.setStatus(status).build();
-//			return RpcResultBuilder.success(output).buildFuture();
-//		}
-//		else {
-//			LOG.debug("     ==================================================================     ");
-//			LOG.debug("   	Abroting path mutation as because there is no new path found in src {} <--> dst {}", srcIp, dstIp);
-//			LOG.debug("     ==================================================================     ");
-//			
-//			status = "Path mutation failed as there is no new path found";
-//			output = pathMutateOutputBuilder.setStatus(status).build();
-//			return RpcResultBuilder.success(output).buildFuture();
-//		}
 	}
 	
 	
