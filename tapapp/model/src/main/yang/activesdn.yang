@@ -1204,6 +1204,31 @@ module activesdn {
 			}
 		}
 	}
+	
+	rpc find-potential-flooded-link {
+		input {
+			leaf message {
+				type string;
+			}
+		}
+		output {
+			leaf criticalLink {
+				type string;
+			}
+			leaf left-switch {
+    			type int32;
+    		}
+			leaf right-switch {
+    			type int32;
+    		}
+    		leaf left-switch-port {
+    			type int32;
+    		}
+    		leaf right-switch-port {
+    			type int32;
+    		}
+		}
+	}
 
 	  
     

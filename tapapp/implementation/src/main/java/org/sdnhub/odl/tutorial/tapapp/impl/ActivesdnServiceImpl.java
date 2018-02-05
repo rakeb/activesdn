@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Map.Entry;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -91,6 +92,9 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcOnlyTunnelInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcOnlyTunnelOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcOnlyTunnelOutputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FindPotentialFloodedLinkInput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FindPotentialFloodedLinkOutput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FindPotentialFloodedLinkOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FlowStatisticReceivedBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllFlowRulesFromASwitchInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllFlowRulesFromASwitchOutput;
@@ -2486,4 +2490,65 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		output = builder.setStatus(status).build();
 		return RpcResultBuilder.success(output).buildFuture();
 	}
+
+	@Override
+	public Future<RpcResult<FindPotentialFloodedLinkOutput>> findPotentialFloodedLink(
+			FindPotentialFloodedLinkInput input) {
+
+		String criticalLink = "";
+		activeSdnApp.criticalLinks.clear();
+
+		for (List<String> path : activeSdnApp.getInstalledPaths().values()) {
+			for (int index = 1; index < path.size() - 2; index++) {
+				// Currently I have made this to ensure that I find Critical
+				// link in the middle of the network
+				// and not with the edge routers
+				String link = path.get(index) + ":" + path.get(index + 1);
+				String revLink = path.get(index + 1) + ":" + path.get(index);
+				if (activeSdnApp.criticalLinks.containsKey(link)) {
+					activeSdnApp.criticalLinks.put(link, activeSdnApp.criticalLinks.get(link) + 1);
+				} else if (activeSdnApp.criticalLinks.containsKey(revLink)) {
+					activeSdnApp.criticalLinks.put(revLink, activeSdnApp.criticalLinks.get(revLink) + 1);
+				} else {
+					activeSdnApp.criticalLinks.put(link, 1);
+				}
+			}
+		}
+
+		int maxValue = (Collections.max(activeSdnApp.criticalLinks.values())); // This will return max value in the Hashmap
+
+		for (Entry<String, Integer> entry : activeSdnApp.criticalLinks.entrySet()) { // Iterate through hashmap
+			// if (entry.getKey().contains("11") ||
+			// entry.getKey().contains("5")) {continue;}
+			if (entry.getValue() == maxValue) {
+				LOG.debug("     ^^^^^^^^^^^^^^==============================^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^     ");
+				LOG.debug("                    Critical Link = {} ",
+						entry.getKey());
+				LOG.debug("     ^^^^^^^^^^^^^^==============================^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^     ");
+				criticalLink = entry.getKey();
+				break;
+			}
+		}
+		
+		int leftSwitch = Integer.parseInt(criticalLink.split(":")[0]);
+		int rightSwitch = Integer.parseInt(criticalLink.split(":")[1]);
+		LinkInfo link = activeSdnApp.getTopology().findLink(leftSwitch, rightSwitch);
+		
+		FindPotentialFloodedLinkOutput output;
+		FindPotentialFloodedLinkOutputBuilder builder = new FindPotentialFloodedLinkOutputBuilder();
+		builder.setCriticalLink(criticalLink);
+		builder.setLeftSwitch(leftSwitch);
+		builder.setLeftSwitchPort(link.getLeftSwitchPortNumber());
+		builder.setRightSwitch(rightSwitch);
+		builder.setRightSwitchPort(link.getRightSwitchPortNumber());
+		output = builder.build();
+		return RpcResultBuilder.success(output).buildFuture();
+	}
+
+//	@Override
+//	public Future<RpcResult<FindPotentialFloodedLinkOutput>> findPotentialFloodedLink(
+//			FindPotentialFloodedLinkInput input) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 }

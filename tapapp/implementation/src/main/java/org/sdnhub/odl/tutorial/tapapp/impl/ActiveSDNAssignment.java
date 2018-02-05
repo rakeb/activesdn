@@ -77,7 +77,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
     private HashMap<String, List<String>> installedPaths = new HashMap<String, List<String>>();
     private HashMap<String, List<String>> installedInspectionPaths = new HashMap<String, List<String>>();
     
-    private HashMap<String, Integer> criticalLinks = new HashMap<String, Integer>();
+    public HashMap<String, Integer> criticalLinks = new HashMap<String, Integer>();
     
     /**
      * List of Switch Statistics Snapshot against per Switch ID
@@ -185,14 +185,14 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		properties = new Properties();
         
 		final String dir = System.getProperty("user.dir");
-        System.out.println("current dir = " + dir);
+//        System.out.println("current dir = " + dir);
 
         String key = "distribution";
         String[] parts = dir.split(key);
         String resources = "tapapp/implementation/src/main/resources/ddos-config.properties";
         String resourcesPath = parts[0] + resources;
 
-        System.out.println("Final path: " + resourcesPath);
+//        System.out.println("Final path: " + resourcesPath);
         try {
 			properties.load(new FileInputStream(resourcesPath));
 		} catch (IOException e) {
@@ -1503,9 +1503,33 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		return 0;
 	}
 
+//	@Override
+//	public void onIsLinkFlooded(IsLinkFlooded notification) {
+//		LOG.debug("");
+//		LOG.debug("--------- IsLinkFloodedNotification is called -----");
+//		List<FloodedLinks> floodedLinkList = notification.getFloodedLinks();
+//		//For elephant flows using median based filtering
+//		int anomalousThreshold = Integer.parseInt(properties.getProperty("anomalousThreshold")); 
+//		//To decide if there exist too much UDP traffic
+//		int anomalousUDPRate = Integer.parseInt(properties.getProperty("anomalousUDPRate"));  
+//		//how many previous windows do we have to consider to decide new comer
+//		int historySize = Integer.parseInt(properties.getProperty("historySize")); 
+//		//If there exists even a single entry in the previous windows then it is not a new comer
+//		int newComerThreshold = Integer.parseInt(properties.getProperty("newComerThreshold"));
+//		for (FloodedLinks floodedLink : floodedLinkList){
+//			String linkId = floodedLink.getLinkId();
+//			int switchId = Integer.parseInt(linkId.split(":")[1]);
+//			int floodedLinkId = Integer.parseInt(linkId.split(":")[2]);
+//			LOG.debug("*************************************************************");
+//			LOG.debug("      Port {} of Switch {} is flooded", floodedLinkId, switchId);
+//			LOG.debug("*************************************************************");
+//			ddosMitigation(switchId, floodedLinkId, anomalousThreshold, 
+//					anomalousUDPRate, historySize, newComerThreshold);	
+//		}		
+//	}
+	
 	@Override
 	public void onIsLinkFlooded(IsLinkFlooded notification) {
-		LOG.debug("");
 		LOG.debug("--------- IsLinkFloodedNotification is called -----");
 		List<FloodedLinks> floodedLinkList = notification.getFloodedLinks();
 		//For elephant flows using median based filtering
@@ -1516,16 +1540,27 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		int historySize = Integer.parseInt(properties.getProperty("historySize")); 
 		//If there exists even a single entry in the previous windows then it is not a new comer
 		int newComerThreshold = Integer.parseInt(properties.getProperty("newComerThreshold"));
+		
+		StringBuilder sb = new StringBuilder();
 		for (FloodedLinks floodedLink : floodedLinkList){
 			String linkId = floodedLink.getLinkId();
-			int switchId = Integer.parseInt(linkId.split(":")[1]);
-			int floodedLinkId = Integer.parseInt(linkId.split(":")[2]);
-			LOG.debug("*************************************************************");
-			LOG.debug("      Port {} of Switch {} is flooded", floodedLinkId, switchId);
-			LOG.debug("*************************************************************");
-			ddosMitigation(switchId, floodedLinkId, anomalousThreshold, 
-					anomalousUDPRate, historySize, newComerThreshold);	
-		}		
+			sb.append(linkId);
+		    sb.append("\t");
+		}
+		RequestToMiddleware requestToMiddleware = new RequestToMiddleware();
+//		requestToMiddleware.setProperties(properties);
+		requestToMiddleware.sendRequest(sb.toString());
+		
+//		for (FloodedLinks floodedLink : floodedLinkList){
+//			String linkId = floodedLink.getLinkId();
+//			int switchId = Integer.parseInt(linkId.split(":")[1]);
+//			int floodedLinkId = Integer.parseInt(linkId.split(":")[2]);
+//			LOG.debug("*************************************************************");
+//			LOG.debug("      Port {} of Switch {} is flooded", floodedLinkId, switchId);
+//			LOG.debug("*************************************************************");
+//			ddosMitigation(switchId, floodedLinkId, anomalousThreshold, 
+//					anomalousUDPRate, historySize, newComerThreshold);	
+//		}		
 	}
 	
 	public boolean blockFlow(int switchId, String flowId, String type){
