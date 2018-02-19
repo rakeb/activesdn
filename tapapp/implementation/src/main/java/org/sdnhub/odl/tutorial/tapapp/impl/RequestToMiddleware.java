@@ -1,9 +1,7 @@
 package org.sdnhub.odl.tutorial.tapapp.impl;
 
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -59,22 +57,22 @@ public class RequestToMiddleware {
 			stream.write(((String) input).getBytes());
 			stream.flush();
 
-			// if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-			// throw new RuntimeException("Failed: HTTP error code: "
-			// + connection.getResponseCode());
-			// }
+			 if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+			 throw new RuntimeException("Failed: HTTP error code: "
+					 + connection.getResponseCode());
+			 }
 
-			BufferedReader bufferedReader = new BufferedReader(
-					new InputStreamReader(connection.getInputStream()));
-
-			String output;
-//			System.out.println("Server response: ");
-			while ((output = bufferedReader.readLine()) != null) {
-//				System.out.println(output);
-				LOG.debug("==============---------------=================----------------------");
-				LOG.debug("     Server response: {}", output);
-				LOG.debug("==============---------------=================----------------------");
-			}
+//			BufferedReader bufferedReader = new BufferedReader(
+//					new InputStreamReader(connection.getInputStream()));
+//
+//			String output;
+////			System.out.println("Server response: ");
+//			while ((output = bufferedReader.readLine()) != null) {
+////				System.out.println(output);
+//				LOG.debug("==============---------------=================----------------------");
+//				LOG.debug("     Server response: {}", output);
+//				LOG.debug("==============---------------=================----------------------");
+//			}
 
 			connection.disconnect();
 
