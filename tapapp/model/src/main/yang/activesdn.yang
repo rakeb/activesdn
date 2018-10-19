@@ -1060,7 +1060,62 @@ module activesdn {
     //////////////////////////////////////////////////////////////////////////////////
     ////////---------------------RPCs created by Rakeb-------------------------------///////////
     /////////////////////////////////////////////////////////////////////////////////
-	rpc path-mutate {
+    rpc special-mutation {
+		input {
+			list h-mi {
+				description "List of h mutable host, where mutable address per host = (n-1)*mi";
+				key "h";
+                min-elements 1;
+                ordered-by user;
+                unique "h";
+                leaf h {
+                	type string {
+                        pattern
+                        	'(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])/(([0-9])|([1-2][0-9])|(3[0-2]))';
+                    }
+                }
+                leaf mi {
+                	type string;
+                }
+            }
+			leaf n {
+				type int32;
+				description "Number of total host in the network.";
+            }
+			leaf-list unused-ip-range {
+				description "Unused IP address list. (Can be provided with start address and range limit.)";
+                min-elements 1;
+                ordered-by user;
+                type string {
+                    pattern
+                    	'(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])/(([0-9])|([1-2][0-9])|(3[0-2]))';
+                }
+            }
+//			list mi {
+//				description "Mutable address per host = (n-1)*mi";
+//                min-elements 1;
+//                ordered-by user;
+//                type string;
+//            }
+			leaf when-mutation {
+				description "-1: Deactivate Special IP mutation. 0: One time mutation. x: Time based mutation. Mutate IP after x seconds.";
+				type int32;
+            }
+			
+			
+			leaf how {
+				description "Uniform Distribution, Random Distribution: Select mutable address list for each mutable host from <range>";
+				type string;
+            }
+		}
+		output {
+			leaf status {
+				type string;
+			}
+		}
+	}
+    
+    rpc path-mutate {
         input {
             leaf-list src {
                 description "List of source Ip Addresses";

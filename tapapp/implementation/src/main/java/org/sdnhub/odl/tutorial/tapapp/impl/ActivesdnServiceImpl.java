@@ -1,7 +1,11 @@
 package org.sdnhub.odl.tutorial.tapapp.impl;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -70,102 +74,7 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.n
 import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.FlowCapableNodeConnectorQueueStatisticsData;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.OpendaylightQueueStatisticsListener;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.QueueStatisticsUpdate;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ActivesdnService;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.BlockFlowInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.BlockFlowOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.BlockFlowOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CheckElephantTcpFlowInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CheckElephantTcpFlowOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CheckElephantTcpFlowOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CheckNewComersInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CheckNewComersOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CheckNewComersOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CheckUdpIcmpFlowsInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CheckUdpIcmpFlowsOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CheckUdpIcmpFlowsOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateDstOnlyTunnelInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateDstOnlyTunnelOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateDstOnlyTunnelOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcDstTunnelInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcDstTunnelOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcDstTunnelOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcOnlyTunnelInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcOnlyTunnelOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcOnlyTunnelOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FindPotentialFloodedLinkInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FindPotentialFloodedLinkOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FindPotentialFloodedLinkOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FlowStatisticReceivedBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllFlowRulesFromASwitchInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllFlowRulesFromASwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllFlowRulesFromASwitchOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllHostsOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllHostsOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetFlowStatisticsInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetFlowStatisticsInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetFlowStatisticsOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetFlowStatisticsOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetPortStatisticsInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetPortStatisticsInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetPortStatisticsOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetPortStatisticsOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallFlowRuleInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallFlowRuleInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallFlowRuleOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallFlowRuleOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallNetworkPathInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallNetworkPathOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallNetworkPathOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IpMutateInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IpMutateOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IpMutateOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IsLinkFloodedBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.LimitFlowInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.LimitFlowOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.LimitFlowOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.PathMutateInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.PathMutateOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.PathMutateOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveAFlowRuleFromSwitchInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveAFlowRuleFromSwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveAFlowRuleFromSwitchOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveAllFlowsFromASwitchInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveAllFlowsFromASwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveAllFlowsFromASwitchOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveEventFromSwitchInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveEventFromSwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveEventFromSwitchOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SendPacketOutInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SendPacketOutOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SendPacketOutOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeEventInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeEventOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeEventOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForLinkFloodingCheckInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForLinkFloodingCheckOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForLinkFloodingCheckOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForStatsFromSwitchInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForStatsFromSwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForStatsFromSwitchOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.UnsubscribeForLinkFloodingCheckInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.UnsubscribeForLinkFloodingCheckOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.UnsubscribeForLinkFloodingCheckOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.UnsubscribeForStatsFromSwitchInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.UnsubscribeForStatsFromSwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.UnsubscribeForStatsFromSwitchOutputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.*;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.flow.statistic.received.SwitchStatistics;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.flow.statistic.received.SwitchStatisticsBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.get.all.flow.rules.from.a._switch.output.FlowRules;
@@ -176,6 +85,7 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.grp.flow.statistic.FlowStatisticBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.is.link.flooded.FloodedLinks;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.is.link.flooded.FloodedLinksBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.special.mutation.input.HMi;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.AddTapInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.AddTapOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.ConnectedHosts;
@@ -874,6 +784,152 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			LOG.error("Exception reached in Create Source Destination lTunnel RPC {} --------", e);
 			return null;
 		}
+	}
+	
+	@Override
+	public Future<RpcResult<SpecialMutationOutput>> specialMutation(
+			SpecialMutationInput input) {
+
+		// H1-->(H3,H8),(H4,H11),
+		// H2-->(H1,H5),(H3,H9),(H4,H12),
+		// H3-->(H1,H6),(H4,H13),
+		// H4-->(H1,H7),(H3,H10),
+		try {
+			List<HMi> hMi = input.getHMi();
+			Integer n = input.getN();
+			List<String> unusedIpRange = new ArrayList<String>(
+					input.getUnusedIpRange()); // we are not interested to change the input
+
+			List<SpecialMutationHost> mutationHosts = new ArrayList<SpecialMutationHost>();
+
+			Collection<ConnectedHostInfo> allHost = activeSdnApp.getHostTable()
+					.values();
+			for (ConnectedHostInfo host : allHost) {
+				mutationHosts.add(new SpecialMutationHost(host, hMi, n,
+						unusedIpRange));
+			}
+
+			combination(mutationHosts, mutationHosts.size(), 2);
+			writeFile(mutationHosts, "dns_mapping.txt");
+			Future<RpcResult<IpMutateOutput>> status = generateSpecialMutationFlows(mutationHosts);
+			if (status != null) {
+				SpecialMutationOutput specialMutationOutput = new SpecialMutationOutputBuilder().setStatus(status.get().getResult().getStatus()).build();
+				return RpcResultBuilder.success(specialMutationOutput).buildFuture();
+			} else {
+				String exception = "Special mutation failed.";
+				throw new Exception(exception);
+			}
+		} catch (Exception e) {
+			LOG.error("Exception reached in Create Source Destination lTunnel RPC {} --------", e);
+			return null;
+		}
+	}
+	
+	/**
+	 * We implement this function for only to use in spetial mutation
+	 * @param rIpSrc
+	 * @param vIpSrc
+	 * @param rIpDst
+	 * @param vIpDst
+	 * @return 
+	 */
+	Future<RpcResult<IpMutateOutput>> callIpMutation(String rIpSrc, String vIpSrc, String rIpDst, String vIpDst) {
+		String forwardPathKey = rIpSrc + ":" + rIpDst;
+		String reversePathKey = rIpDst + ":" + rIpSrc;
+		List<Integer> pathNodes = Lists.newArrayList();
+		
+		HashMap<String, List<String>> installedPaths = activeSdnApp.getInstalledPaths();
+		List<String> path = installedPaths.get(forwardPathKey);
+		if (path == null) {
+			path = installedPaths.get(reversePathKey);
+		} 
+		if (path == null) {
+			LOG.error("No Path found for special mutation between src {}: dst {}", rIpSrc, rIpDst);
+			return null;
+		}
+		
+		for (String node : path) {
+			pathNodes.add(Integer.parseInt(node));
+		}
+		
+		IpMutateInputBuilder ipMutateInputBuilder = new IpMutateInputBuilder();
+		
+		ipMutateInputBuilder.setOldSrcIpAddress(vIpSrc);
+		ipMutateInputBuilder.setNewSrcIpAddress(rIpSrc);
+		ipMutateInputBuilder.setOldDstIpAddress(vIpDst);
+		ipMutateInputBuilder.setNewDstIpAddress(rIpDst);
+		
+		ipMutateInputBuilder.setSwitchesInPath(pathNodes);
+		
+		ipMutateInputBuilder.setFlowPriority(400);
+		ipMutateInputBuilder.setIdleTimeout(0);
+		
+		return ipMutate(ipMutateInputBuilder.build());
+	}
+	
+	public static <T> void combinationUtil(List<T> arr, Object data[],
+			int start, int end, int index, int r) {
+		if (index == r) {
+			SpecialMutationHost src = (SpecialMutationHost) data[0];
+			SpecialMutationHost dst = (SpecialMutationHost) data[1];
+			src.updateMutationPair(dst);
+			dst.updateMutationPair(src);
+			return;
+		}
+
+		for (int i = start; i <= end && end - i + 1 >= r - index; i++) {
+			data[index] = arr.get(i);
+			combinationUtil(arr, data, i + 1, end, index + 1, r);
+		}
+	}
+
+	public static <T> void combination(List<T> arr, int n, int r) {
+		Object data[] = new Object[r];
+		combinationUtil(arr, data, 0, n - 1, 0, r);
+	}
+	
+	Future<RpcResult<IpMutateOutput>> generateSpecialMutationFlows(List<SpecialMutationHost> mutationHosts){
+		Future<RpcResult<IpMutateOutput>> status = null;
+		for (SpecialMutationHost host : mutationHosts) {
+			String rIpSrc = host.hostName;
+			String vIpSrc = host.hostName;
+			String rIpDst;
+			String vIpDst;
+			
+			for (SpecialMutationHost.Pair pair : host.mutationPair) {
+				rIpDst = (String) pair.getDest();
+				vIpDst = (String) pair.getMutatedDst();
+				
+				status = callIpMutation(rIpSrc, vIpSrc, rIpDst, vIpDst);
+			}
+		}
+		
+		return status;
+	}
+
+	/**
+	 * This will create a file containing all mutated flows 
+	 * @param mutationHosts
+	 * @param fileName
+	 * @throws IOException
+	 */
+	public static void writeFile(List<SpecialMutationHost> mutationHosts,
+			String fileName) throws IOException {
+		PrintWriter pw = new PrintWriter(new FileWriter(fileName));
+
+		for (SpecialMutationHost host : mutationHosts) {
+			pw.write(host.hostName + "-->");
+			for (SpecialMutationHost.Pair pair : host.mutationPair) {
+				pw.write("(");
+				pw.write((String) pair.getDest());
+				pw.write(",");
+				pw.write((String) pair.getMutatedDst());
+				pw.write("),");
+			}
+			pw.write("\n");
+		}
+
+		pw.close();
 	}
 	
 	@Override
@@ -1828,7 +1884,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		List<SwitchStatistics> switchStats = Lists.newArrayList();
 
 		if (listOfSwitchesForStats.isEmpty()){
-			LOG.debug("There are no subscribed switches and links available for statistic collection");
+//			LOG.debug("There are no subscribed switches and links available for statistic collection");
 			return;
 		}
 		
@@ -2544,6 +2600,8 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		output = builder.build();
 		return RpcResultBuilder.success(output).buildFuture();
 	}
+
+	
 
 //	@Override
 //	public Future<RpcResult<FindPotentialFloodedLinkOutput>> findPotentialFloodedLink(
