@@ -133,6 +133,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 //    private boolean mutationPathFirstTime = true;
     int mutationIndex = 0;
     boolean rhmExperiment = false;
+    public boolean isSpecialMutationStarted = false;
     /////////////////////////////////////////////////////////////////
     
 	@SuppressWarnings("deprecation")
@@ -692,113 +693,113 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	}
 	
 	
-	@SuppressWarnings("unused")
-	private void ipMutate(EventTriggered notification, List<String> path) {
-		IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
-
-		List<Integer> pathNodes = Lists.newArrayList(); // list of switches
-		
-		String rIpSrc = icmpPacket.getSourceAddress();
-//		String vIpSrc = "10.0.0.2/32";
-		String vIpSrc = icmpPacket.getSourceAddress();
-		String rIpDst = RIP_DST;
-		String vIpDst = icmpPacket.getDestinationAddress();
-		
-//		String key = vIpSrc + ":" + vIpDst;
-//		Integer key =  new Integer(vIpIndex);
-//		String key = Integer.toString(vIpIndex);
-		
-		vIpIndex = changeVip();
-		
-		String currentVipFromController = vIpList.get(vIpIndex);
-		
-		String nextVipFromController;
-		
-		if (vIpIndex + 1 > 5) {
-			 nextVipFromController = vIpList.get(0);
-		} else {
-			nextVipFromController = vIpList.get(vIpIndex + 1);
-		}
-		
-		LOG.debug("     ==================================================================     ");
-		LOG.debug("     Using the following vIP {} and vIP Index {}",  currentVipFromController, vIpIndex);
-		LOG.debug("     Every {} seconds vIP changed, so use the following vIP {} next time", IPMMUTATIONTRIGGER,  nextVipFromController);
-		LOG.debug("     ==================================================================     ");
-		
-		if (!vIpDst.equals(currentVipFromController)) {
-			if (vIpSrc.equals(currentVipFromController)) {
-				//disgusting bug handling
-				sendingPacketOut(notification);
-			}
-			LOG.debug("     ==================================================================     ");
-			LOG.debug("     Dropping pakcets from {} to {} ...", vIpSrc, vIpDst);
-			LOG.debug("     Because destination {} doesn't matched with vIP {}", vIpDst, currentVipFromController);
-			LOG.debug("     ==================================================================     ");
-//			if (vIpDst.equals(rIpDst)) {
-//				blockIP(rIpSrc, vIpDst, null, notification.getSwitchId(), 40);
-//			} else {
-//				blockIP(null, vIpDst, null, notification.getSwitchId(), 0);
+//	@SuppressWarnings("unused")
+//	private void ipMutate(EventTriggered notification, List<String> path) {
+//		IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
+//
+//		List<Integer> pathNodes = Lists.newArrayList(); // list of switches
+//		
+//		String rIpSrc = icmpPacket.getSourceAddress();
+////		String vIpSrc = "10.0.0.2/32";
+//		String vIpSrc = icmpPacket.getSourceAddress();
+//		String rIpDst = RIP_DST;
+//		String vIpDst = icmpPacket.getDestinationAddress();
+//		
+////		String key = vIpSrc + ":" + vIpDst;
+////		Integer key =  new Integer(vIpIndex);
+////		String key = Integer.toString(vIpIndex);
+//		
+//		vIpIndex = changeVip();
+//		
+//		String currentVipFromController = vIpList.get(vIpIndex);
+//		
+//		String nextVipFromController;
+//		
+//		if (vIpIndex + 1 > 5) {
+//			 nextVipFromController = vIpList.get(0);
+//		} else {
+//			nextVipFromController = vIpList.get(vIpIndex + 1);
+//		}
+//		
+//		LOG.debug("     ==================================================================     ");
+//		LOG.debug("     Using the following vIP {} and vIP Index {}",  currentVipFromController, vIpIndex);
+//		LOG.debug("     Every {} seconds vIP changed, so use the following vIP {} next time", IPMMUTATIONTRIGGER,  nextVipFromController);
+//		LOG.debug("     ==================================================================     ");
+//		
+//		if (!vIpDst.equals(currentVipFromController)) {
+//			if (vIpSrc.equals(currentVipFromController)) {
+//				//disgusting bug handling
+//				sendingPacketOut(notification);
 //			}
-		} else {
-			
-//			if (!alreadyMutated.contains(key)) {
-				
-				LOG.debug("     ==================================================================     ");
-				LOG.debug("     Staring IP Mutation using vIP {} and rIP {}", currentVipFromController, rIpDst);
-				LOG.debug("     ==================================================================     ");
-				
-				if (path != null) {
-					for (String node : path) {
-						pathNodes.add(Integer.parseInt(node));
-					}
-//					LOG.debug("     ==================================================================     ");
-//					LOG.debug("     Using path for Ip Mutate is ");
-//					LOG.debug("		" + path.toString());
-//					LOG.debug("     ==================================================================     ");
-				}
-				
-				IpMutateInputBuilder ipMutateInputBuilder = new IpMutateInputBuilder();
-				
-				ipMutateInputBuilder.setOldSrcIpAddress(vIpSrc);
-				ipMutateInputBuilder.setNewSrcIpAddress(rIpSrc);
-				ipMutateInputBuilder.setOldDstIpAddress(vIpDst);
-				ipMutateInputBuilder.setNewDstIpAddress(rIpDst);
-				
-				ipMutateInputBuilder.setSwitchesInPath(pathNodes);
-				
-				ipMutateInputBuilder.setFlowPriority(400);
-				ipMutateInputBuilder.setIdleTimeout(0);
-				ipMutateInputBuilder.setHardTimeout(IPMMUTATIONTRIGGER);
-				
-				this.activeSDNService.ipMutate(ipMutateInputBuilder.build());
-				
-//				LOG.debug("     ==================================================================     ");
-//				LOG.debug("     Before sending packet, switch {}, inPort{}", notification.getSwitchId(), notification.getInPortNumber());
-//				LOG.debug("     ==================================================================     ");
-				
-//				if (changeVip()) {
-//					alreadyMutated.remove(key);
-//					vIpIndex++;
-//					vIpIndex %= 5;
-//				}
-				
-//				vIpIndex = changeVip();
+//			LOG.debug("     ==================================================================     ");
+//			LOG.debug("     Dropping pakcets from {} to {} ...", vIpSrc, vIpDst);
+//			LOG.debug("     Because destination {} doesn't matched with vIP {}", vIpDst, currentVipFromController);
+//			LOG.debug("     ==================================================================     ");
+////			if (vIpDst.equals(rIpDst)) {
+////				blockIP(rIpSrc, vIpDst, null, notification.getSwitchId(), 40);
+////			} else {
+////				blockIP(null, vIpDst, null, notification.getSwitchId(), 0);
+////			}
+//		} else {
+//			
+////			if (!alreadyMutated.contains(key)) {
 //				
 //				LOG.debug("     ==================================================================     ");
-//				LOG.debug("     Every {} seconds vIP changed, so use the following vIP {} and vIP Index {}", ipMutationTrigger,  vIpList.get(vIpIndex), vIpIndex);
+//				LOG.debug("     Staring IP Mutation using vIP {} and rIP {}", currentVipFromController, rIpDst);
 //				LOG.debug("     ==================================================================     ");
-				
-				sendingPacketOut(notification);
-				
-//				alreadyMutated.add(key);
-//			} else {
-//				LOG.debug("     ==================================================================     ");
-//				LOG.debug("     Already mutated ...");
-//				LOG.debug("     ==================================================================     ");
-//			}
-		}
-		
-	}
+//				
+//				if (path != null) {
+//					for (String node : path) {
+//						pathNodes.add(Integer.parseInt(node));
+//					}
+////					LOG.debug("     ==================================================================     ");
+////					LOG.debug("     Using path for Ip Mutate is ");
+////					LOG.debug("		" + path.toString());
+////					LOG.debug("     ==================================================================     ");
+//				}
+//				
+//				IpMutateInputBuilder ipMutateInputBuilder = new IpMutateInputBuilder();
+//				
+//				ipMutateInputBuilder.setOldSrcIpAddress(vIpSrc);
+//				ipMutateInputBuilder.setNewSrcIpAddress(rIpSrc);
+//				ipMutateInputBuilder.setOldDstIpAddress(vIpDst);
+//				ipMutateInputBuilder.setNewDstIpAddress(rIpDst);
+//				
+//				ipMutateInputBuilder.setSwitchesInPath(pathNodes);
+//				
+//				ipMutateInputBuilder.setFlowPriority(400);
+//				ipMutateInputBuilder.setIdleTimeout(0);
+//				ipMutateInputBuilder.setHardTimeout(IPMMUTATIONTRIGGER);
+//				
+//				this.activeSDNService.ipMutate(ipMutateInputBuilder.build());
+//				
+////				LOG.debug("     ==================================================================     ");
+////				LOG.debug("     Before sending packet, switch {}, inPort{}", notification.getSwitchId(), notification.getInPortNumber());
+////				LOG.debug("     ==================================================================     ");
+//				
+////				if (changeVip()) {
+////					alreadyMutated.remove(key);
+////					vIpIndex++;
+////					vIpIndex %= 5;
+////				}
+//				
+////				vIpIndex = changeVip();
+////				
+////				LOG.debug("     ==================================================================     ");
+////				LOG.debug("     Every {} seconds vIP changed, so use the following vIP {} and vIP Index {}", ipMutationTrigger,  vIpList.get(vIpIndex), vIpIndex);
+////				LOG.debug("     ==================================================================     ");
+//				
+//				sendingPacketOut(notification);
+//				
+////				alreadyMutated.add(key);
+////			} else {
+////				LOG.debug("     ==================================================================     ");
+////				LOG.debug("     Already mutated ...");
+////				LOG.debug("     ==================================================================     ");
+////			}
+//		}
+//		
+//	}
 
 //	public void randomHostMutation(EventTriggered notification){
 //		long timeMillis = System.currentTimeMillis();
@@ -1080,6 +1081,9 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				Ipv4PacketType ipv4Packet = (Ipv4PacketType) notification.getPacketType();
 				
 				isPathAlreadyExist = !installPath(ipv4Packet);
+				if (isSpecialMutationStarted && isPathAlreadyExist ) {
+					return;
+				}
 				sendingPacketOut(notification);
 				
 				if (isPathAlreadyExist) {
@@ -1094,6 +1098,9 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
 				
 				isPathAlreadyExist = !installPath((Ipv4PacketHeaderFields)tcpPacketType);
+				if (isSpecialMutationStarted && isPathAlreadyExist ) {
+					return;
+				}
 				sendingPacketOut(notification);
 				
 				if (isPathAlreadyExist) {
@@ -1108,6 +1115,9 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
 				
 				isPathAlreadyExist = !installPath(icmpPacket);
+				if (isSpecialMutationStarted && isPathAlreadyExist ) {
+					return;
+				}
 				sendingPacketOut(notification);
 				
 				if (isPathAlreadyExist) {

@@ -742,34 +742,54 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		}
 	}
 	
+	/***
+	 * TODO this is not completed, when not yet implemented, 
+	 * take code from ActivesdnAssignment class
+	 */
 	@Override
 	public Future<RpcResult<IpMutateOutput>> ipMutate(IpMutateInput input) {
-		IpMutateEngineInputBuilder mutateIpBuilder = new IpMutateEngineInputBuilder();
+		IpMutateEngineInputBuilder ipMutateEngineInputBuilder = new IpMutateEngineInputBuilder();
 		try {
-			if (input.getOldDstIpAddress() == null || input.getOldSrcIpAddress() == null || 
-					input.getNewDstIpAddress() == null || input.getNewSrcIpAddress() == null || 
-					input.getSwitchesInPath()== null) {
+			if (input.getRipSrc() == null || input.getRipDst() == null || 
+					input.getVipSrc() == null || input.getVipDst() == null) {
 				String exception = "Incomplete Data is provided and some parameter has null value.";
 				throw new Exception(exception);
 			}
 			else {
-				mutateIpBuilder.setOldDstIpAddress(new Ipv4Prefix(input.getOldDstIpAddress()));
-				mutateIpBuilder.setOldSrcIpAddress(new Ipv4Prefix(input.getOldSrcIpAddress()));
-				mutateIpBuilder.setNewDstIpAddress(new Ipv4Prefix(input.getNewDstIpAddress()));
-				mutateIpBuilder.setNewSrcIpAddress(new Ipv4Prefix(input.getNewSrcIpAddress()));
+				ipMutateEngineInputBuilder.setRipSrc(new Ipv4Prefix(input.getRipSrc()));
+				ipMutateEngineInputBuilder.setRipDst(new Ipv4Prefix(input.getRipDst()));
+				ipMutateEngineInputBuilder.setVipSrc(new Ipv4Prefix(input.getVipSrc()));
+				ipMutateEngineInputBuilder.setVipDst(new Ipv4Prefix(input.getVipDst()));
+				
+				String forwardPathKey = input.getRipSrc() + ":" + input.getRipDst();
+				String reversePathKey = input.getRipDst() + ":" + input.getRipSrc();
+
+				HashMap<String, List<String>> installedPaths = activeSdnApp.getInstalledPaths();
+				List<String> path = installedPaths.get(forwardPathKey);
+				if (path == null) {
+					path = installedPaths.get(reversePathKey);
+					path = Lists.reverse(path); // path needed to get it in right order
+				} 
+				if (path == null) {
+					LOG.error("No Path found for IP mutation between src {}: dst {}", input.getRipSrc(), input.getRipDst());
+					String exception = "IP mutation failed";
+					throw new Exception(exception);
+				}
+				
 				List<NodeId> nodeList = Lists.newArrayList();
-				for (int node: input.getSwitchesInPath()){
-					NodeId nodeId = new NodeId("openflow:" + Integer.toString(node));
+				for (String node : path) {
+					NodeId nodeId = new NodeId("openflow:" + node);
 					nodeList.add(nodeId);
 				}
-				mutateIpBuilder.setPathNodes(nodeList);
 				
-				mutateIpBuilder.setFlowPriority(input.getFlowPriority());
-				mutateIpBuilder.setIdleTimeout(input.getIdleTimeout());
-				mutateIpBuilder.setHardTimeout(input.getHardTimeout());
+				ipMutateEngineInputBuilder.setPathNodes(nodeList);
+				
+				ipMutateEngineInputBuilder.setFlowPriority(400);
+				ipMutateEngineInputBuilder.setIdleTimeout(0);
+				ipMutateEngineInputBuilder.setHardTimeout(0);
 				///-------------------------------
 				Future<RpcResult<IpMutateEngineOutput>> mutateIpFutureOutput =  
-				tapService.ipMutateEngine(mutateIpBuilder.build());
+				tapService.ipMutateEngine(ipMutateEngineInputBuilder.build());
 				if (mutateIpFutureOutput != null) {
 					IpMutateOutput output = new IpMutateOutputBuilder().
 							setStatus(mutateIpFutureOutput.get().getResult().getStatus()).build();
@@ -814,6 +834,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			Future<RpcResult<IpMutateOutput>> status = generateSpecialMutationFlows(mutationHosts);
 			if (status != null) {
 				SpecialMutationOutput specialMutationOutput = new SpecialMutationOutputBuilder().setStatus(status.get().getResult().getStatus()).build();
+				activeSdnApp.isSpecialMutationStarted = true;
 				return RpcResultBuilder.success(specialMutationOutput).buildFuture();
 			} else {
 				String exception = "Special mutation failed.";
@@ -834,35 +855,30 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	 * @return 
 	 */
 	Future<RpcResult<IpMutateOutput>> callIpMutation(String rIpSrc, String vIpSrc, String rIpDst, String vIpDst) {
-		String forwardPathKey = rIpSrc + ":" + rIpDst;
-		String reversePathKey = rIpDst + ":" + rIpSrc;
-		List<Integer> pathNodes = Lists.newArrayList();
+//		String forwardPathKey = rIpSrc + ":" + rIpDst;
+//		String reversePathKey = rIpDst + ":" + rIpSrc;
+//		List<Integer> pathNodes = Lists.newArrayList();
 		
-		HashMap<String, List<String>> installedPaths = activeSdnApp.getInstalledPaths();
-		List<String> path = installedPaths.get(forwardPathKey);
-		if (path == null) {
-			path = installedPaths.get(reversePathKey);
-		} 
-		if (path == null) {
-			LOG.error("No Path found for special mutation between src {}: dst {}", rIpSrc, rIpDst);
-			return null;
-		}
+//		HashMap<String, List<String>> installedPaths = activeSdnApp.getInstalledPaths();
+//		List<String> path = installedPaths.get(forwardPathKey);
+//		if (path == null) {
+//			path = installedPaths.get(reversePathKey);
+//		} 
+//		if (path == null) {
+//			LOG.error("No Path found for special mutation between src {}: dst {}", rIpSrc, rIpDst);
+//			return null;
+//		}
 		
-		for (String node : path) {
-			pathNodes.add(Integer.parseInt(node));
-		}
+//		for (String node : path) {
+//			pathNodes.add(Integer.parseInt(node));
+//		}
 		
 		IpMutateInputBuilder ipMutateInputBuilder = new IpMutateInputBuilder();
 		
-		ipMutateInputBuilder.setOldSrcIpAddress(vIpSrc);
-		ipMutateInputBuilder.setNewSrcIpAddress(rIpSrc);
-		ipMutateInputBuilder.setOldDstIpAddress(vIpDst);
-		ipMutateInputBuilder.setNewDstIpAddress(rIpDst);
-		
-		ipMutateInputBuilder.setSwitchesInPath(pathNodes);
-		
-		ipMutateInputBuilder.setFlowPriority(400);
-		ipMutateInputBuilder.setIdleTimeout(0);
+		ipMutateInputBuilder.setRipSrc(rIpSrc);
+		ipMutateInputBuilder.setVipSrc(vIpSrc);
+		ipMutateInputBuilder.setRipDst(rIpDst);
+		ipMutateInputBuilder.setVipDst(vIpDst);
 		
 		return ipMutate(ipMutateInputBuilder.build());
 	}

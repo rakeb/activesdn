@@ -1038,16 +1038,16 @@ module tap {
 	
 	rpc ip-mutate-engine {
 		input {
-			leaf old-src-ip-address {
+			leaf rip-src {
                 type inet:ipv4-prefix;
             }
-			leaf new-src-ip-address {
+			leaf rip-dst {
                 type inet:ipv4-prefix;
             }
-			leaf old-dst-ip-address {
+			leaf vip-src {
                 type inet:ipv4-prefix;
             }
-			leaf new-dst-ip-address {
+			leaf vip-dst {
                 type inet:ipv4-prefix;
             }
 			leaf-list path-nodes {

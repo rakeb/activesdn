@@ -733,34 +733,24 @@ module activesdn {
     
     rpc ip-mutate {
 		input {
-			leaf old-src-ip-address {
+			leaf rip-src {
 				type string;
             }
-			leaf new-src-ip-address {
+			leaf rip-dst {
 				type string;
             }
-			leaf old-dst-ip-address {
+			leaf vip-src {
 				type string;
             }
-			leaf new-dst-ip-address {
+			leaf vip-dst {
 				type string;
             }
-			leaf-list switches-in-path {
-				min-elements 1;
-				type int32;
-			}
-			leaf flow-priority {
-				default 200;
-				type int32;
-			}
-			leaf idle-timeout {
-				default 0;
-				type int32;
-			}
-			leaf hard-timeout {
-				default 0;
-				type int32;
-			}
+			leaf when-mutation {
+				type string;
+            }
+			leaf how {
+				type string;
+            }
 		}
 		output {
 			leaf status {

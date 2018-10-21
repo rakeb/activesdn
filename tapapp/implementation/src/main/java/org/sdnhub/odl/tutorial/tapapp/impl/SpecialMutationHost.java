@@ -50,7 +50,7 @@ public class SpecialMutationHost {
 				this.isMutable = true;
 				this.mi = Double.parseDouble(hmi.getMi());
 
-				int mutableAddressPerHostRange = (int) ((n - 1) * mi);
+				int mutableAddressPerHostRange = (int) ((n - 1) * (mi-1));
 				this.mutaionIpTable = new ArrayList<String>(unusedIpRange.subList(0, mutableAddressPerHostRange));
 				for (int i = 0; i < mutableAddressPerHostRange; i++) {
 	                if (i < unusedIpRange.size())
