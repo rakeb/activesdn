@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -783,11 +784,10 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 				}
 				
 				ipMutateEngineInputBuilder.setPathNodes(nodeList);
-				
 				ipMutateEngineInputBuilder.setFlowPriority(400);
 				ipMutateEngineInputBuilder.setIdleTimeout(0);
 				ipMutateEngineInputBuilder.setHardTimeout(0);
-				///-------------------------------
+
 				Future<RpcResult<IpMutateEngineOutput>> mutateIpFutureOutput =  
 				tapService.ipMutateEngine(ipMutateEngineInputBuilder.build());
 				if (mutateIpFutureOutput != null) {
@@ -807,8 +807,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	}
 	
 	@Override
-	public Future<RpcResult<SpecialMutationOutput>> specialMutation(
-			SpecialMutationInput input) {
+	public Future<RpcResult<SpecialMutationOutput>> specialMutation(SpecialMutationInput input) {
 
 		// H1-->(H3,H8),(H4,H11),
 		// H2-->(H1,H5),(H3,H9),(H4,H12),
@@ -820,13 +819,13 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			List<String> unusedIpRange = new ArrayList<String>(
 					input.getUnusedIpRange()); // we are not interested to change the input
 
-			List<SpecialMutationHost> mutationHosts = new ArrayList<SpecialMutationHost>();
+//			List<SpecialMutationHost> mutationHosts = new ArrayList<SpecialMutationHost>();
+			LinkedHashMap<String, SpecialMutationHost> mutationHosts = new LinkedHashMap<String, SpecialMutationHost>();
 
-			Collection<ConnectedHostInfo> allHost = activeSdnApp.getHostTable()
-					.values();
+			Collection<ConnectedHostInfo> allHost = activeSdnApp.getHostTable().values();
 			for (ConnectedHostInfo host : allHost) {
-				mutationHosts.add(new SpecialMutationHost(host, hMi, n,
-						unusedIpRange));
+				SpecialMutationHost mHost = new SpecialMutationHost(host, hMi, n, unusedIpRange);
+				mutationHosts.put(host.getHostIP(), mHost);
 			}
 
 			combination(mutationHosts, mutationHosts.size(), 2);
@@ -883,7 +882,11 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		return ipMutate(ipMutateInputBuilder.build());
 	}
 	
-	public static <T> void combinationUtil(List<T> arr, Object data[],
+	public static Object getElementByIndex(LinkedHashMap map, int index) {
+        return map.get((map.keySet().toArray())[index]);
+    }
+	
+	public static <S, T> void combinationUtil(LinkedHashMap<S, T> arr, Object data[],
 			int start, int end, int index, int r) {
 		if (index == r) {
 			SpecialMutationHost src = (SpecialMutationHost) data[0];
@@ -894,28 +897,40 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		}
 
 		for (int i = start; i <= end && end - i + 1 >= r - index; i++) {
-			data[index] = arr.get(i);
-			combinationUtil(arr, data, i + 1, end, index + 1, r);
-		}
+            data[index] = getElementByIndex(arr, i);
+            combinationUtil(arr, data, i + 1, end, index + 1, r);
+        }
 	}
 
-	public static <T> void combination(List<T> arr, int n, int r) {
-		Object data[] = new Object[r];
-		combinationUtil(arr, data, 0, n - 1, 0, r);
-	}
+	public static <S, T> void combination(LinkedHashMap<S, T> arr, int n, int r) {
+        Object data[] = new Object[r];
+        combinationUtil(arr, data, 0, n - 1, 0, r);
+    }
 	
-	Future<RpcResult<IpMutateOutput>> generateSpecialMutationFlows(List<SpecialMutationHost> mutationHosts){
+	Future<RpcResult<IpMutateOutput>> generateSpecialMutationFlows(LinkedHashMap<String, SpecialMutationHost> mutationHosts){
 		Future<RpcResult<IpMutateOutput>> status = null;
-		for (SpecialMutationHost host : mutationHosts) {
-			String rIpSrc = host.hostName;
-			String vIpSrc = host.hostName;
-			String rIpDst;
-			String vIpDst;
+		for (String hostName : mutationHosts.keySet()) {
+            SpecialMutationHost host = mutationHosts.get(hostName);
+            String rIpSrc = host.hostName;
+            String vIpSrc = "";
+            String rIpDst;
+            String vIpDst;
 			
 			for (SpecialMutationHost.Pair pair : host.mutationPair) {
 				rIpDst = (String) pair.getDest();
 				vIpDst = (String) pair.getMutatedDst();
 				
+				if (host.isMutable) {
+					SpecialMutationHost mRipDstHost = mutationHosts.get(rIpDst);
+	                for (SpecialMutationHost.Pair mRipDstHostPair : mRipDstHost.mutationPair) {
+	                    if (rIpSrc.equals(mRipDstHostPair.getDest())) {
+	                        vIpSrc = (String) mRipDstHostPair.getMutatedDst();
+	                        break;
+	                    }
+	                }
+				} else {
+					vIpSrc = rIpSrc;
+				}
 				status = callIpMutation(rIpSrc, vIpSrc, rIpDst, vIpDst);
 			}
 		}
@@ -929,24 +944,24 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	 * @param fileName
 	 * @throws IOException
 	 */
-	public static void writeFile(List<SpecialMutationHost> mutationHosts,
-			String fileName) throws IOException {
-		PrintWriter pw = new PrintWriter(new FileWriter(fileName));
+	public static void writeFile(LinkedHashMap<String, SpecialMutationHost> mutationHosts, String fileName) throws IOException {
+        PrintWriter pw = new PrintWriter(new FileWriter(fileName));
 
-		for (SpecialMutationHost host : mutationHosts) {
-			pw.write(host.hostName + "-->");
-			for (SpecialMutationHost.Pair pair : host.mutationPair) {
-				pw.write("(");
-				pw.write((String) pair.getDest());
-				pw.write(",");
-				pw.write((String) pair.getMutatedDst());
-				pw.write("),");
-			}
-			pw.write("\n");
-		}
+        for (String hostName : mutationHosts.keySet()) {
+            SpecialMutationHost host = mutationHosts.get(hostName);
+            pw.write(hostName + "-->");
+            for (SpecialMutationHost.Pair pair : host.mutationPair) {
+                pw.write("(");
+                pw.write((String) pair.getDest());
+                pw.write(",");
+                pw.write((String) pair.getMutatedDst());
+                pw.write("),");
+            }
+            pw.write("\n");
+        }
 
-		pw.close();
-	}
+        pw.close();
+    }
 	
 	@Override
 	public Future<RpcResult<ReRouteOutput>> reRoute(ReRouteInput input) {

@@ -3023,8 +3023,8 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 //				H2 = real dst (ripDst)
 //				Hx = virtual src (vipSrc)
 //				Hy = virtual dst (vipDst)
-//				Hx-->Hy | H1-->H2
-				curSrcIp = vIpSrc;
+//				H1-->Hy | H1-->H2
+				curSrcIp = rIpSrc;
 				newSrcIp = rIpSrc;
 				curDstIp = vIpDst;
 				newDstIp = rIpDst;
@@ -3059,7 +3059,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 				curDstIp = vIpSrc;
 				newDstIp = rIpSrc;
 				installFlowInput = func.performFunction(dstReversingOutputPort, 
-						curDstIp, newDstIp, curSrcIp, newSrcIp, false, lastSwitch);
+						curDstIp, newDstIp, curSrcIp, newSrcIp, true, lastSwitch);
 				if (installFlowInput != null) {
 					this.installFlow(installFlowInput);
 				}
@@ -3085,8 +3085,8 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 //				H2 = real dst (ripDst)
 //				Hx = virtual src (vipSrc)
 //				Hy = virtual dst (vipDst)
-//				Hx-->Hy | Hx-->H2
-				curSrcIp = vIpSrc;
+//				H1-->Hy | Hx-->H2
+				curSrcIp = rIpSrc;
 				newSrcIp = vIpSrc;
 				curDstIp = vIpDst;
 				newDstIp = rIpDst;

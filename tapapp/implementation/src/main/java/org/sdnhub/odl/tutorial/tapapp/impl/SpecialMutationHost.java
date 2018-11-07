@@ -50,7 +50,7 @@ public class SpecialMutationHost {
 				this.isMutable = true;
 				this.mi = Double.parseDouble(hmi.getMi());
 
-				int mutableAddressPerHostRange = (int) ((n - 1) * (mi-1));
+				int mutableAddressPerHostRange = (int) ((n - 1) * mi);
 				this.mutaionIpTable = new ArrayList<String>(unusedIpRange.subList(0, mutableAddressPerHostRange));
 				for (int i = 0; i < mutableAddressPerHostRange; i++) {
 	                if (i < unusedIpRange.size())
@@ -66,32 +66,6 @@ public class SpecialMutationHost {
 		}
 		
 	}
-	
-//    public SpecialMutationHost(String hostName, List<String> h, int n, List<String> unusedIpRange, List<String> miList) {
-//        this.hostName = hostName;
-//        this.n = n;
-//        String hostIp = hostName;
-//
-//        //if host is mutable
-//        if (h.contains(hostIp)) {
-//            this.isMutable = true;
-//            int index = h.indexOf(hostIp);
-//            this.mi = Double.parseDouble(miList.get(index));
-//
-//            int mutableAddressPerHostRange = (int) ((n - 1) * mi);
-//            this.mutaionIpTable = new ArrayList<String>(unusedIpRange.subList(0, mutableAddressPerHostRange));
-////            unusedIpRange = unusedIpRange.subList(mutableAddressPerHostRange, unusedIpRange.size());
-//            for (int i = 0; i < mutableAddressPerHostRange; i++) {
-//                if (i < unusedIpRange.size())
-//                    unusedIpRange.remove(0);
-//            }
-//
-//            //populate the mutation IP table upto n-1
-//            for (int i = mutableAddressPerHostRange; i < n - 1; i++) {
-//                mutaionIpTable.add(i, mutaionIpTable.get(i - 1));
-//            }
-//        }
-//    }
 
     public String getNextAvailableMutationIp() {
         if (availableIpIndex < mutaionIpTable.size()) {
