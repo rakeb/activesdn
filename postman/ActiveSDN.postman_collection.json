@@ -1,0 +1,191 @@
+{
+	"variables": [],
+	"info": {
+		"name": "ActiveSDN",
+		"_postman_id": "31cbcb4d-1c96-cb07-490e-a236adad63fa",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "install-network-path",
+			"request": {
+				"url": "http://172.16.53.150:8181/restconf/operations/activesdn:re-route",
+				"method": "POST",
+				"header": [
+					{
+						"key": "con",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"input\": {\n    \"src-ip-address\": \"10.0.0.1/32\",\n    \"dst-ip-address\": \"10.0.0.10/32\",\n    \"switches-in-old-path\": [6, 4, 1, 9, 11],\n    \"switches-in-new-path\": [6, 4, 1, 8, 10, 9, 11],\n    \"flow-priority\": 300\n  }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "re-route",
+			"request": {
+				"url": "http://172.16.53.134:8181/restconf/operations/activesdn:re-route",
+				"method": "POST",
+				"header": [
+					{
+						"key": "con",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"input\": {\n    \"src-ip-address\": \"10.0.0.1/32\",\n    \"dst-ip-address\": \"10.0.0.10/32\",\n    \"switches-in-old-path\": [6, 4, 1, 9, 11],\n    \"switches-in-new-path\": [6, 4, 1, 8, 10, 9, 11],\n    \"flow-priority\": 300\n  }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "path-mutate",
+			"request": {
+				"url": "http://172.16.53.134:8181/restconf/operations/activesdn:path-mutate",
+				"method": "POST",
+				"header": [
+					{
+						"key": "con",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"input\": {\n    \"src\": [\"10.0.0.1/32\"],\n    \"dst\": [\"10.0.0.10/32\"],\n    \"pattern\": 5\n  }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "subscribe-for-stats-from-switch",
+			"request": {
+				"url": "http://172.16.53.134:8181/restconf/operations/activesdn:subscribe-for-stats-from-switch",
+				"method": "POST",
+				"header": [
+					{
+						"key": "con",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"input\": {\n    \"switch-ids\": [4]\n  }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "mockserver",
+			"request": {
+				"url": "http://localhost:9999/check-udp-icmp-flows",
+				"method": "POST",
+				"header": [
+					{
+						"key": "con",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"foo\", \n\t\"password\": \"bar\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "special-mutation",
+			"request": {
+				"url": "http://172.16.53.134:8181/restconf/operations/activesdn:special-mutation",
+				"method": "POST",
+				"header": [
+					{
+						"key": "con",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"input\": {\n\t\"h-mi\": [\n\t\t\t{\n    \t\t\t\"h\": \"10.0.0.1/32\",\n    \t\t\t\"mi\": \"1\"\n\t\t\t},\n\t\t\t{\n    \t\t\t\"h\": \"10.0.0.3/32\",\n    \t\t\t\"mi\": \"1\"\n\t\t\t},\n\t\t\t{\n    \t\t\t\"h\": \"10.0.0.4/32\",\n    \t\t\t\"mi\": \"1\"\n\t\t\t}\n\t\t],\n    \"n\": 4,\n    \"unused-ip-range\": [\"10.0.0.5/32\", \"10.0.0.6/32\", \"10.0.0.7/32\", \"10.0.0.8/32\", \"10.0.0.9/32\", \"10.0.0.10/32\", \"10.0.0.11/32\", \"10.0.0.12/32\", \"10.0.0.13/32\"],\n    \"when-mutation\": 0,\n    \"how\": \"uniform\"\n  }\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
