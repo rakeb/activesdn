@@ -1,5 +1,6 @@
 package org.sdnhub.odl.tutorial.tapapp.impl;
 
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -808,6 +809,10 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	
 	@Override
 	public Future<RpcResult<SpecialMutationOutput>> specialMutation(SpecialMutationInput input) {
+		long startTimeMillis = System.currentTimeMillis();
+		long endTimeMillis;
+		
+		
 
 		// H1-->(H3,H8),(H4,H11),
 		// H2-->(H1,H5),(H3,H9),(H4,H12),
@@ -829,8 +834,33 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			}
 
 			combination(mutationHosts, mutationHosts.size(), 2);
-			writeFile(mutationHosts, "dns_mapping.txt");
+//			writeFile(mutationHosts, "dns_mapping.txt");
 			Future<RpcResult<IpMutateOutput>> status = generateSpecialMutationFlows(mutationHosts);
+			
+			endTimeMillis = System.currentTimeMillis();
+			long timeDiff = endTimeMillis - startTimeMillis;
+			
+			String textToAppend = "Total host: " + n +", Mutable Host: " + hMi.size() + ", Time taken: " + timeDiff;
+			
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("     Spatial mutation time duration: {} ms, and status: {}", timeDiff, textToAppend);
+			LOG.debug("     ==================================================================     ");
+		     
+		    BufferedWriter writer;
+			try {
+				writer = new BufferedWriter(
+				                            new FileWriter("spatial_mutation_eval.txt", true)  //Set true for append mode
+				                        );
+				writer.newLine();   //Add new line
+			    writer.write(textToAppend);
+			    writer.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 
+			
+			writeFile(mutationHosts, "dns_mapping.txt");
+			
 			if (status != null) {
 				SpecialMutationOutput specialMutationOutput = new SpecialMutationOutputBuilder().setStatus(status.get().getResult().getStatus()).build();
 				activeSdnApp.isSpecialMutationStarted = true;
@@ -839,6 +869,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 				String exception = "Special mutation failed.";
 				throw new Exception(exception);
 			}
+			
 		} catch (Exception e) {
 			LOG.error("Exception reached in Create Source Destination lTunnel RPC {} --------", e);
 			return null;
