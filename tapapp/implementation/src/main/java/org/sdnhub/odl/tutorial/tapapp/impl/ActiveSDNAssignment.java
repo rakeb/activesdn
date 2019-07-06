@@ -1,5 +1,8 @@
 package org.sdnhub.odl.tutorial.tapapp.impl;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -751,7 +754,30 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				ipMutateInputBuilder.setIdleTimeout(0);
 				ipMutateInputBuilder.setHardTimeout(IPMMUTATIONTRIGGER);
 				
+				long startTimeMillis = System.currentTimeMillis();
 				this.activeSDNService.ipMutate(ipMutateInputBuilder.build());
+				long endTimeMillis = System.currentTimeMillis();
+				long timeDiff = endTimeMillis - startTimeMillis;
+				
+				LOG.debug("     ==================================================================     ");
+				LOG.debug("     IP mutation time duration: {} ms", timeDiff);
+				LOG.debug("     ==================================================================     ");
+				
+				String textToAppend = ""+timeDiff;
+			     
+			    BufferedWriter writer;
+				try {
+					writer = new BufferedWriter(
+					                            new FileWriter("ipmutate_eval.txt", true)  //Set true for append mode
+					                        );
+					writer.newLine();   //Add new line
+				    writer.write(textToAppend);
+				    writer.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} 
+			    
 				
 //				LOG.debug("     ==================================================================     ");
 //				LOG.debug("     Before sending packet, switch {}, inPort{}", notification.getSwitchId(), notification.getInPortNumber());

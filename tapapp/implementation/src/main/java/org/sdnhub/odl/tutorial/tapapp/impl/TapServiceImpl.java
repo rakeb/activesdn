@@ -2,6 +2,9 @@ package org.sdnhub.odl.tutorial.tapapp.impl;
 
 import java.awt.Event;
 import java.awt.event.ActionEvent;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -21,6 +24,7 @@ import javax.xml.ws.handler.PortInfo;
 
 //import org.opendaylight.controller.sal.core.spi.data.statistics.DOMStoreStatsTracker;
 //import org.opendaylight.controller.sal.reader.NodeConnectorStatistics;
+
 
 
 
@@ -2801,7 +2805,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			ConnectedHost srcHost = getHostInfo(rIpSrc.getValue());
 			ConnectedHost dstHost = getHostInfo(rIpDst.getValue());
 			
-
+			long startTimeMillis = System.currentTimeMillis();
 //			LOG.debug("     ==================================================================     ");
 //			LOG.debug("     And srcHost {}, dstHost{}", srcHost.getNodeConnectedTo().getValue(), dstHost.getNodeConnectedTo().getValue());
 //			LOG.debug("     ==================================================================     ");
@@ -2857,6 +2861,28 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			this.installFlow(func.performFunction(dstEdgeNeighbor.getSrcPort(), 
 					vIpSrc, rIpSrc, rIpDst, rIpDst, true,
 					input.getPathNodes().get(input.getPathNodes().size()-1)));
+			
+			long endTimeMillis = System.currentTimeMillis();
+			long timeDiff = endTimeMillis - startTimeMillis;
+			
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("     IP mutation time duration: {} ms", timeDiff);
+			LOG.debug("     ==================================================================     ");
+			
+			String textToAppend = ""+timeDiff;
+		     
+		    BufferedWriter writer;
+			try {
+				writer = new BufferedWriter(
+				                            new FileWriter("ipmutate_only_flow_time_eval.txt", true)  //Set true for append mode
+				                        );
+				writer.newLine();   //Add new line
+			    writer.write(textToAppend);
+			    writer.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 		} catch (Exception e) {
             LOG.error("Exception reached in MutateIP RPC {} --------", e);
