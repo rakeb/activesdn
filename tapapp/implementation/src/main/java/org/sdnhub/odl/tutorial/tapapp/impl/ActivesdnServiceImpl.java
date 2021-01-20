@@ -1153,7 +1153,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
     		hasTimerStarted = false;
 		} else {
 			if (!hasTimerStarted) {
-				timer.cancel();
+				timer = new Timer();
 			}
     		TimerTask timerTask = new TimerTask() {
                 @Override

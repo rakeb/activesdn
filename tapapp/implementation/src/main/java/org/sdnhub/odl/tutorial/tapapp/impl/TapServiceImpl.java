@@ -6,9 +6,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -2509,19 +2511,19 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			}
 			
 			//delete flow from the switch
-//			if(input.isRemoveOldPath()) {
-//				Set<NodeId> oldNodeSet = new HashSet<NodeId>(oldpathNodes.subList(1, oldpathNodes.size()-1));
-//				Set<NodeId> newNodeSet = new HashSet<NodeId>(newpathNodes.subList(1, newpathNodes.size()-1));
-//				oldNodeSet.removeAll(newNodeSet);
-//				
-//				List<NodeId> distinctPathNode = Lists.newArrayList();
-//				
-//				for(NodeId distinct:oldNodeSet){
-//					distinctPathNode.add(distinct);
-//				}
-//					
-//				removeFlowRulesInPath(distinctPathNode, input.getSrcIpAddress(), input.getDstIpAddress());
-//			}
+			if(input.isRemoveOldPath()) {
+				Set<NodeId> oldNodeSet = new HashSet<NodeId>(oldpathNodes.subList(1, oldpathNodes.size()-1));
+				Set<NodeId> newNodeSet = new HashSet<NodeId>(newpathNodes.subList(1, newpathNodes.size()-1));
+				oldNodeSet.removeAll(newNodeSet);
+				
+				List<NodeId> distinctPathNode = Lists.newArrayList();
+				
+				for(NodeId distinct:oldNodeSet){
+					distinctPathNode.add(distinct);
+				}
+					
+				removeFlowRulesInPath(distinctPathNode, input.getSrcIpAddress(), input.getDstIpAddress());
+			}
 				
 //				index = 0;
 //				for (; index < oldpathNodes.size(); index++){
