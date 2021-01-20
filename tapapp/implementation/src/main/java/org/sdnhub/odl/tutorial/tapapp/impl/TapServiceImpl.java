@@ -1,7 +1,6 @@
 package org.sdnhub.odl.tutorial.tapapp.impl;
 
 import java.math.BigInteger;
-import java.nio.file.Paths;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,7 +12,9 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.api.DataChangeListener;
+import org.opendaylight.controller.md.sal.binding.api.WriteTransaction;
 import org.opendaylight.controller.md.sal.common.api.data.AsyncDataBroker;
 import org.opendaylight.controller.md.sal.common.api.data.AsyncDataChangeEvent;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
@@ -22,7 +23,6 @@ import org.opendaylight.controller.sal.binding.api.RpcProviderRegistry;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.Ipv4Prefix;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.PortNumber;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.Uri;
-import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev100924.MacAddress;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.DropActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.OutputActionCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.action.action.SetDlDstActionCaseBuilder;
@@ -219,9 +219,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.WriteTransaction;
 
 // Previously it is called TutorialTapProvider
 public class TapServiceImpl implements AutoCloseable, DataChangeListener, OpendaylightInventoryListener, TapService {
@@ -2435,6 +2432,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 					
 					NewFlowBuilder newFlowBuilder = new NewFlowBuilder();
 					newFlowBuilder.setDstIpAddress(dstIp);
+					newFlowBuilder.setSrcIpAddress(srcIp);
 					//newFlowBuilder.setTrafficMatch(input.get)
 					newFlowBuilder.setFlowPriority(input.getFlowPriority());
 					newFlowBuilder.setIdleTimeout(input.getIdleTimeout());
@@ -2511,55 +2509,68 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 			}
 			
 			//delete flow from the switch
-			if(input.isRemoveOldPath()) {
-				index = 0;
-				for (; index < oldpathNodes.size(); index++){
-					if (newpathNodes.contains(oldpathNodes.get(index))) continue;
-					if (pathFlows.containsKey(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue())){
-						String flowIdStr = pathFlows.get(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue());
-	                	
-		            	FlowBuilder flowBuilder = new FlowBuilder();
-		            	FlowKey key = new FlowKey(new FlowId(flowIdStr));
-		            	flowBuilder.setFlowName(flowIdStr);
-		            	flowBuilder.setKey(key);
-		            	flowBuilder.setId(new FlowId(flowIdStr));
-		            	flowBuilder.setTableId((short)0);
-		                	
-		            	InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)
-		            			.child(Node.class, new NodeKey(oldpathNodes.get(index)))
-		            			.augmentation(FlowCapableNode.class)
-		            			.child(Table.class, new TableKey(flowBuilder.getTableId()))
-		            			.child(Flow.class, new FlowKey(flowBuilder.getKey()))
-		            			.build();
-		                	
-		            	GenericTransactionUtils.writeData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID, flowBuilder.build(), false);
-		            	flowsInstalled.get(oldpathNodes.get(index)).remove(flowIdStr);
-		            	pathFlows.remove(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue());
-					}
-	                
-					if (pathFlows.containsKey(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue())){
-						String flowIdStr1 = pathFlows.get(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue());
-		            	
-						FlowBuilder flowBuilder = new FlowBuilder();
-						FlowKey key = new FlowKey(new FlowId(flowIdStr1));
-		            	flowBuilder.setFlowName(flowIdStr1);
-		            	flowBuilder.setKey(key);
-		            	flowBuilder.setId(new FlowId(flowIdStr1));
-		            	flowBuilder.setTableId((short)0);
-		                	
-		            	InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)
-		            			.child(Node.class, new NodeKey(oldpathNodes.get(index)))
-		            			.augmentation(FlowCapableNode.class)
-		            			.child(Table.class, new TableKey(flowBuilder.getTableId()))
-		            			.child(Flow.class, new FlowKey(flowBuilder.getKey()))
-		            			.build();
-		                	
-		            	GenericTransactionUtils.writeData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID, flowBuilder.build(), false);
-		            	flowsInstalled.get(oldpathNodes.get(index)).remove(flowIdStr1);
-		            	pathFlows.remove(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue());
-					}
-				}
-			}
+//			if(input.isRemoveOldPath()) {
+//				Set<NodeId> oldNodeSet = new HashSet<NodeId>(oldpathNodes.subList(1, oldpathNodes.size()-1));
+//				Set<NodeId> newNodeSet = new HashSet<NodeId>(newpathNodes.subList(1, newpathNodes.size()-1));
+//				oldNodeSet.removeAll(newNodeSet);
+//				
+//				List<NodeId> distinctPathNode = Lists.newArrayList();
+//				
+//				for(NodeId distinct:oldNodeSet){
+//					distinctPathNode.add(distinct);
+//				}
+//					
+//				removeFlowRulesInPath(distinctPathNode, input.getSrcIpAddress(), input.getDstIpAddress());
+//			}
+				
+//				index = 0;
+//				for (; index < oldpathNodes.size(); index++){
+//					if (newpathNodes.contains(oldpathNodes.get(index))) continue;
+//					if (pathFlows.containsKey(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue())){
+//						String flowIdStr = pathFlows.get(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue());
+//	                	
+//		            	FlowBuilder flowBuilder = new FlowBuilder();
+//		            	FlowKey key = new FlowKey(new FlowId(flowIdStr));
+//		            	flowBuilder.setFlowName(flowIdStr);
+//		            	flowBuilder.setKey(key);
+//		            	flowBuilder.setId(new FlowId(flowIdStr));
+//		            	flowBuilder.setTableId((short)0);
+//		                	
+//		            	InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)
+//		            			.child(Node.class, new NodeKey(oldpathNodes.get(index)))
+//		            			.augmentation(FlowCapableNode.class)
+//		            			.child(Table.class, new TableKey(flowBuilder.getTableId()))
+//		            			.child(Flow.class, new FlowKey(flowBuilder.getKey()))
+//		            			.build();
+//		                	
+//		            	GenericTransactionUtils.writeData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID, flowBuilder.build(), false);
+//		            	flowsInstalled.get(oldpathNodes.get(index)).remove(flowIdStr);
+//		            	pathFlows.remove(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue());
+//					}
+//	                
+//					if (pathFlows.containsKey(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue())){
+//						String flowIdStr1 = pathFlows.get(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue());
+//		            	
+//						FlowBuilder flowBuilder = new FlowBuilder();
+//						FlowKey key = new FlowKey(new FlowId(flowIdStr1));
+//		            	flowBuilder.setFlowName(flowIdStr1);
+//		            	flowBuilder.setKey(key);
+//		            	flowBuilder.setId(new FlowId(flowIdStr1));
+//		            	flowBuilder.setTableId((short)0);
+//		                	
+//		            	InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)
+//		            			.child(Node.class, new NodeKey(oldpathNodes.get(index)))
+//		            			.augmentation(FlowCapableNode.class)
+//		            			.child(Table.class, new TableKey(flowBuilder.getTableId()))
+//		            			.child(Flow.class, new FlowKey(flowBuilder.getKey()))
+//		            			.build();
+//		                	
+//		            	GenericTransactionUtils.writeData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID, flowBuilder.build(), false);
+//		            	flowsInstalled.get(oldpathNodes.get(index)).remove(flowIdStr1);
+//		            	pathFlows.remove(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue());
+//					}
+//				}
+//			}
 			////////////////////////////////////////////////////////////////////////////
 		} catch (Exception e) {
             LOG.error("Exception reached in MovePath RPC {} --------", e);

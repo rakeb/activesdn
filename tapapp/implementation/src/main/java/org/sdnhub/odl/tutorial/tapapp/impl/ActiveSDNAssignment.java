@@ -124,7 +124,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
     
     boolean callingSchedularFirstTime = true;
     private long duration;
-    private static final long DELAY = 15;
+    private static final long DELAY = 60;
+    long prevTime;
 //    private long prev;
 //    private long next;
     
@@ -134,6 +135,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
     int mutationIndex = 0;
     boolean rhmExperiment = false;
     public boolean isSpecialMutationStarted = false;
+    public boolean isPathMutationStarted = false;
     /////////////////////////////////////////////////////////////////
     
 	@SuppressWarnings("deprecation")
@@ -450,8 +452,9 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		ReRouteInputBuilder reRouteInputBuilder = new ReRouteInputBuilder();
 		reRouteInputBuilder.setSrcIpAddress(srcIp);
 		reRouteInputBuilder.setDstIpAddress(dstIp);
-		reRouteInputBuilder.setFlowPriority(300);
+		reRouteInputBuilder.setFlowPriority(301);
 		reRouteInputBuilder.setHardTimeout(trigger);
+		reRouteInputBuilder.setRemoveOldPath(true);
 		
 		List<Integer> oldPathNodes = Lists.newArrayList(); //List of switches along the old path
 		for (String node : oldPath){
@@ -907,7 +910,11 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				.getInPortNumber());
 		packetOutBuilder.setPayload(notification.getPayload()); 
 		packetOutBuilder.setOutputPort(TABLE);
-
+		
+//		LOG.debug("=================================================================================");
+//		LOG.debug(" Sending Packet Out...");
+//		LOG.debug("=================================================================================");
+		
 		this.activeSDNService.sendPacketOut(packetOutBuilder.build());
 	}
 	
@@ -969,11 +976,6 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
 		String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
 		
-		LOG.debug("     ==================================================================     ");
-		LOG.debug("Installing a path using forwardPathKey {}, and installed pathSize {}", forwardPathKey, installedPaths.size());
-		LOG.debug("     ==================================================================     ");
-		
-		
 		if (installedPaths.containsKey(forwardPathKey) || installedPaths.containsKey(reversePathKey)){
 			LOG.debug("=========================================================================================");
 			LOG.debug("Path is already installed between nodes     " + srcHost.getHostIP() + " and " + dstHost.getHostIP());
@@ -981,34 +983,41 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			
 			return false;
 		} else {
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("Installing a path using forwardPathKey {}, and installed pathSize {}", forwardPathKey, installedPaths.size());
+			LOG.debug("     ==================================================================     ");
+			
 			InstallNetworkPathInputBuilder pathInputBuilder = new InstallNetworkPathInputBuilder();
 			
 			pathInputBuilder.setSrcIpAddress(packetHeaderFields.getSourceAddress());
 			pathInputBuilder.setDstIpAddress(packetHeaderFields.getDestinationAddress());
 			pathInputBuilder.setFlowPriority(300);
+//			String hardTimeout = properties.getProperty("hardTimeout");
+//			pathInputBuilder.setHardTimeout(Integer.parseInt(hardTimeout));
 			
 			List<Integer> pathNodes = Lists.newArrayList();
 			List<String> path = topology.findShortestPath(
 					srcHost.getSwitchConnectedTo(), dstHost.getSwitchConnectedTo());
 			if (path != null) {
+				LOG.debug("==================================================================     ");
+				LOG.debug("Path found for installing is {}", path.toString());
+				LOG.debug("==================================================================     ");
+				
 				for (String node : path){
 					pathNodes.add(Integer.parseInt(node));
 				}
 				pathInputBuilder.setSwitchesInPath(pathNodes);
 				installedPaths.put(forwardPathKey, path);
 				//updateLinkCriticality(path);
-				LOG.debug("==================================================================     ");
-				LOG.debug("Path found for installing is {}", path.toString());
-				LOG.debug("==================================================================     ");
 			}
 			pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
 			this.activeSDNService.installNetworkPath(pathInputBuilder.build());
 			
-			pathInputBuilder.setTypeOfTraffic(TrafficType.TCP);
-			this.activeSDNService.installNetworkPath(pathInputBuilder.build());
-			
-			pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
-			this.activeSDNService.installNetworkPath(pathInputBuilder.build());
+//			pathInputBuilder.setTypeOfTraffic(TrafficType.TCP);
+//			this.activeSDNService.installNetworkPath(pathInputBuilder.build());
+//			
+//			pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
+//			this.activeSDNService.installNetworkPath(pathInputBuilder.build());
 			
 			return true;
 		}
@@ -1111,18 +1120,96 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			/////////////                   Handling ICMP Traffic        /////////////////////////////////////////////  
 			////------------------------------------------------------------------------------------------------------
 			else if (notification.getPacketType() instanceof IcmpPacketType) {
-				LOG.debug("ICMP packet found in On Event Triggered");
+//				IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
+//				
+//				isPathAlreadyExist = !installPath(icmpPacket);
+//				if (isSpecialMutationStarted && isPathAlreadyExist ) {
+//					return;
+//				}
+//				sendingPacketOut(notification);
+//				
+//				if (isPathAlreadyExist) {
+//					return;
+//				}
+				
+				initProperties();
+				
 				IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
 				
-				isPathAlreadyExist = !installPath(icmpPacket);
-				if (isSpecialMutationStarted && isPathAlreadyExist ) {
-					return;
-				}
-				sendingPacketOut(notification);
+				ConnectedHostInfo srcHost = hostTable.get(icmpPacket.getSourceAddress());
+				ConnectedHostInfo dstHost = hostTable.get(icmpPacket.getDestinationAddress());
+				String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
+				String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
 				
-				if (isPathAlreadyExist) {
-					return;
+				LOG.debug("ICMP packet found in On Event Triggered, src: {}, dst: {}", srcHost, dstHost);
+				
+				
+				String propertyMutationTrigger = properties.getProperty("mutationTrigger");
+				int mutationTrigger = Integer.parseInt(propertyMutationTrigger);
+				if (installedPaths.size() > mutationTrigger){
+					installPath(icmpPacket);
+					String mutationInterval = properties.getProperty("mutationInterval");
+					int trigger = Integer.parseInt(mutationInterval);
+					long timeMillis = System.currentTimeMillis();
+			        long currentTIme = TimeUnit.MILLISECONDS.toSeconds(timeMillis);
+			        if (!isPathMutationStarted && (currentTIme - prevTime < trigger)){
+			        	sendingPacketOut(notification);
+			        	return;
+			        }
+					List<String> src = Lists.newArrayList();
+					List<String> dst = Lists.newArrayList();
+					
+					src.add(icmpPacket.getSourceAddress());
+					dst.add(icmpPacket.getDestinationAddress());
+					
+					Overlap o = new Overlap();
+					o.setOverlapStatus(Overlap.NO_OVERLAP);
+					o.setOverlapValue("0");
+					PathProfile p = new PathProfile();
+					p.setOverlap(o);
+					
+					
+//					prev = timeSchedular();
+//		            if (prev == next) {
+//		            	pathMutate(src, dst, p, trigger);
+//		            	next++;
+//		            }
+					timeMillis = System.currentTimeMillis();
+			        prevTime = TimeUnit.MILLISECONDS.toSeconds(timeMillis);
+					pathMutate(src, dst, p, trigger);
+					isPathMutationStarted = true;
+					sendingPacketOut(notification);
+				} else {
+					installPath(icmpPacket);
+					sendingPacketOut(notification);
 				}
+				
+				
+//				if (installedPaths.size() < 1) {
+//					installPath(icmpPacket);
+//				} else {
+//					List<String> src = Lists.newArrayList();
+//					List<String> dst = Lists.newArrayList();
+//					
+//					src.add(icmpPacket.getSourceAddress());
+//					dst.add(icmpPacket.getDestinationAddress());
+//					
+//					Overlap o = new Overlap();
+//					o.setOverlapStatus(Overlap.NO_OVERLAP);
+//					o.setOverlapValue("0");
+//					PathProfile p = new PathProfile();
+//					p.setOverlap(o);
+//					int trigger = (int) DELAY;
+//					
+////					prev = timeSchedular();
+////		            if (prev == next) {
+////		            	pathMutate(src, dst, p, trigger);
+////		            	next++;
+////		            }
+//					pathMutate(src, dst, p, trigger);
+//					sendingPacketOut(notification);
+//				}
+				
 			} /// End of ICMP Packet
 		} /// End of ControllerEVentIF
 		
