@@ -139,7 +139,7 @@ karaf>feature:install sdnhub-XYZ
 ```
 
 # Some important stuffs
-Important tutiorial: 
+Important tutiorial: https://www.youtube.com/watch?v=3nF7xWMniwY
 
 To view the topology: feature:install odl_delux_core, feature:install odl-dlux-yangui
 The IP address example: http://172.16.178.128:8181/index.html#/topology
