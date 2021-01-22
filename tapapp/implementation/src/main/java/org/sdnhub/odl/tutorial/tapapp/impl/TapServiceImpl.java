@@ -2434,7 +2434,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 					
 					NewFlowBuilder newFlowBuilder = new NewFlowBuilder();
 					newFlowBuilder.setDstIpAddress(dstIp);
-					newFlowBuilder.setSrcIpAddress(srcIp);
+//					newFlowBuilder.setSrcIpAddress(srcIp); // this must be commented out, because we want to install a dst only new rule
 					//newFlowBuilder.setTrafficMatch(input.get)
 					newFlowBuilder.setFlowPriority(input.getFlowPriority());
 					newFlowBuilder.setIdleTimeout(input.getIdleTimeout());
@@ -2524,56 +2524,6 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 					
 				removeFlowRulesInPath(distinctPathNode, input.getSrcIpAddress(), input.getDstIpAddress());
 			}
-				
-//				index = 0;
-//				for (; index < oldpathNodes.size(); index++){
-//					if (newpathNodes.contains(oldpathNodes.get(index))) continue;
-//					if (pathFlows.containsKey(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue())){
-//						String flowIdStr = pathFlows.get(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue());
-//	                	
-//		            	FlowBuilder flowBuilder = new FlowBuilder();
-//		            	FlowKey key = new FlowKey(new FlowId(flowIdStr));
-//		            	flowBuilder.setFlowName(flowIdStr);
-//		            	flowBuilder.setKey(key);
-//		            	flowBuilder.setId(new FlowId(flowIdStr));
-//		            	flowBuilder.setTableId((short)0);
-//		                	
-//		            	InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)
-//		            			.child(Node.class, new NodeKey(oldpathNodes.get(index)))
-//		            			.augmentation(FlowCapableNode.class)
-//		            			.child(Table.class, new TableKey(flowBuilder.getTableId()))
-//		            			.child(Flow.class, new FlowKey(flowBuilder.getKey()))
-//		            			.build();
-//		                	
-//		            	GenericTransactionUtils.writeData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID, flowBuilder.build(), false);
-//		            	flowsInstalled.get(oldpathNodes.get(index)).remove(flowIdStr);
-//		            	pathFlows.remove(oldpathNodes.get(index).getValue() + ":" + input.getDstIpAddress().getValue());
-//					}
-//	                
-//					if (pathFlows.containsKey(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue())){
-//						String flowIdStr1 = pathFlows.get(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue());
-//		            	
-//						FlowBuilder flowBuilder = new FlowBuilder();
-//						FlowKey key = new FlowKey(new FlowId(flowIdStr1));
-//		            	flowBuilder.setFlowName(flowIdStr1);
-//		            	flowBuilder.setKey(key);
-//		            	flowBuilder.setId(new FlowId(flowIdStr1));
-//		            	flowBuilder.setTableId((short)0);
-//		                	
-//		            	InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)
-//		            			.child(Node.class, new NodeKey(oldpathNodes.get(index)))
-//		            			.augmentation(FlowCapableNode.class)
-//		            			.child(Table.class, new TableKey(flowBuilder.getTableId()))
-//		            			.child(Flow.class, new FlowKey(flowBuilder.getKey()))
-//		            			.build();
-//		                	
-//		            	GenericTransactionUtils.writeData(dataBroker, LogicalDatastoreType.CONFIGURATION, flowIID, flowBuilder.build(), false);
-//		            	flowsInstalled.get(oldpathNodes.get(index)).remove(flowIdStr1);
-//		            	pathFlows.remove(oldpathNodes.get(index).getValue() + ":" + input.getSrcIpAddress().getValue());
-//					}
-//				}
-//			}
-			////////////////////////////////////////////////////////////////////////////
 		} catch (Exception e) {
             LOG.error("Exception reached in MovePath RPC {} --------", e);
             output.setStatus("Path Couldn't be migrated.");
