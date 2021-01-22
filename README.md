@@ -141,7 +141,19 @@ karaf>feature:install sdnhub-XYZ
 # Some important stuffs
 Important tutiorial: https://www.youtube.com/watch?v=3nF7xWMniwY
 
-To view the topology: feature:install odl_delux_core, feature:install odl-dlux-yangui The IP address example: http://172.16.178.128:8181/index.html#/topology For REST API: feature: feature:install odl-restconf-all To view flow rules in a switch: watch -n3 sudo ovs-ofctl dump-flows -OOpenFlow13 s1
+To view the topology: feature:install odl_delux_core, feature:install odl-dlux-yangui
 
-Restconf example: http://172.16.178.128:8181/restconf/operations/activesdn:path-mutate {"input": { "src": ["10.0.0.3/32"], "dst": ["10.0.0.9/32"], "pattern": 5 } }
+The IP address example: http://172.16.178.128:8181/index.html#/topology
 
+For REST API: feature: feature:install odl-restconf-all
+
+To view flow rules in a switch: watch -n3 sudo ovs-ofctl dump-flows -OOpenFlow13 s1
+
+Restconf example:
+http://172.16.178.128:8181/restconf/operations/activesdn:path-mutate
+{"input": {
+    "src": ["10.0.0.3/32"],
+    "dst": ["10.0.0.9/32"],
+    "pattern": 5
+  }
+}
