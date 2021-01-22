@@ -1122,7 +1122,6 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			}
 			pathInputBuilder.setSwitchesInPath(pathNodes);
 			installedPaths.put(forwardPathKey, path);
-			//updateLinkCriticality(path);
 		}
 		pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
 		this.activeSDNService.installNetworkPath(pathInputBuilder.build());
