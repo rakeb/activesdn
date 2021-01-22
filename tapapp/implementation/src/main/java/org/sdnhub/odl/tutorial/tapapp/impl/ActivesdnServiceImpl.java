@@ -1798,7 +1798,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		}
 		else {
 			listOfSwitchPortsForStats.put(nodeConnector, input.getDropThreshold());
-			LOG.debug("Port ID {} of Switch {} is subscribed for statistics.", input.getConnectorId(), input.getSwitchId());			
+			LOG.debug("Port ID {} of Switch {} is subscribed for Linkflooding statistics collection.", input.getConnectorId(), input.getSwitchId());			
 		}
 		SubscribeForLinkFloodingCheckOutputBuilder outputBuilder = new SubscribeForLinkFloodingCheckOutputBuilder();
 		outputBuilder.setStatus("Subscribing port statistics was successful");
