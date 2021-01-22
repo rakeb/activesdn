@@ -19,6 +19,7 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeId;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ActivesdnListener;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ActivesdnService;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ConstructTopology;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.EventSpecs.EventAction;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.EventTriggered;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.EventTriggered.TriggeredEventType;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FlowIsRemoved;
@@ -35,6 +36,7 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SendPacketOutInputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeEventInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForLinkFloodingCheckInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForStatsFromSwitchInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.event.triggered.packet.type.IcmpPacketType;
@@ -967,17 +969,27 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				
 				// example of redirect
 				// trigger "10.0.0.1/32" --> "10.0.0.11/32"
-				String tsrc = "10.0.0.1/32";
-				String tdst = "10.0.0.12/32";
-				IcmpPacketType icmpPacketType = (IcmpPacketType) notification.getPacketType();
-				String source = icmpPacketType.getSourceAddress();
-				String destination = icmpPacketType.getDestinationAddress();
+//				String tsrc = "10.0.0.1/32";
+//				String tdst = "10.0.0.12/32";
+//				IcmpPacketType icmpPacketType = (IcmpPacketType) notification.getPacketType();
+//				String source = icmpPacketType.getSourceAddress();
+//				String destination = icmpPacketType.getDestinationAddress();
+//				
+//				if ((source.equals(tsrc) && destination.equals(tdst)) || (source.equals(tdst) && destination.equals(tsrc))){
+//					simpleRedirect(notification);
+//				}
+//				installPath(icmpPacket);
+//				sendingPacketOut(notification);
 				
-				if ((source.equals(tsrc) && destination.equals(tdst)) || (source.equals(tdst) && destination.equals(tsrc))){
-					simpleRedirect(notification);
-				}
+				
+				// example of simple subscribe event
+				IcmpPacketType icmpPacketType = (IcmpPacketType) notification.getPacketType();
 				installPath(icmpPacket);
 				sendingPacketOut(notification);
+				
+				simpleSubscribeEvent(icmpPacketType);
+				
+				
 			} /// End of ICMP Packet
 		} /// End of ControllerEVentIF
 		
@@ -991,6 +1003,35 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			}
 			else if (notification.getPacketType() instanceof IcmpPacketType) {
 				LOG.debug("Inside SubscribedEvent packet type: ICMP");
+				IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
+				ConnectedHostInfo srcHost = hostTable.get(icmpPacket.getSourceAddress());
+				ConnectedHostInfo dstHost = hostTable.get(icmpPacket.getDestinationAddress());
+				String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
+				String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
+				
+				LOG.debug("     ==================================================================     ");
+				LOG.debug("      SubscribedEvent called for src {} to dst {}", srcHost.getHostIP(), dstHost.getHostIP());
+				LOG.debug("     ==================================================================     ");
+				
+				LOG.debug("     ==================================================================     ");
+				LOG.debug("      We will simply block the flow");
+				LOG.debug("     ==================================================================     ");
+				
+				
+				List<String> path = null;
+				if (installedPaths.containsKey(forwardPathKey)){
+					path = installedPaths.get(forwardPathKey);
+					
+				} else if (installedPaths.containsKey(reversePathKey)) {
+					path = installedPaths.get(reversePathKey);
+				} else {
+					LOG.debug("     ==================================================================     ");
+					LOG.debug("		No oldPath found. returning without blocking...");
+					LOG.debug("     ==================================================================     ");
+					return;
+				}
+				
+				blockIP(srcHost.getHostIP(), dstHost.getHostIP(), TrafficType.ICMP, Integer.parseInt(path.get(0)), 0);
 
 //				IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
 //				
@@ -1127,6 +1168,44 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		this.activeSDNService.installNetworkPath(pathInputBuilder.build());
 			
 	}
+	
+	public boolean simpleSubscribeEvent(IcmpPacketType icmpPacket) {
+		ConnectedHostInfo srcHost = hostTable.get(icmpPacket.getSourceAddress());
+		ConnectedHostInfo dstHost = hostTable.get(icmpPacket.getDestinationAddress());
+		String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
+		String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
+		
+		List<String> path = null;
+		if (installedPaths.containsKey(forwardPathKey)){
+			path = installedPaths.get(forwardPathKey);
+			
+		} else if (installedPaths.containsKey(reversePathKey)) {
+			path = installedPaths.get(reversePathKey);
+		} else {
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("		No oldPath found");
+			LOG.debug("     ==================================================================     ");
+			return false;
+		}
+		
+		LOG.debug("     ==================================================================     ");
+		LOG.debug("      Event subscription started for Switch Number: {}", path.get(0));
+		LOG.debug("     ==================================================================     ");
+		
+		
+		SubscribeEventInputBuilder eventInputBuilder = new SubscribeEventInputBuilder();
+		eventInputBuilder.setCount((long)5);
+		eventInputBuilder.setSrcIpAddress(icmpPacket.getSourceAddress());
+		eventInputBuilder.setDstIpAddress(icmpPacket.getDestinationAddress());
+		eventInputBuilder.setDuration((long)10);
+		eventInputBuilder.setSwitchId(Integer.parseInt(path.get(0)));
+		eventInputBuilder.setTrafficProtocol(TrafficType.ICMP);
+		eventInputBuilder.setEventAction(EventAction.NOTIFY);
+//		eventInputBuilder.setHoldNotification(5);
+		
+		this.activeSDNService.subscribeEvent(eventInputBuilder.build());
+		return true;
+	}
 
 	/**
 	 * Install a flow rule to Drops packets depending on the parameter 
@@ -1135,7 +1214,6 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 	 * @param trafficType
 	 * @param switchId
 	 */
-	@SuppressWarnings("unused")
 	private void blockIP(String srcIp, String dstIp, TrafficType trafficType, int switchId, int hardTimeOut) {
 		
 		LOG.debug("     ==================================================================     ");
@@ -1160,7 +1238,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		}
 			
 		
-		flowRuleInputBuilder.setFlowPriority(FLOW_PRIORITY);
+		flowRuleInputBuilder.setFlowPriority(FLOW_PRIORITY + 30000);
 		flowRuleInputBuilder.setIdleTimeout(0);
 		flowRuleInputBuilder.setHardTimeout(0);
 		flowRuleInputBuilder.setHardTimeout(0);
