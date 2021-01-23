@@ -160,9 +160,9 @@ http://172.16.178.128:8181/restconf/operations/activesdn:path-mutate
 
 # How to simulate the example
 
-1. From a terminal (activsdn terminal), goto: /home/ubuntu/Downloads/activesdn 
-2. Run the compiler using command: ./compile_and_execute_controller.sh
-3. From another terminal (mininet terminal), create a topology : ./create_topology.sh
-4. From the mininet terminal, run: xterm h1 h12
+1. From a terminal, goto: /home/ubuntu/Downloads/activesdn 
+2. Run ActiveSDN controller using command: ./compile_and_execute_controller.sh
+3. From another terminal, create a topology : ./create_topology.sh
+4. From the second terminal (mininet terminal), run: xterm h1 h12
 5. From the xterm h12 terminal, run: cd /home/ubuntu/Downloads/activesdn/scripts/redirect/ and then run: ./host12.sh
 6. From the xterm h1 terminal, run: cd /home/ubuntu/Downloads/activesdn/scripts/redirect/ and then run: ./host1_send_traffic_to_h12.sh
