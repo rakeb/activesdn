@@ -204,7 +204,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
     public Timer timer;
     public boolean hasTimerStarted = false;
     
-    private ActiveSDNAssignment activeSdnApp = TapServiceImpl.getActiveSDNAssignment();
+    private ActiveSDNDispatcher activeSdnApp = TapServiceImpl.getActiveSDNAssignment();
     
 	public ActivesdnServiceImpl(DataBroker dataBroker, NotificationProviderService notificationService, RpcProviderRegistry rpcProviderRegistry) {
 		//Store the data broker for reading/writing from inventory store

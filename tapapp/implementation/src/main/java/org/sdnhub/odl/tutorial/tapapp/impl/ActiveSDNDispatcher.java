@@ -39,7 +39,7 @@ enum TrafficProtocolType {
 };
 
 //@SuppressWarnings("unused")
-public class ActiveSDNAssignment implements ActivesdnListener{
+public class ActiveSDNDispatcher implements ActivesdnListener{
 	
 	private final Logger LOG = LoggerFactory.getLogger(this.getClass());
     private final static String CONTROLLER = "CONTROLLER";
@@ -47,6 +47,9 @@ public class ActiveSDNAssignment implements ActivesdnListener{
     private ActivesdnService activeSDNService;
     private TapService tapService;
     
+    /**
+     * Getting the full host information from the topology
+     */
     private HashMap<String, ConnectedHostInfo> hostTable = new HashMap<String, ConnectedHostInfo>();
     private HashMap<String, List<String>> installedPaths = new HashMap<String, List<String>>();
     
@@ -86,7 +89,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
     /////////////////////////////////////////////////////////////////
     
 	@SuppressWarnings("deprecation")
-	public ActiveSDNAssignment(DataBroker dataBroker, NotificationProviderService notificationService, 
+	public ActiveSDNDispatcher(DataBroker dataBroker, NotificationProviderService notificationService, 
 			RpcProviderRegistry rpcProviderRegistry, NetworkGraph topology) {
         this.activeSDNService = rpcProviderRegistry.getRpcService(ActivesdnService.class);
         
@@ -215,8 +218,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 //			pathInputBuilder.setTypeOfTraffic(TrafficType.TCP);
 //			this.activeSDNService.installNetworkPath(pathInputBuilder.build());
 //			
-//			pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
-//			this.activeSDNService.installNetworkPath(pathInputBuilder.build());
+			pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
+			this.activeSDNService.installNetworkPath(pathInputBuilder.build());
 			
 			return true;
 		}
@@ -229,6 +232,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 //		LOG.debug("                    Event Triggered is called.");
 //		LOG.debug("     ==================================================================     ");
 		
+		// check if the destination exist and report if it does not
 		if (notification.getPacketType() instanceof Ipv4PacketType) {
 			Ipv4PacketType ipv4Packet = (Ipv4PacketType) notification.getPacketType();
 			if (!(hostTable.containsKey(ipv4Packet.getSourceAddress()) && 
@@ -289,9 +293,6 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				Ipv4PacketType ipv4Packet = (Ipv4PacketType) notification.getPacketType();
 				
 				isPathAlreadyExist = !installPath(ipv4Packet);
-				if (isSpecialMutationStarted && isPathAlreadyExist ) {
-					return;
-				}
 				sendingPacketOut(notification);
 				
 				if (isPathAlreadyExist) {
@@ -305,7 +306,17 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				LOG.debug("TCP packet found in On Event Triggered");
 				TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
 				
-				inspectByController(notification);
+				String tsrc = "10.0.0.1/32";
+				String tdst = "10.0.0.12/32";
+				String source = tcpPacketType.getSourceAddress();
+				String destination = tcpPacketType.getDestinationAddress();
+				
+				if ((source.equals(tsrc) && destination.equals(tdst)) || (source.equals(tdst) && destination.equals(tsrc))){
+					inspectByController(notification);
+				} else { // to handle to TCP packets that going between other nodes other than "10.0.0.1/32" and "10.0.0.12/32";
+					installPath(tcpPacketType);
+					sendingPacketOut(notification);
+				}
 			}
 			////------------------------------------------------------------------------------------------------------
 			/////////////                   Handling ICMP Traffic        /////////////////////////////////////////////  
@@ -314,15 +325,6 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				LOG.debug("ICMP packet found in On Event Triggered");
 				IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
 				
-				// example of path mutate through RPC
-//				isPathAlreadyExist = !installPath(icmpPacket);
-//				sendingPacketOut(notification);
-//				
-//				if (isPathAlreadyExist) {
-//					return;
-//				}
-				// example of simple path mutate
-//				simplestPathMutation(icmpPacket);
 				
 				// example of redirect
 				// trigger "10.0.0.1/32" --> "10.0.0.11/32"
@@ -361,7 +363,12 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 		*/	
 		
 	}
-
+	
+	/**
+	 * This example is about forwarding all ICMP and UDP packets between (10.0.0.1 and 10.0.0.12) but forward TCP packets to the controller to inspection.
+	 * After inspection the packets that successfully will be forward to the destination, malicious packet will be dropped.
+	 * @param notification
+	 */
 	private void simpleRedirect(EventTriggered notification) {
 		LOG.debug("     ==================================================================     ");
 		LOG.debug("     Redirect called " );
@@ -395,8 +402,8 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 			redirectInputBuilder.setSwitchesInPath(pathNodes);
 		}
 		redirectInputBuilder.setTypeOfTraffic(TrafficType.TCP);
-		redirectInputBuilder.setInspectionSwitchId(pathNodes.get(0));
-		redirectInputBuilder.setInspectionSwitchPortId(CONTROLLER);
+		redirectInputBuilder.setInspectionSwitchId(pathNodes.get(0)); // switch that will redirect TCP packets to the controller; get(0) is the first switch
+		redirectInputBuilder.setInspectionSwitchPortId(CONTROLLER); // controller is the destination of redirect
 		//If you don't want to send the controller port as redirection instead another port then simply write that port number
 		//redirectInputBuilder.setInspectionSwitchPortId("1"); //e.g., if you want to output through port of the switch
 		this.activeSDNService.redirect(redirectInputBuilder.build());

@@ -237,7 +237,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
     private HashMap<String, List<String>> allInstalledFlows = new HashMap<>();
     private TutorialL2Forwarding tutorialL2Forwarding;
     private ActivesdnServiceImpl activeSDNApi;
-	private static ActiveSDNAssignment activeSDNAssignment;
+	private static ActiveSDNDispatcher activeSDNAssignment;
 	private NetworkGraph topology;
 	private HashMap<NodeConnectorId, NodeId> linkNeighbor = new HashMap<NodeConnectorId, NodeId>();
 	private boolean pathRule = false;
@@ -247,7 +247,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
     		
     public TapServiceImpl(DataBroker dataBroker, NotificationProviderService notificationService, RpcProviderRegistry rpcProviderRegistry) {
     	topology = new NetworkGraph();
-    	TapServiceImpl.activeSDNAssignment = new ActiveSDNAssignment(dataBroker, notificationService, rpcProviderRegistry, topology);
+    	TapServiceImpl.activeSDNAssignment = new ActiveSDNDispatcher(dataBroker, notificationService, rpcProviderRegistry, topology);
     	this.tutorialL2Forwarding = new TutorialL2Forwarding(dataBroker, notificationService, rpcProviderRegistry, TapServiceImpl.activeSDNAssignment);
     	this.activeSDNApi = new ActivesdnServiceImpl(dataBroker, notificationService, rpcProviderRegistry);
     	
@@ -4259,7 +4259,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 		}
 	}
 
-	public static ActiveSDNAssignment getActiveSDNAssignment() {
+	public static ActiveSDNDispatcher getActiveSDNAssignment() {
 		return activeSDNAssignment;
 	}
 }

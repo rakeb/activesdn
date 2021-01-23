@@ -204,13 +204,13 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
 	private DataBroker dataBroker;
 	private PacketProcessingService packetProcessingService;
 	private NotificationProviderService notificationService;
-	private ActiveSDNAssignment activeSDNAssignment;
+	private ActiveSDNDispatcher activeSDNAssignment;
 	private int watiBeforeNotifying = 0; 
 	private int currentWait = 0;
 	
     /////////////////////////////////////////////////////////////////////////////////////	
     public TutorialL2Forwarding(DataBroker dataBroker, NotificationProviderService notificationService, RpcProviderRegistry rpcProviderRegistry, 
-    		ActiveSDNAssignment activeSDNAssignment) {
+    		ActiveSDNDispatcher activeSDNAssignment) {
     	this.activeSDNAssignment = activeSDNAssignment;
     	//Store the data broker for reading/writing from inventory store
         this.dataBroker = dataBroker;
