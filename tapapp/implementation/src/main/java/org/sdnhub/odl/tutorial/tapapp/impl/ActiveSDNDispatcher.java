@@ -245,7 +245,7 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 		}
 	}
 	
-	public Future<RpcResult<SubscribeEventOutput>> simpleSubscribeEvent(IcmpPacketType icmpPacket) {
+	public Future<RpcResult<SubscribeEventOutput>> subscribeToBlockICMPEvent(IcmpPacketType icmpPacket) {
 		ConnectedHostInfo srcHost = hostTable.get(icmpPacket.getSourceAddress());
 		ConnectedHostInfo dstHost = hostTable.get(icmpPacket.getDestinationAddress());
 		String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
@@ -385,7 +385,7 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 				IcmpPacketType icmpPacketType = (IcmpPacketType) notification.getPacketType();
 				installPath(icmpPacket, null, TrafficType.ICMP, TrafficType.UDP);
 				
-				Future<RpcResult<SubscribeEventOutput>> subOutput = simpleSubscribeEvent(icmpPacketType);
+				Future<RpcResult<SubscribeEventOutput>> subOutput = subscribeToBlockICMPEvent(icmpPacketType);
 				try {
 					eventManager.put(subOutput.get().getResult().getEventId(), EVENT_ACTION_BLOCK_ICMP); // setting the event ID
 				} catch (InterruptedException | ExecutionException e) {
