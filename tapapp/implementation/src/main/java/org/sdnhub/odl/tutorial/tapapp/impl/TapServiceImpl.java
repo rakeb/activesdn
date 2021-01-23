@@ -236,8 +236,8 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
     private HashMap<String, String> pathFlows = new HashMap<String, String>();
     private HashMap<String, List<String>> allInstalledFlows = new HashMap<>();
     private TutorialL2Forwarding tutorialL2Forwarding;
-    private ActivesdnServiceImpl activeSDNApi;
-	private static ActiveSDNAssignment activeSDNAssignment;
+    private ActivesdnServiceImpl activesdnServiceImpl;
+	private static ActiveSDNDispatcher activeSDNAssignment;
 	private NetworkGraph topology;
 	private HashMap<NodeConnectorId, NodeId> linkNeighbor = new HashMap<NodeConnectorId, NodeId>();
 	private boolean pathRule = false;
@@ -247,9 +247,9 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
     		
     public TapServiceImpl(DataBroker dataBroker, NotificationProviderService notificationService, RpcProviderRegistry rpcProviderRegistry) {
     	topology = new NetworkGraph();
-    	TapServiceImpl.activeSDNAssignment = new ActiveSDNAssignment(dataBroker, notificationService, rpcProviderRegistry, topology);
+    	TapServiceImpl.activeSDNAssignment = new ActiveSDNDispatcher(dataBroker, notificationService, rpcProviderRegistry, topology);
     	this.tutorialL2Forwarding = new TutorialL2Forwarding(dataBroker, notificationService, rpcProviderRegistry, TapServiceImpl.activeSDNAssignment);
-    	this.activeSDNApi = new ActivesdnServiceImpl(dataBroker, notificationService, rpcProviderRegistry);
+    	this.activesdnServiceImpl = new ActivesdnServiceImpl(dataBroker, notificationService, rpcProviderRegistry);
     	
         //Store the data broker for reading/writing from inventory store
         this.dataBroker = dataBroker;
@@ -1467,7 +1467,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 
 		String flowIdStr;
 		if (input.getFlowId() == null) {
-			String flowId = BigInteger.valueOf(this.activeSDNApi.eventID.incrementAndGet()).toString();
+			String flowId = BigInteger.valueOf(this.activesdnServiceImpl.eventID.incrementAndGet()).toString();
 			flowIdStr = programFlow(nodeId, flowId, flow, actions);
 		} 
 		else {
@@ -4259,7 +4259,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 		}
 	}
 
-	public static ActiveSDNAssignment getActiveSDNAssignment() {
+	public static ActiveSDNDispatcher getActiveSDNAssignment() {
 		return activeSDNAssignment;
 	}
 }

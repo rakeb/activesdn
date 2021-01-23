@@ -85,7 +85,7 @@ print("Sending TCP Packet: %d packet for dropbox (Destination Port 100) with pay
 numPacket +=1
 sendp(pkt)
 
-for i in range(0,10):
+for i in range(0,1000):
     time.sleep(3)
     malicious = ""
     flip = random.randint(0, 1)
@@ -93,7 +93,7 @@ for i in range(0,10):
         malicious = "malicious"
     else:
         malicious = "good"
-    data = "This is random " + str(numPacket) + malicious + " payload message"
+    data = "This is random " + str(numPacket)+ ": " + malicious + " payload message"
     pkt = Ether()/ipPkt/tcpPkt/Raw(load=data)
     print("Sending TCP Packet: %d packet for dropbox (Destination Port 100) with payload: %s " % (numPacket, data))
     numPacket +=1

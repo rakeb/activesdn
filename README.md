@@ -137,3 +137,46 @@ $ cd distribution/opendaylight-karaf/target/assembly
 $ ./bin/karaf
 karaf>feature:install sdnhub-XYZ
 ```
+
+# Some important stuffs
+Important tutiorial: https://www.youtube.com/watch?v=3nF7xWMniwY
+
+To view the topology: feature:install odl_delux_core, feature:install odl-dlux-yangui
+
+The IP address example: http://172.16.178.128:8181/index.html#/topology
+
+For REST API: feature: feature:install odl-restconf-all
+
+To view flow rules in a switch: watch -n3 sudo ovs-ofctl dump-flows -OOpenFlow13 s1
+
+Restconf example:
+http://172.16.178.128:8181/restconf/operations/activesdn:path-mutate
+{"input": {
+    "src": ["10.0.0.3/32"],
+    "dst": ["10.0.0.9/32"],
+    "pattern": 5
+  }
+}
+
+# How to simulate the example
+
+Example 1: redirect
+
+1. From a terminal, goto: /home/ubuntu/Downloads/activesdn 
+2. Run ActiveSDN controller using command: ./compile_and_execute_controller.sh
+3. From another terminal, create a topology : ./create_topology.sh
+4. From the second terminal (mininet terminal), run: xterm h1 h12
+5. From the xterm h12 terminal, run: cd /home/ubuntu/Downloads/activesdn/scripts/redirect/ and then run: ./host12.sh
+6. From the xterm h1 terminal, run: cd /home/ubuntu/Downloads/activesdn/scripts/redirect/ and then run: ./host1_send_traffic_to_h12.sh
+
+
+Example 2: subscirbe event and block ICMP traffic
+
+1. From a terminal, goto: /home/ubuntu/Downloads/activesdn 
+2. Run ActiveSDN controller using command: ./compile_and_execute_controller.sh or ./execute_controller.sh if code is already compiled
+3. From another terminal, create a topology : ./create_topology.sh
+4. From the second terminal (mininet terminal):
+	a) run: h1 ping h2 (output: h1 will be blocked and will no longer to send any ping packets to anyone 	
+	b) run: xterm h1 h2
+	c) Inside xterm h1 terminal, ```run: iperf -s -u -i 1``` to start a udp server which sends packets with an interval of 1 second
+	d) Inside xterm h2 terminal, ```iperf -c 10.0.0.1 -u -b 1m -n 1000``` which creates a udp client that connects to h1 at address 10.0.0.1, bandwidth = 1M, number of bytes to transport = 1000 (Output: h1 can still send and receive other traffics)
