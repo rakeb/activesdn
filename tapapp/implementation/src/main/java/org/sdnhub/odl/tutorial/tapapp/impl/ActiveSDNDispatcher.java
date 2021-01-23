@@ -8,6 +8,7 @@ package org.sdnhub.odl.tutorial.tapapp.impl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
@@ -17,16 +18,20 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.NodeId;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ActivesdnListener;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ActivesdnService;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ConstructTopology;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.EventSpecs.EventAction;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.EventTriggered;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.EventTriggered.TriggeredEventType;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FlowIsRemoved;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FlowStatisticReceived;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallFlowRuleInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallNetworkPathInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.Ipv4PacketHeaderFields;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IsLinkFlooded;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.NewHostFound;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SendPacketOutInputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeEventInputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeEventOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.event.triggered.packet.type.IcmpPacketType;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.event.triggered.packet.type.Ipv4PacketType;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.event.triggered.packet.type.TcpPacketType;
@@ -49,6 +54,7 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 	private final Logger LOG = LoggerFactory.getLogger(this.getClass());
     private final static String CONTROLLER = "CONTROLLER";
     private final static String TABLE = "TABLE";
+    private final static String DROP = "DROP";
     private ActivesdnService activeSDNService;
     private TapService tapService;
     
@@ -89,7 +95,8 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
     public boolean isSpecialMutationStarted = false;
     public boolean isPathMutationStarted = false;
 	private List<String> rPath;
-    
+	private HashMap<String, Integer> eventManager = new HashMap<String, Integer>(); 
+	public static final int EVENT_ACTION_BLOCK_ICMP = 1;
     public static final int FLOW_PRIORITY = 300;
     /////////////////////////////////////////////////////////////////
     
@@ -237,6 +244,43 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 			return true;
 		}
 	}
+	
+	public Future<RpcResult<SubscribeEventOutput>> simpleSubscribeEvent(IcmpPacketType icmpPacket) {
+		ConnectedHostInfo srcHost = hostTable.get(icmpPacket.getSourceAddress());
+		ConnectedHostInfo dstHost = hostTable.get(icmpPacket.getDestinationAddress());
+		String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
+		String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
+		
+		List<String> path = null;
+		if (installedPaths.containsKey(forwardPathKey)){
+			path = installedPaths.get(forwardPathKey);
+			
+		} else if (installedPaths.containsKey(reversePathKey)) {
+			path = installedPaths.get(reversePathKey);
+		} else {
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("		No oldPath found");
+			LOG.debug("     ==================================================================     ");
+			return null;
+		}
+		
+		LOG.debug("     ==================================================================     ");
+		LOG.debug("      Event subscription started for Switch Number: {}", path.get(0));
+		LOG.debug("     ==================================================================     ");
+		
+		
+		SubscribeEventInputBuilder eventInputBuilder = new SubscribeEventInputBuilder();
+		eventInputBuilder.setCount((long)5);
+		eventInputBuilder.setSrcIpAddress(icmpPacket.getSourceAddress());
+		eventInputBuilder.setDstIpAddress(icmpPacket.getDestinationAddress());
+		eventInputBuilder.setDuration((long)10);
+		eventInputBuilder.setSwitchId(Integer.parseInt(path.get(0)));
+		eventInputBuilder.setTrafficProtocol(TrafficType.ICMP);
+		eventInputBuilder.setEventAction(EventAction.NOTIFY);
+//		eventInputBuilder.setHoldNotification(5);
+		
+		return this.activeSDNService.subscribeEvent(eventInputBuilder.build());
+	}
 
 	@Override
 	public void onEventTriggered(EventTriggered notification) {
@@ -320,13 +364,13 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 				String destination = tcpPacketType.getDestinationAddress();
 				
 				if ((source.equals(tsrc) && destination.equals(tdst)) || (source.equals(tdst) && destination.equals(tsrc))){
-					if (installPath(tcpPacketType, null, TrafficType.ICMP, TrafficType.UDP)) { // if no path available between src-dst
+					if (installPath(tcpPacketType, null, null, TrafficType.UDP)) { // if no path available between src-dst
 						simpleRedirect(notification);										   // then this block executes and redirection for TCP happens
 					}
 					inspectByController(notification); // inspect and send packet out or drop based on inspection results
 					
 				} else { // to handle to TCP packets that going between other nodes other than "10.0.0.1/32" and "10.0.0.12/32";
-					installPath(tcpPacketType, TrafficType.TCP, TrafficType.ICMP, TrafficType.UDP);
+					installPath(tcpPacketType, TrafficType.TCP, null, TrafficType.UDP);
 					sendingPacketOut(notification);
 				}
 			}
@@ -337,19 +381,17 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 				LOG.debug("ICMP packet found in On Event Triggered");
 				IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
 				
+				// example of simple subscribe event
+				IcmpPacketType icmpPacketType = (IcmpPacketType) notification.getPacketType();
+				installPath(icmpPacket, null, TrafficType.ICMP, TrafficType.UDP);
 				
-//				// example of redirect
-//				// trigger "10.0.0.1/32" --> "10.0.0.11/32"
-//				String tsrc = "10.0.0.1/32";
-//				String tdst = "10.0.0.12/32";
-//				IcmpPacketType icmpPacketType = (IcmpPacketType) notification.getPacketType();
-//				String source = icmpPacketType.getSourceAddress();
-//				String destination = icmpPacketType.getDestinationAddress();
-//				
-//				if ((source.equals(tsrc) && destination.equals(tdst)) || (source.equals(tdst) && destination.equals(tsrc))){
-//					simpleRedirect(notification);
-//				}
-				installPath(icmpPacket, TrafficType.TCP, TrafficType.ICMP, TrafficType.UDP);
+				Future<RpcResult<SubscribeEventOutput>> subOutput = simpleSubscribeEvent(icmpPacketType);
+				try {
+					eventManager.put(subOutput.get().getResult().getEventId(), EVENT_ACTION_BLOCK_ICMP); // setting the event ID
+				} catch (InterruptedException | ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				sendingPacketOut(notification);
 			} /// End of ICMP Packet
 		} /// End of ControllerEVentIF
@@ -364,6 +406,39 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 			}
 			else if (notification.getPacketType() instanceof IcmpPacketType) {
 				LOG.debug("Inside SubscribedEvent packet type: ICMP");
+				IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
+				ConnectedHostInfo srcHost = hostTable.get(icmpPacket.getSourceAddress());
+				ConnectedHostInfo dstHost = hostTable.get(icmpPacket.getDestinationAddress());
+				String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
+				String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
+				
+				LOG.debug("     ==================================================================     ");
+				LOG.debug("      SubscribedEvent called for src {} to dst {}", srcHost.getHostIP(), dstHost.getHostIP());
+				LOG.debug("     ==================================================================     ");
+				
+				if (eventManager.get(notification.getEventId()) == EVENT_ACTION_BLOCK_ICMP){
+					LOG.debug("     ==================================================================     ");
+					LOG.debug("      Blocking the ICMP flow");
+					LOG.debug("     ==================================================================     ");
+					
+					
+					List<String> path = null;
+					if (installedPaths.containsKey(forwardPathKey)){
+						path = installedPaths.get(forwardPathKey);
+						
+					} else if (installedPaths.containsKey(reversePathKey)) {
+						path = installedPaths.get(reversePathKey);
+					} else {
+						LOG.debug("     ==================================================================     ");
+						LOG.debug("		No oldPath found. returning without blocking...");
+						LOG.debug("     ==================================================================     ");
+						return;
+					}
+					
+					blockIP(srcHost.getHostIP(), null, TrafficType.ICMP, Integer.parseInt(path.get(0)), 0);
+				}
+				
+				
 			}
 		}
 
@@ -376,6 +451,50 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 		
 	}
 	
+	/**
+	 * Install a flow rule to Drops packets depending on the parameter 
+	 * @param srcIp
+	 * @param dstIp
+	 * @param trafficType
+	 * @param switchId
+	 */
+	private void blockIP(String srcIp, String dstIp, TrafficType trafficType, int switchId, int hardTimeOut) {
+		
+		LOG.debug("     ==================================================================     ");
+		LOG.debug("     Blocking IP Source {} to Destination {} starts ", srcIp, dstIp);
+		LOG.debug("     ==================================================================     ");
+		
+		InstallFlowRuleInputBuilder flowRuleInputBuilder = new InstallFlowRuleInputBuilder();
+		
+		flowRuleInputBuilder.setInPortId((long)0);
+		flowRuleInputBuilder.setSwitchId(switchId);
+		
+		if (srcIp != null) {
+			flowRuleInputBuilder.setSrcIpAddress(srcIp);
+		}
+			
+		if(dstIp != null) {
+			flowRuleInputBuilder.setDstIpAddress(dstIp);
+		}
+			
+		if(trafficType != null) {
+			flowRuleInputBuilder.setTypeOfTraffic(trafficType);
+		}
+			
+		
+		flowRuleInputBuilder.setFlowPriority(FLOW_PRIORITY + 30000);
+		flowRuleInputBuilder.setIdleTimeout(0);
+		flowRuleInputBuilder.setHardTimeout(hardTimeOut);
+		
+		flowRuleInputBuilder.setActionOutputPort(DROP);
+		this.activeSDNService.installFlowRule(flowRuleInputBuilder.build());
+		
+		LOG.debug("     ==================================================================     ");
+		LOG.debug("     Blocking IP Source {} to Destination {} ends ", srcIp, dstIp);
+		LOG.debug("     ==================================================================     ");
+		
+	}
+
 	/**
 	 * This example is about forwarding all ICMP and UDP packets between (10.0.0.1 and 10.0.0.12) but forward TCP packets to the controller to inspection.
 	 * After inspection the packets that successfully will be forward to the destination, malicious packet will be dropped.
