@@ -259,7 +259,7 @@ public class ActiveSDNAssignment implements ActivesdnListener{
 				installPath(icmpPacket);
 				sendingPacketOut(notification);
 				
-				simpleSubscribeEvent(icmpPacketType);
+				simpleSubscribeEvent(icmpPacketType); //icmp block event
 				
 				
 			} /// End of ICMP Packet
