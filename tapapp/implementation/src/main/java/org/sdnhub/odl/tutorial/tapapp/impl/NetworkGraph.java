@@ -15,6 +15,7 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.getnet
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import com.google.common.collect.Lists;
 
 public class NetworkGraph
@@ -129,7 +130,7 @@ public class NetworkGraph
             			Integer.toString(rightSwitch), true, shortestPathLength);
             	if (paths.size() == 1) {
                 	paths = allPaths.getAllPaths(Integer.toString(leftSwitch), 
-                			Integer.toString(rightSwitch), true, shortestPathLength + 1);
+                			Integer.toString(rightSwitch), true, shortestPathLength + 5);
             	}
             	List<List<String>> networkPaths = Lists.newArrayList();
             	for (GraphPath<String, DefaultEdge> path: paths){
@@ -137,6 +138,7 @@ public class NetworkGraph
             		//LOG.debug(path.toString());
             		//LOG.debug(" ======================================================================== ");
             		List<String> networkPath = Lists.newArrayList();
+            		networkPath.add(Integer.toString(leftSwitch));
             		String prevNode = Integer.toString(leftSwitch);
             		networkPath.add(prevNode);
             		for (DefaultEdge edge : path.getEdgeList()){

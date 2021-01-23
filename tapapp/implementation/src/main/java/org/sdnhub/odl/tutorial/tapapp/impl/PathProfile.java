@@ -52,6 +52,4 @@ public class PathProfile {
 	public void setMaxRisk(Integer maxRisk) {
 		this.maxRisk = maxRisk;
 	}
-	
-	
 }

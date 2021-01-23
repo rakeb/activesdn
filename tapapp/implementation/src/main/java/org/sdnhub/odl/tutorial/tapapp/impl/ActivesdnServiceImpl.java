@@ -1,9 +1,20 @@
 package org.sdnhub.odl.tutorial.tapapp.impl;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Map.Entry;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -29,7 +40,6 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.action.types.rev131112.addr
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.FlowCapableNode;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.FlowCapableNodeConnector;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.FlowId;
-//import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.Queue;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.tables.Table;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.tables.TableKey;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.inventory.rev130819.tables.table.Flow;
@@ -39,10 +49,8 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.statistics.rev130819.F
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.statistics.rev130819.FlowsStatisticsUpdate;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.statistics.rev130819.OpendaylightFlowStatisticsListener;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.statistics.rev130819.OpendaylightFlowStatisticsService;
-//import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.port.rev130925.queues.QueueKey;
-//import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.queue.rev130925.QueueId;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.port.rev130925.queues.Queue;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.port.rev130925.queues.QueueKey; 
+import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.port.rev130925.queues.QueueKey;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.queue.rev130925.QueueId;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.flow.Instructions;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.types.rev131026.instruction.instruction.ApplyActionsCase;
@@ -59,93 +67,16 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.N
 import org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes.NodeKey;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._3.match.Ipv4Match;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._4.match.TcpMatch;
-//import org.opendaylight.yang.gen.v1.urn.opendaylight.openflow.protocol.rev130731.multipart.reply.multipart.reply.body.multipart.reply.flow._case.multipart.reply.flow.FlowStatsBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.PacketProcessingService;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.packet.service.rev130709.TransmitPacketInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.FlowCapableNodeConnectorStatisticsData; 
-import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.flow.capable.node.connector.statistics.FlowCapableNodeConnectorStatistics; 
-import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.FlowCapableNodeConnectorQueueStatisticsData; 
+import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.FlowCapableNodeConnectorStatisticsData;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.NodeConnectorStatisticsUpdate;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.OpendaylightPortStatisticsListener;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.port.statistics.rev131214.node.connector.statistics.and.port.number.map.NodeConnectorStatisticsAndPortNumberMap;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.FlowCapableNodeConnectorQueueStatisticsData;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.OpendaylightQueueStatisticsListener;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.QueueStatisticsUpdate;
-//import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.flow.capable.node.connector.queue.statistics.FlowCapableNodeConnectorQueueStatistics;
-import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.queue.id.and.statistics.map.QueueIdAndStatisticsMap;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ActivesdnService;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateDstOnlyTunnelInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateDstOnlyTunnelOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateDstOnlyTunnelOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcDstTunnelInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcDstTunnelOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcDstTunnelOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcOnlyTunnelInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcOnlyTunnelOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.CreateSrcOnlyTunnelOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.FlowStatisticReceivedBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllFlowRulesFromASwitchInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllFlowRulesFromASwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllFlowRulesFromASwitchOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllHostsOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetAllHostsOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetFlowStatisticsInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetFlowStatisticsInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetFlowStatisticsOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetFlowStatisticsOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetPortStatisticsInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetPortStatisticsInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetPortStatisticsOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.GetPortStatisticsOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallFlowRuleInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallFlowRuleOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallFlowRuleOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallNetworkPathInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallNetworkPathOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallNetworkPathOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.InstallPathSegmentOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IpMutateInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IpMutateOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IpMutateOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.IsLinkFloodedBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.MigrateNetworkPathOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.ReRouteOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RedirectOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveAFlowRuleFromSwitchInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveAFlowRuleFromSwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveAFlowRuleFromSwitchOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveAllFlowsFromASwitchInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveAllFlowsFromASwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveAllFlowsFromASwitchOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveEventFromSwitchInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveEventFromSwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.RemoveEventFromSwitchOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SendPacketOutInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SendPacketOutOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SendPacketOutOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeEventInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeEventOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeEventOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForLinkFloodingCheckInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForLinkFloodingCheckOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForLinkFloodingCheckOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForStatsFromSwitchInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForStatsFromSwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.SubscribeForStatsFromSwitchOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.UnsubscribeForLinkFloodingCheckInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.UnsubscribeForLinkFloodingCheckOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.UnsubscribeForLinkFloodingCheckOutputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.UnsubscribeForStatsFromSwitchInput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.UnsubscribeForStatsFromSwitchOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.UnsubscribeForStatsFromSwitchOutputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.*;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.flow.statistic.received.SwitchStatistics;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.flow.statistic.received.SwitchStatisticsBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.get.all.flow.rules.from.a._switch.output.FlowRules;
@@ -156,6 +87,7 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.grp.flow.statistic.FlowStatisticBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.is.link.flooded.FloodedLinks;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.is.link.flooded.FloodedLinksBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.activesdn.rev150601.special.mutation.input.HMi;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.AddTapInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.AddTapOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.ConnectedHosts;
@@ -165,19 +97,17 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.Instal
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallInspectionPathOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathBwNodesInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathBwNodesOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathBwNodesOutputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.InstallPathOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.IpMutateEngineInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.IpMutateEngineOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.LocalIpv4Prefix;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MigratePathInput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MigratePathInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MigratePathOutput;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MovePathInputBuilder;
-import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MovePathOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MutateIpInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.MutateIpOutput;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.ReRouteEngineInputBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.ReRouteEngineOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.RemoveAFlowFromSwitchInputBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.RemoveAFlowFromSwitchOutput;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.RemoveATapFromSwitchInputBuilder;
@@ -238,8 +168,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+//import org.opendaylight.yang.gen.v1.urn.opendaylight.queue.statistics.rev131216.flow.capable.node.connector.queue.statistics.FlowCapableNodeConnectorQueueStatistics;
 
 //Previously it is called ActivesdnAPI
+@SuppressWarnings("deprecation")
 public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowStatisticsListener, OpendaylightPortStatisticsListener, OpendaylightQueueStatisticsListener{
 
 	private final Logger LOG = LoggerFactory.getLogger(this.getClass());
@@ -267,7 +199,12 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
     private long queueStartTime, queuePreviousTime, queueReportingTime = 51;
     private long observedQueueErrors = 0, observedReceiveDrops = 0, observedTransmitDrops = 0;
     private long delayedNotification = 0; 
-    private boolean skip = true; 
+    private boolean skip = true;
+    private int pathMutationFlowPriority = 350;
+    public Timer timer;
+    public boolean hasTimerStarted = false;
+    
+    private ActiveSDNAssignment activeSdnApp = TapServiceImpl.getActiveSDNAssignment();
     
 	public ActivesdnServiceImpl(DataBroker dataBroker, NotificationProviderService notificationService, RpcProviderRegistry rpcProviderRegistry) {
 		//Store the data broker for reading/writing from inventory store
@@ -282,6 +219,8 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
         //InstanceIdentifier<Nodes> nodesIID = InstanceIdentifier.builder(Nodes.class)
         //		.build();
         //registerDataChangeListeners(nodesIID, false);
+        
+        timer = new Timer();
         
         this.notificationService.registerNotificationListener(this);
 	}
@@ -805,34 +744,53 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		}
 	}
 	
+	/***
+	 * TODO this is not completed, when not yet implemented, 
+	 * take code from ActivesdnAssignment class
+	 */
 	@Override
 	public Future<RpcResult<IpMutateOutput>> ipMutate(IpMutateInput input) {
-		IpMutateEngineInputBuilder mutateIpBuilder = new IpMutateEngineInputBuilder();
+		IpMutateEngineInputBuilder ipMutateEngineInputBuilder = new IpMutateEngineInputBuilder();
 		try {
-			if (input.getOldDstIpAddress() == null || input.getOldSrcIpAddress() == null || 
-					input.getNewDstIpAddress() == null || input.getNewSrcIpAddress() == null || 
-					input.getSwitchesInPath()== null) {
+			if (input.getRipSrc() == null || input.getRipDst() == null || 
+					input.getVipSrc() == null || input.getVipDst() == null) {
 				String exception = "Incomplete Data is provided and some parameter has null value.";
 				throw new Exception(exception);
 			}
 			else {
-				mutateIpBuilder.setOldDstIpAddress(new Ipv4Prefix(input.getOldDstIpAddress()));
-				mutateIpBuilder.setOldSrcIpAddress(new Ipv4Prefix(input.getOldSrcIpAddress()));
-				mutateIpBuilder.setNewDstIpAddress(new Ipv4Prefix(input.getNewDstIpAddress()));
-				mutateIpBuilder.setNewSrcIpAddress(new Ipv4Prefix(input.getNewSrcIpAddress()));
+				ipMutateEngineInputBuilder.setRipSrc(new Ipv4Prefix(input.getRipSrc()));
+				ipMutateEngineInputBuilder.setRipDst(new Ipv4Prefix(input.getRipDst()));
+				ipMutateEngineInputBuilder.setVipSrc(new Ipv4Prefix(input.getVipSrc()));
+				ipMutateEngineInputBuilder.setVipDst(new Ipv4Prefix(input.getVipDst()));
+				
+				String forwardPathKey = input.getRipSrc() + ":" + input.getRipDst();
+				String reversePathKey = input.getRipDst() + ":" + input.getRipSrc();
+
+				HashMap<String, List<String>> installedPaths = activeSdnApp.getInstalledPaths();
+				List<String> path = installedPaths.get(forwardPathKey);
+				if (path == null) {
+					path = installedPaths.get(reversePathKey);
+					path = Lists.reverse(path); // path needed to get it in right order
+				} 
+				if (path == null) {
+					LOG.error("No Path found for IP mutation between src {}: dst {}", input.getRipSrc(), input.getRipDst());
+					String exception = "IP mutation failed";
+					throw new Exception(exception);
+				}
+				
 				List<NodeId> nodeList = Lists.newArrayList();
-				for (int node: input.getSwitchesInPath()){
-					NodeId nodeId = new NodeId("openflow:" + Integer.toString(node));
+				for (String node : path) {
+					NodeId nodeId = new NodeId("openflow:" + node);
 					nodeList.add(nodeId);
 				}
-				mutateIpBuilder.setPathNodes(nodeList);
 				
-				mutateIpBuilder.setFlowPriority(input.getFlowPriority());
-				mutateIpBuilder.setIdleTimeout(input.getIdleTimeout());
-				mutateIpBuilder.setHardTimeout(input.getHardTimeout());
-				///-------------------------------
+				ipMutateEngineInputBuilder.setPathNodes(nodeList);
+				ipMutateEngineInputBuilder.setFlowPriority(400);
+				ipMutateEngineInputBuilder.setIdleTimeout(0);
+				ipMutateEngineInputBuilder.setHardTimeout(0);
+
 				Future<RpcResult<IpMutateEngineOutput>> mutateIpFutureOutput =  
-				tapService.ipMutateEngine(mutateIpBuilder.build());
+				tapService.ipMutateEngine(ipMutateEngineInputBuilder.build());
 				if (mutateIpFutureOutput != null) {
 					IpMutateOutput output = new IpMutateOutputBuilder().
 							setStatus(mutateIpFutureOutput.get().getResult().getStatus()).build();
@@ -850,8 +808,196 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	}
 	
 	@Override
+	public Future<RpcResult<SpecialMutationOutput>> specialMutation(SpecialMutationInput input) {
+		long startTimeMillis = System.currentTimeMillis();
+		long endTimeMillis;
+		
+		
+
+		// H1-->(H3,H8),(H4,H11),
+		// H2-->(H1,H5),(H3,H9),(H4,H12),
+		// H3-->(H1,H6),(H4,H13),
+		// H4-->(H1,H7),(H3,H10),
+		try {
+			List<HMi> hMi = input.getHMi();
+			Integer n = input.getN();
+			List<String> unusedIpRange = new ArrayList<String>(
+					input.getUnusedIpRange()); // we are not interested to change the input
+
+//			List<SpecialMutationHost> mutationHosts = new ArrayList<SpecialMutationHost>();
+			LinkedHashMap<String, SpecialMutationHost> mutationHosts = new LinkedHashMap<String, SpecialMutationHost>();
+
+			Collection<ConnectedHostInfo> allHost = activeSdnApp.getHostTable().values();
+			for (ConnectedHostInfo host : allHost) {
+				SpecialMutationHost mHost = new SpecialMutationHost(host, hMi, n, unusedIpRange);
+				mutationHosts.put(host.getHostIP(), mHost);
+			}
+
+			combination(mutationHosts, mutationHosts.size(), 2);
+//			writeFile(mutationHosts, "dns_mapping.txt");
+			Future<RpcResult<IpMutateOutput>> status = generateSpecialMutationFlows(mutationHosts);
+			
+			endTimeMillis = System.currentTimeMillis();
+			long timeDiff = endTimeMillis - startTimeMillis;
+			
+			String textToAppend = "Total host: " + n +", Mutable Host: " + hMi.size() + ", Time taken: " + timeDiff;
+			
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("     Spatial mutation time duration: {} ms, and status: {}", timeDiff, textToAppend);
+			LOG.debug("     ==================================================================     ");
+		     
+		    BufferedWriter writer;
+			try {
+				writer = new BufferedWriter(
+				                            new FileWriter("spatial_mutation_eval.txt", true)  //Set true for append mode
+				                        );
+				writer.newLine();   //Add new line
+			    writer.write(textToAppend);
+			    writer.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 
+			
+			writeFile(mutationHosts, "dns_mapping.txt");
+			
+			if (status != null) {
+				SpecialMutationOutput specialMutationOutput = new SpecialMutationOutputBuilder().setStatus(status.get().getResult().getStatus()).build();
+				activeSdnApp.isSpecialMutationStarted = true;
+				return RpcResultBuilder.success(specialMutationOutput).buildFuture();
+			} else {
+				String exception = "Special mutation failed.";
+				throw new Exception(exception);
+			}
+			
+		} catch (Exception e) {
+			LOG.error("Exception reached in Create Source Destination lTunnel RPC {} --------", e);
+			return null;
+		}
+	}
+	
+	/**
+	 * We implement this function for only to use in spetial mutation
+	 * @param rIpSrc
+	 * @param vIpSrc
+	 * @param rIpDst
+	 * @param vIpDst
+	 * @return 
+	 */
+	Future<RpcResult<IpMutateOutput>> callIpMutation(String rIpSrc, String vIpSrc, String rIpDst, String vIpDst) {
+//		String forwardPathKey = rIpSrc + ":" + rIpDst;
+//		String reversePathKey = rIpDst + ":" + rIpSrc;
+//		List<Integer> pathNodes = Lists.newArrayList();
+		
+//		HashMap<String, List<String>> installedPaths = activeSdnApp.getInstalledPaths();
+//		List<String> path = installedPaths.get(forwardPathKey);
+//		if (path == null) {
+//			path = installedPaths.get(reversePathKey);
+//		} 
+//		if (path == null) {
+//			LOG.error("No Path found for special mutation between src {}: dst {}", rIpSrc, rIpDst);
+//			return null;
+//		}
+		
+//		for (String node : path) {
+//			pathNodes.add(Integer.parseInt(node));
+//		}
+		
+		IpMutateInputBuilder ipMutateInputBuilder = new IpMutateInputBuilder();
+		
+		ipMutateInputBuilder.setRipSrc(rIpSrc);
+		ipMutateInputBuilder.setVipSrc(vIpSrc);
+		ipMutateInputBuilder.setRipDst(rIpDst);
+		ipMutateInputBuilder.setVipDst(vIpDst);
+		
+		return ipMutate(ipMutateInputBuilder.build());
+	}
+	
+	public static Object getElementByIndex(LinkedHashMap map, int index) {
+        return map.get((map.keySet().toArray())[index]);
+    }
+	
+	public static <S, T> void combinationUtil(LinkedHashMap<S, T> arr, Object data[],
+			int start, int end, int index, int r) {
+		if (index == r) {
+			SpecialMutationHost src = (SpecialMutationHost) data[0];
+			SpecialMutationHost dst = (SpecialMutationHost) data[1];
+			src.updateMutationPair(dst);
+			dst.updateMutationPair(src);
+			return;
+		}
+
+		for (int i = start; i <= end && end - i + 1 >= r - index; i++) {
+            data[index] = getElementByIndex(arr, i);
+            combinationUtil(arr, data, i + 1, end, index + 1, r);
+        }
+	}
+
+	public static <S, T> void combination(LinkedHashMap<S, T> arr, int n, int r) {
+        Object data[] = new Object[r];
+        combinationUtil(arr, data, 0, n - 1, 0, r);
+    }
+	
+	Future<RpcResult<IpMutateOutput>> generateSpecialMutationFlows(LinkedHashMap<String, SpecialMutationHost> mutationHosts){
+		Future<RpcResult<IpMutateOutput>> status = null;
+		for (String hostName : mutationHosts.keySet()) {
+            SpecialMutationHost host = mutationHosts.get(hostName);
+            String rIpSrc = host.hostName;
+            String vIpSrc = "";
+            String rIpDst;
+            String vIpDst;
+			
+			for (SpecialMutationHost.Pair pair : host.mutationPair) {
+				rIpDst = (String) pair.getDest();
+				vIpDst = (String) pair.getMutatedDst();
+				
+				if (host.isMutable) {
+					SpecialMutationHost mRipDstHost = mutationHosts.get(rIpDst);
+	                for (SpecialMutationHost.Pair mRipDstHostPair : mRipDstHost.mutationPair) {
+	                    if (rIpSrc.equals(mRipDstHostPair.getDest())) {
+	                        vIpSrc = (String) mRipDstHostPair.getMutatedDst();
+	                        break;
+	                    }
+	                }
+				} else {
+					vIpSrc = rIpSrc;
+				}
+				status = callIpMutation(rIpSrc, vIpSrc, rIpDst, vIpDst);
+			}
+		}
+		
+		return status;
+	}
+
+	/**
+	 * This will create a file containing all mutated flows 
+	 * @param mutationHosts
+	 * @param fileName
+	 * @throws IOException
+	 */
+	public static void writeFile(LinkedHashMap<String, SpecialMutationHost> mutationHosts, String fileName) throws IOException {
+        PrintWriter pw = new PrintWriter(new FileWriter(fileName));
+
+        for (String hostName : mutationHosts.keySet()) {
+            SpecialMutationHost host = mutationHosts.get(hostName);
+            pw.write(hostName + "-->");
+            for (SpecialMutationHost.Pair pair : host.mutationPair) {
+                pw.write("(");
+                pw.write((String) pair.getDest());
+                pw.write(",");
+                pw.write((String) pair.getMutatedDst());
+                pw.write("),");
+            }
+            pw.write("\n");
+        }
+
+        pw.close();
+    }
+	
+	@Override
 	public Future<RpcResult<ReRouteOutput>> reRoute(ReRouteInput input) {
-		MovePathInputBuilder movePathBuilder = new MovePathInputBuilder();
+//		MovePathInputBuilder movePathBuilder = new MovePathInputBuilder();
+		ReRouteEngineInputBuilder reRouteEngineInputBuilder = new ReRouteEngineInputBuilder();
 		try {
 			if (input.getDstIpAddress() == null || input.getSrcIpAddress() == null || 
 					input.getSwitchesInOldPath() == null || input.getSwitchesInNewPath()== null) {
@@ -859,30 +1005,30 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 				throw new Exception(exception);
 			}
 			else {
-				movePathBuilder.setDstIpAddress(new Ipv4Prefix(input.getDstIpAddress()));
-				movePathBuilder.setSrcIpAddress(new Ipv4Prefix(input.getSrcIpAddress()));
+				reRouteEngineInputBuilder.setDstIpAddress(new Ipv4Prefix(input.getDstIpAddress()));
+				reRouteEngineInputBuilder.setSrcIpAddress(new Ipv4Prefix(input.getSrcIpAddress()));
 				List<NodeId> oldNodeList = Lists.newArrayList();
 				for (int node: input.getSwitchesInOldPath()){
 					NodeId nodeId = new NodeId("openflow:" + Integer.toString(node));
 					oldNodeList.add(nodeId);
 				}
-				movePathBuilder.setOldPathNodes(oldNodeList);
+				reRouteEngineInputBuilder.setOldPathNodes(oldNodeList);
 				
 				List<NodeId> newNodeList = Lists.newArrayList();
 				for (int node: input.getSwitchesInNewPath()){
 					NodeId nodeId = new NodeId("openflow:" + Integer.toString(node));
 					newNodeList.add(nodeId);
 				}
-				movePathBuilder.setNewPathNodes(newNodeList);
-				movePathBuilder.setFlowPriority(input.getFlowPriority());
-				movePathBuilder.setIdleTimeout(input.getIdleTimeout());
-				movePathBuilder.setHardTimeout(input.getHardTimeout());
-				///-------------------------------
-				Future<RpcResult<MovePathOutput>> movePathFutureOutput =  
-				tapService.movePath(movePathBuilder.build());
-				if (movePathFutureOutput != null) {
+				reRouteEngineInputBuilder.setNewPathNodes(newNodeList);
+				reRouteEngineInputBuilder.setRemoveOldPath(input.isRemoveOldPath());
+				reRouteEngineInputBuilder.setFlowPriority(input.getFlowPriority());
+				reRouteEngineInputBuilder.setIdleTimeout(input.getIdleTimeout());
+				reRouteEngineInputBuilder.setHardTimeout(input.getHardTimeout());
+
+				Future<RpcResult<ReRouteEngineOutput>> reRouteEngineOutput = tapService.reRouteEngine(reRouteEngineInputBuilder.build());
+				if (reRouteEngineOutput != null) {
 					ReRouteOutput output = new ReRouteOutputBuilder().
-							setStatus(movePathFutureOutput.get().getResult().getStatus()).build();
+							setStatus(reRouteEngineOutput.get().getResult().getStatus()).build();
 					return RpcResultBuilder.success(output).buildFuture();
 				}
 				else {
@@ -894,6 +1040,220 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			LOG.error("Exception reached in Re Route RPC {} --------", e);
 			return null;
 		}
+	}
+	
+	public boolean doPathMutate(String srcIp, String dstIp) {
+		
+		LOG.debug("		==============---------------=================----------------------");
+    	LOG.debug("		Starting Path Mutation ...");
+    	LOG.debug("		==============---------------=================----------------------");
+		
+		ConnectedHostInfo srcHost = activeSdnApp.getHostTable().get(srcIp);
+		ConnectedHostInfo dstHost = activeSdnApp.getHostTable().get(dstIp);
+		String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
+		String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
+		String key = null;	
+		
+		List<String> oldPath = null;
+		
+		HashMap<String, List<String>> installedPaths = activeSdnApp.getInstalledPaths();
+		
+		if (installedPaths.containsKey(forwardPathKey)){
+			oldPath = installedPaths.get(forwardPathKey);
+			key = forwardPathKey;
+		} 
+		
+		if(installedPaths.containsKey(reversePathKey)) {
+			oldPath = installedPaths.get(reversePathKey);
+			key = reversePathKey;
+		}
+		
+		if (oldPath == null) {
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("   Abroting path mutation as because there is no old path found in src {} <--> dst {}", srcIp, dstIp);
+			LOG.debug("     ==================================================================     ");
+			return false;
+		}
+		
+		LOG.debug("     ==================================================================     ");
+		LOG.debug("   	In path mutation oldPath {}", oldPath.toString());
+		LOG.debug("     ==================================================================     ");
+			
+		ReRouteInputBuilder reRouteInputBuilder = new ReRouteInputBuilder();
+		reRouteInputBuilder.setSrcIpAddress(srcIp);
+		reRouteInputBuilder.setDstIpAddress(dstIp);
+		reRouteInputBuilder.setRemoveOldPath(false);
+		reRouteInputBuilder.setFlowPriority(pathMutationFlowPriority); // staring value 350
+		pathMutationFlowPriority++;
+		reRouteInputBuilder.setIdleTimeout(20);	//usually after x seconds of idle time, get rid of this path
+		
+		List<Integer> oldPathNodes = Lists.newArrayList(); //List of switches along the old path
+		for (String node : oldPath){
+			oldPathNodes.add(Integer.parseInt(node));
+		}
+		reRouteInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
+		
+		int srcSwitchNumber = srcHost.getSwitchConnectedTo();
+		int dstSwitchNumber = dstHost.getSwitchConnectedTo();
+		
+		List<Integer> newPathNodes = Lists.newArrayList();
+		List<String> path = Utility.getDifferntPath(activeSdnApp.getTopology().findAllPaths(srcSwitchNumber, dstSwitchNumber), oldPath);
+		
+		if (path != null) {
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("   	In path mutation new Path {}", path.toString());
+			LOG.debug("     ==================================================================     ");
+			
+			for (String node : path){
+				newPathNodes.add(Integer.parseInt(node));
+			}
+			reRouteInputBuilder.setSwitchesInNewPath(newPathNodes);
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("   	Mutating path form oldPath {} newPath {}", oldPath, path);
+			LOG.debug("      ==================================================================     ");
+			installedPaths.put(key, path);
+			this.reRoute(reRouteInputBuilder.build());
+			
+			LOG.debug("		==============---------------=================----------------------");
+	    	LOG.debug("		Path Mutation ends...");
+	    	LOG.debug("		==============---------------=================----------------------");
+			
+			return true;
+		}
+		else {
+			LOG.debug("     ==================================================================     ");
+			LOG.debug("   	Abroting path mutation as because there is no new path found in src {} <--> dst {}", srcIp, dstIp);
+			LOG.debug("     ==================================================================     ");
+			
+			return false;
+		}
+	}
+	
+	@Override
+	public Future<RpcResult<PathMutateOutput>> pathMutate(PathMutateInput input) {
+		LOG.debug("Path Mutation RPC starts with Input: {}", input.toString());
+		
+		PathMutateOutputBuilder pathMutateOutputBuilder = new PathMutateOutputBuilder();
+		PathMutateOutput output;
+		String status;
+
+		final String srcIp = input.getSrc().get(0);
+    	final String dstIp = input.getDst().get(0);
+    	
+    	int pattern = input.getPattern();
+    	if (pattern == 0) {
+    		if (hasTimerStarted) {
+				timer.cancel();
+				hasTimerStarted = false;
+			}
+    		doPathMutate(srcIp, dstIp);
+    	} else if(pattern == -1) {
+    		//stopping any previous call of path mutation
+    		timer.cancel();
+    		hasTimerStarted = false;
+		} else {
+			if (!hasTimerStarted) {
+				timer = new Timer();
+			}
+    		TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                	doPathMutate(srcIp, dstIp);
+                }
+            };
+            timer.scheduleAtFixedRate(timerTask, 0, pattern * 1000);
+            hasTimerStarted = true;
+    	}
+    	
+    	LOG.debug("Path Mutation RPC ends.");
+    	
+    	status = "Path mutation successfull";
+		output = pathMutateOutputBuilder.setStatus(status).build();
+		return RpcResultBuilder.success(output).buildFuture();
+
+		
+//		ConnectedHostInfo srcHost = activeSdnApp.getHostTable().get(srcIp);
+//		ConnectedHostInfo dstHost = activeSdnApp.getHostTable().get(dstIp);
+//		String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
+//		String reversePathKey = dstHost.getHostIP() + ":" + srcHost.getHostIP();
+//		String key = null;	
+//		
+//		List<String> oldPath = null;
+//		
+//		HashMap<String, List<String>> installedPaths = activeSdnApp.getInstalledPaths();
+//		
+//		if (installedPaths.containsKey(forwardPathKey)){
+//			oldPath = installedPaths.get(forwardPathKey);
+//			key = forwardPathKey;
+//		} 
+//		
+//		if(installedPaths.containsKey(reversePathKey)) {
+//			oldPath = installedPaths.get(reversePathKey);
+//			key = reversePathKey;
+//		}
+//		
+//		if (oldPath == null) {
+//			LOG.debug("     ==================================================================     ");
+//			LOG.debug("   Abroting path mutation as because there is no old path found in src {} <--> dst {}", srcIp, dstIp);
+//			LOG.debug("     ==================================================================     ");
+//			status = "Path mutation failed as there is no current path found";
+//			output = pathMutateOutputBuilder.setStatus(status).build();
+//			return RpcResultBuilder.success(output).buildFuture();
+//		}
+//		
+//		LOG.debug("     ==================================================================     ");
+//		LOG.debug("   	In path mutation oldPath {}", oldPath.toString());
+//		LOG.debug("     ==================================================================     ");
+//			
+//		ReRouteInputBuilder reRouteInputBuilder = new ReRouteInputBuilder();
+//		reRouteInputBuilder.setSrcIpAddress(srcIp);
+//		reRouteInputBuilder.setDstIpAddress(dstIp);
+//		reRouteInputBuilder.setFlowPriority(pathMutationFlowPriority); // staring value 300
+//		pathMutationFlowPriority++;
+//		reRouteInputBuilder.setHardTimeout(input.getPattern());
+//		
+//		List<Integer> oldPathNodes = Lists.newArrayList(); //List of switches along the old path
+//		for (String node : oldPath){
+//			oldPathNodes.add(Integer.parseInt(node));
+//		}
+//		reRouteInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
+//		
+//		int srcSwitchNumber = srcHost.getSwitchConnectedTo();
+//		int dstSwitchNumber = dstHost.getSwitchConnectedTo();
+//		
+//		reRouteInputBuilder.setSwitchesInOldPath(oldPathNodes); //list of switches along the new path
+//		
+//		List<Integer> newPathNodes = Lists.newArrayList();
+//		List<String> path = Utility.getDifferntPath(activeSdnApp.getTopology().findAllPaths(srcSwitchNumber, dstSwitchNumber), oldPath);
+//		
+//		if (path != null) {
+//			LOG.debug("     ==================================================================     ");
+//			LOG.debug("   	In path mutation new Path {}", path.toString());
+//			LOG.debug("     ==================================================================     ");
+//			
+//			for (String node : path){
+//				newPathNodes.add(Integer.parseInt(node));
+//			}
+//			reRouteInputBuilder.setSwitchesInNewPath(newPathNodes);
+//			LOG.debug("     ==================================================================     ");
+//			LOG.debug("   	Mutating path form oldPath {} newPath {}", oldPath, path);
+//			LOG.debug("      ==================================================================     ");
+//			installedPaths.put(key, path);
+//			this.reRoute(reRouteInputBuilder.build());
+//			
+//			status = "Path mutation successfull";
+//			output = pathMutateOutputBuilder.setStatus(status).build();
+//			return RpcResultBuilder.success(output).buildFuture();
+//		}
+//		else {
+//			LOG.debug("     ==================================================================     ");
+//			LOG.debug("   	Abroting path mutation as because there is no new path found in src {} <--> dst {}", srcIp, dstIp);
+//			LOG.debug("     ==================================================================     ");
+//			
+//			status = "Path mutation failed as there is no new path found";
+//			output = pathMutateOutputBuilder.setStatus(status).build();
+//			return RpcResultBuilder.success(output).buildFuture();
+//		}
 	}
 	
 	
@@ -1430,8 +1790,8 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 										FlowStatisticBuilder flowStatsBuilder = new FlowStatisticBuilder();
 										//LOG.debug("----------FlowKey {} ", flowKey.getId().getValue());
 										flowStatsBuilder.setFlowId(flowKey.getId().getValue());
-										flowStatsBuilder.setPacketCount(data.getFlowStatistics().getPacketCount().getValue().longValue());
-										flowStatsBuilder.setByteCount(data.getFlowStatistics().getByteCount().getValue().longValue());
+										flowStatsBuilder.setPacketCount(data.getFlowStatistics().getPacketCount().getValue());
+										flowStatsBuilder.setByteCount(data.getFlowStatistics().getByteCount().getValue());
 										flowStatsBuilder.setDuration(data.getFlowStatistics().getDuration().getSecond().getValue());
 										///====================================
 										if (flow.getMatch().getLayer3Match() != null){
@@ -1515,13 +1875,18 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	@Override
 	public void onAggregateFlowStatisticsUpdate(
 			AggregateFlowStatisticsUpdate notification) {
-		//LOG.debug("--------------------------onAggregateFlowStatisticUpdate Called -----------------");
+		
+//		LOG.debug("onAggregateFlowStatisticUpdate Called");
+		
 		List<SwitchStatistics> switchStats = Lists.newArrayList();
 
 		if (listOfSwitchesForStats.isEmpty()){
 			LOG.debug("There are no subscribed switches available for statistic collection");
 			return;
 		}
+		
+		LOG.debug("onAggregateFlowStatisticUpdate Called");
+		
 		for (Iterator<Integer> swItr = listOfSwitchesForStats.iterator(); swItr.hasNext();){
 			int switchId = swItr.next();
 			LOG.debug(" ");
@@ -1564,6 +1929,9 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 
 	@Override
 	public void onFlowsStatisticsUpdate(FlowsStatisticsUpdate notification) {	
+
+//		LOG.debug("onFlowStatisticUpdate Called");
+		
 		long timeMillis = System.currentTimeMillis();
 		long seconds = TimeUnit.MILLISECONDS.toSeconds(timeMillis);
 		if (firstTime == true){
@@ -1573,22 +1941,20 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		else if (seconds - previousTime < reportingTime){
 			return;
 		}
-		//LOG.debug("--------------------------onFlowStatisticUpdate Called -----------------");
-		//LOG.debug("SwitchID {}", notification.getId().getValue());
-		//LOG.debug(" ");
+
 		previousTime = seconds;
 		List<SwitchStatistics> switchStats = Lists.newArrayList();
 
 		if (listOfSwitchesForStats.isEmpty()){
-			LOG.debug("There are no subscribed switches and links available for statistic collection");
+//			LOG.debug("There are no subscribed switches and links available for statistic collection");
 			return;
 		}
-		LOG.debug("Fetching statistics from the subscribed switches and links in the network ....");
+		
+		LOG.debug("onFlowStatisticUpdate Called");
+		LOG.debug("Fetching statistics from the subscribed switches and links in the network...");
+		
 		for (Iterator<Integer> swItr = listOfSwitchesForStats.iterator(); swItr.hasNext();){
 			int switchId = swItr.next();
-			//LOG.debug(" ");
-			//LOG.debug("SwitchID {}", switchId);
-			
 			try {
 				Future<RpcResult<GetFlowStatisticsOutput>> futureOutput = 
 						this.getFlowStatistics(new GetFlowStatisticsInputBuilder().setSwitchId(switchId).build());
@@ -1657,6 +2023,8 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	public Future<RpcResult<UnsubscribeForStatsFromSwitchOutput>> unsubscribeForStatsFromSwitch(
 			UnsubscribeForStatsFromSwitchInput input) {
 		
+		LOG.debug("unsubscribeForStatsFromSwitch Called");
+		
 		if (listOfSwitchesForStats.contains(input.getSwitchId())){
 			listOfSwitchesForStats.remove(input.getSwitchId());
 			LOG.debug("Switch ID {} is un-subscribed and no statistic will be collected for it.", input.getSwitchId());
@@ -1673,13 +2041,21 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 	public Future<RpcResult<SubscribeForStatsFromSwitchOutput>> subscribeForStatsFromSwitch(
 			SubscribeForStatsFromSwitchInput input) {
 		
-		if (listOfSwitchesForStats.contains(input.getSwitchId())){
-			LOG.debug("Switch ID {} is already subscribed.", input.getSwitchId());
+		LOG.debug("subscribeForStatsFromSwitch Called");
+		
+		List<Integer> switchIDs = input.getSwitchIds();
+		
+		for (Integer switchID : switchIDs) {
+			if (listOfSwitchesForStats.contains(switchID)){
+				LOG.debug("Switch ID {} is already subscribed.", switchID);
+			}
+			else {
+				listOfSwitchesForStats.add(switchID);
+				LOG.debug("Switch ID {} is subscribed for statistic collection", switchID);
+			}
 		}
-		else {
-			listOfSwitchesForStats.add(input.getSwitchId());
-			LOG.debug("Switch ID {} is subscribed for statistic collection", input.getSwitchId());
-		}
+		
+		
 		//LOG.debug("returning control");
 		SubscribeForStatsFromSwitchOutputBuilder outputBuilder = new SubscribeForStatsFromSwitchOutputBuilder();
 		outputBuilder.setStatus("Subscribing was successful");
@@ -1700,10 +2076,10 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 //				LOG.debug("NodeConnectorID {}", portStats.getNodeConnectorId().getValue());
 //				LOG.debug("PacketReceiveDrops {}", portStats.getReceiveDrops());
 //				LOG.debug("PacketTransmitDrops {}", portStats.getTransmitDrops());
-//				LOG.debug("Packets Received {}", portStats.getPackets().getReceived().intValue());
-//				LOG.debug("Packets Transmitted {}", portStats.getPackets().getTransmitted().intValue());
-//				LOG.debug("Packets Transmit Errors {}", portStats.getTransmitErrors().intValue());
-//				LOG.debug("Packets Receive Errors {}", portStats.getReceiveErrors().intValue());
+//				LOG.debug("Packets Received {}", portStats.getPackets().getReceived());
+//				LOG.debug("Packets Transmitted {}", portStats.getPackets().getTransmitted());
+//				LOG.debug("Packets Transmit Errors {}", portStats.getTransmitErrors());
+//				LOG.debug("Packets Receive Errors {}", portStats.getReceiveErrors());
 //				LOG.debug("-----------------------------------------------");
 			}
 		}
@@ -1798,7 +2174,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		}
 		else {
 			listOfSwitchPortsForStats.put(nodeConnector, input.getDropThreshold());
-			LOG.debug("Port ID {} of Switch {} is subscribed for statistics.", input.getConnectorId(), input.getSwitchId());			
+			LOG.debug("Port ID {} of Switch {} is subscribed for Linkflooding statistics collection.", input.getConnectorId(), input.getSwitchId());			
 		}
 		SubscribeForLinkFloodingCheckOutputBuilder outputBuilder = new SubscribeForLinkFloodingCheckOutputBuilder();
 		outputBuilder.setStatus("Subscribing port statistics was successful");
@@ -1925,6 +2301,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			if (queue0Stats != null){
 				long transmittedPackets = queue0Stats.getFlowCapableNodeConnectorQueueStatistics().getTransmittedPackets().getValue().longValue();
 				long transmissionErrors = queue0Stats.getFlowCapableNodeConnectorQueueStatistics().getTransmissionErrors().getValue().longValue();
+				//Error larger than threshold [=listOfSwitchPortsForStats.get(portId)]
 				if (transmissionErrors - observedQueueErrors > listOfSwitchPortsForStats.get(portId)){
 					LOG.debug("");
 					LOG.debug("SwitchID {} , LinkID {}", switchId, connectorId);
@@ -1963,4 +2340,335 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			this.notificationService.publish(linkFlooded.build());
 		}
 	}
+
+	@Override
+	public Future<RpcResult<CheckUdpIcmpFlowsOutput>> checkUdpIcmpFlows(
+			CheckUdpIcmpFlowsInput input) {
+		
+		LOG.debug("Check Udp Icmp Flows called with Input {}", input.toString());
+		
+		CheckUdpIcmpFlowsOutputBuilder builder = new CheckUdpIcmpFlowsOutputBuilder();
+		CheckUdpIcmpFlowsOutput output;
+		
+		long udpBytes = 0;
+		long icmpBytes = 0;
+		long totalBytes = 0;
+
+		List<String> flowIDs = Lists.newArrayList();
+		
+		SwitchStatsSnapshot s = activeSdnApp.currentSwitchStats.get(input.getSwitchId());
+		
+		for (String flowId : s.listOfFlows.keySet()){
+			FlowStatsTuple flowTuple = s.listOfFlows.get(flowId);
+			if (activeSdnApp.blockedIPs.contains(flowTuple.srcIPAddress)){continue;}
+			if (activeSdnApp.throttledIPs.contains(flowTuple.srcIPAddress)){continue;}
+			if (activeSdnApp.serverIPs.contains(flowTuple.srcIPAddress)){continue;}
+			if (activeSdnApp.whiteListedSources.contains(flowTuple.srcIPAddress)){continue;}
+			totalBytes += flowTuple.byteCount;
+			if (flowTuple.traffic == TrafficProtocolType.ICMP) {
+				icmpBytes += flowTuple.byteCount;
+			}
+			else if (flowTuple.traffic == TrafficProtocolType.UDP) {
+				if (flowTuple.byteCount == 0){continue;}
+				udpBytes += flowTuple.byteCount;
+				flowIDs.add(flowId);
+			}
+		}
+		//LOG.debug("UDP Bytes {} and Total bytes {}", udpBytes, totalBytes);
+		if (((float)udpBytes / (float)totalBytes) * 100 >= input.getAnomalousRate()){
+			//LOG.debug("///////////////////////UDP Rate found //////////////");
+			
+			output = builder.setFlowIds(flowIDs).build();
+			
+			return RpcResultBuilder.success(output).buildFuture();
+		}
+		//else if (((float)udpBytes / (float)totalBytes) * 100 >= anomalousRate){
+		//	return true;
+		//}
+		else {
+			output = builder.setFlowIds(null).build();
+			return RpcResultBuilder.success(output).buildFuture();
+		}
+	}
+
+	@Override
+	public Future<RpcResult<CheckElephantTcpFlowOutput>> checkElephantTcpFlow(
+			CheckElephantTcpFlowInput input) {
+		
+		LOG.debug("Check Elephant TCP flows with Input {}", input.toString());
+		CheckElephantTcpFlowOutputBuilder builder = new CheckElephantTcpFlowOutputBuilder();
+		CheckElephantTcpFlowOutput output;
+		
+		
+		List<String> elephantFlows = Lists.newArrayList();
+		
+		SwitchStatsSnapshot s = activeSdnApp.currentSwitchStats.get(input.getSwitchId());
+		
+		LOG.debug("Checking Elephant Flows ......................");
+		
+		ArrayList<Long> flowBytes = new ArrayList<Long>();
+		for (String flowId : s.listOfFlows.keySet()){ 
+			if (s.listOfFlows.get(flowId).traffic == TrafficProtocolType.UDP){continue;}
+			if (activeSdnApp.blockedIPs.contains(s.listOfFlows.get(flowId).srcIPAddress)){continue;}
+			if (activeSdnApp.throttledIPs.contains(s.listOfFlows.get(flowId).srcIPAddress)){continue;}
+			if (s.listOfFlows.get(flowId).srcIPAddress == "") {continue;}
+			if (activeSdnApp.serverIPs.contains(s.listOfFlows.get(flowId).srcIPAddress)) {continue;}
+			if (activeSdnApp.whiteListedSources.contains(s.listOfFlows.get(flowId).srcIPAddress)){continue;}
+			if (s.listOfFlows.get(flowId).byteCount > 0){
+				flowBytes.add(s.listOfFlows.get(flowId).byteCount);
+			}
+		}
+		
+		if (flowBytes.size() < 1) {
+			output = builder.setFlowIds(elephantFlows).build();
+			return RpcResultBuilder.success(output).buildFuture();
+		}
+		
+		Collections.sort(flowBytes);
+		int median = flowBytes.size() / 2;
+		long baseLineValue = flowBytes.get(median);
+		
+		for (String flowId : s.listOfFlows.keySet()){
+			if (s.listOfFlows.get(flowId).traffic == TrafficProtocolType.UDP){continue;}
+			if (activeSdnApp.blockedIPs.contains(s.listOfFlows.get(flowId).srcIPAddress)){continue;}
+			if (activeSdnApp.throttledIPs.contains(s.listOfFlows.get(flowId).srcIPAddress)){continue;}
+			if (s.listOfFlows.get(flowId).srcIPAddress == "") {continue;}
+			if (activeSdnApp.serverIPs.contains(s.listOfFlows.get(flowId).srcIPAddress)) {continue;}
+			if (activeSdnApp.whiteListedSources.contains(s.listOfFlows.get(flowId).srcIPAddress)){continue;}
+			if (s.listOfFlows.get(flowId).byteCount > (baseLineValue * input.getAnomalousThreshold()) ){
+				//String entry = currentSwitchStats.get(switchId).listOfFlows.get(flowId).flowId 
+				//		+ "," + currentSwitchStats.get(switchId).listOfFlows.get(flowId).srcIPAddress;
+				String entry = s.listOfFlows.get(flowId).flowId;
+				elephantFlows.add(entry);
+			}
+		}
+		output = builder.setFlowIds(elephantFlows).build();
+		return RpcResultBuilder.success(output).buildFuture();
+	}
+
+	@Override
+	public Future<RpcResult<CheckNewComersOutput>> checkNewComers(
+			CheckNewComersInput input) {
+		
+		LOG.debug("Check New Comer Ratio with Input {}", input.toString());
+		
+		CheckNewComersOutputBuilder builder = new CheckNewComersOutputBuilder();
+		CheckNewComersOutput output;
+		
+		int newComerRatio;
+		int currentNumberofFlows = 0;	//This is to check how many total flows we have seen in current
+										// windows so that we can calculate the ratio of new comers
+		activeSdnApp.listOfNewComers.clear();
+		for (String srcIp : activeSdnApp.sourceIpConfidence.keySet()){
+			if (activeSdnApp.throttledIPs.contains(srcIp)){continue;} //if some IP has already been throttled then we'll not consider it
+			if (activeSdnApp.blockedIPs.contains(srcIp)){continue;}
+			if (activeSdnApp.whiteListedSources.contains(srcIp)){continue;}
+			//LOG.debug("---------------Current Source IP {} ", srcIp);
+			int noOfSnapshots = activeSdnApp.sourceIpConfidence.get(srcIp).size();
+			if (activeSdnApp.sourceIpConfidence.get(srcIp).get(noOfSnapshots - 1) == true){
+				currentNumberofFlows += 1;
+				//LOG.debug("CurrentNumberofFlows {}", currentNumberofFlows);
+			}
+			int srcIPFrequency = 0;
+			if ( noOfSnapshots > input.getSlidingWindowSize()) {
+				srcIPFrequency = Collections.frequency(activeSdnApp.sourceIpConfidence.get(srcIp).
+						subList(noOfSnapshots - input.getSlidingWindowSize(), noOfSnapshots - 1), true);
+				//LOG.debug("srcIPFrequency {}", srcIPFrequency);
+			}
+			else {
+				srcIPFrequency = Collections.frequency(activeSdnApp.sourceIpConfidence.get(srcIp), true);
+				//LOG.debug("srcIPFrequency {}", srcIPFrequency);
+			}
+			//if (((float) srcIPFrequency / (float) slidingWindowSize) * 100 < newComerThreshold){
+			if (srcIPFrequency < input.getNewComerThreshold()){
+				//whiteListedIPs.add(srcIp);
+				activeSdnApp.listOfNewComers.add(srcIp);
+				//LOG.debug("srcIP Added {}", srcIp);
+			}
+		}
+		newComerRatio =  (int) ((((float) activeSdnApp.listOfNewComers.size()) / ((float) currentNumberofFlows))*100);
+		output = builder.setNewComerRatio(newComerRatio).build();
+		
+		return RpcResultBuilder.success(output).buildFuture();
+	}
+
+	@Override
+	public Future<RpcResult<LimitFlowOutput>> limitFlow(LimitFlowInput input) {
+		
+		LOG.debug("Limit flow called with Input {}", input.toString());
+		
+		LimitFlowOutput output;
+		LimitFlowOutputBuilder builder = new LimitFlowOutputBuilder();
+		
+		
+		int currentSnapshotIndex = activeSdnApp.networkStatistics.get(input.getSwitchId()).size() - 1;
+		SwitchStatsSnapshot snapshot = activeSdnApp.networkStatistics.get(input.getSwitchId()).get(currentSnapshotIndex);
+		for (String flowId : snapshot.listOfFlows.keySet()){
+			if (snapshot.listOfFlows.get(flowId).srcIPAddress.equals(input.getSourceIp())){
+				FlowStatsTuple flowTuple = snapshot.listOfFlows.get(flowId);
+				InstallFlowRuleInputBuilder flowRuleInputBuilder = new InstallFlowRuleInputBuilder();
+				
+				flowRuleInputBuilder.setInPortId((long)0);
+				flowRuleInputBuilder.setSwitchId(input.getSwitchId());
+				flowRuleInputBuilder.setSrcIpAddress(flowTuple.srcIPAddress);
+				flowRuleInputBuilder.setDstIpAddress(flowTuple.dstIPAddress);
+				flowRuleInputBuilder.setFlowPriority(300);
+				flowRuleInputBuilder.setIdleTimeout(0);
+				flowRuleInputBuilder.setHardTimeout(0);
+				flowRuleInputBuilder.setActionOutputPort(Integer.toString(input.getFloodedLink()));
+				//As we have only two queues available with Queue IDs 0 & 1. 0 default port with full speed, however
+				//1 is used for throttling the rate. In future, if we use more queues then it should be made more 
+				//dynamic
+				flowRuleInputBuilder.setActionSetPortQueue(1);
+				//if (flowTuple.traffic != null){
+					//if (flowTuple.traffic == TrafficProtocolType.ICMP){
+						flowRuleInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
+						this.installFlowRule(flowRuleInputBuilder.build());
+					//}
+					//else if (flowTuple.traffic == TrafficProtocolType.TCP){
+						flowRuleInputBuilder.setTypeOfTraffic(TrafficType.TCP);
+						this.installFlowRule(flowRuleInputBuilder.build());
+					//}
+					//else if (flowTuple.traffic == TrafficProtocolType.UDP){
+						//LOG.debug("UDP flow rule found ");
+						flowRuleInputBuilder.setTypeOfTraffic(TrafficType.UDP);				
+						this.installFlowRule(flowRuleInputBuilder.build());
+					//}
+				//}	
+			}
+		}
+				
+		if (!activeSdnApp.throttledIPs.contains(input.getSourceIp())){
+			LOG.debug("Source IP {} is Throttled. ", input.getSourceIp());
+			activeSdnApp.throttledIPs.add(input.getSourceIp());
+		}
+		
+		String status = "Flow limiting successfull";
+		output = builder.setStatus(status).build();
+		return RpcResultBuilder.success(output).buildFuture();
+	}
+
+	@Override
+	public Future<RpcResult<BlockFlowOutput>> blockFlow(BlockFlowInput input) {
+		BlockFlowOutput output;
+		BlockFlowOutputBuilder builder = new BlockFlowOutputBuilder();
+		String status;
+		
+		int currentSnapshotIndex = activeSdnApp.networkStatistics.get(input.getSwitchId()).size() - 1;
+		SwitchStatsSnapshot snapshot = activeSdnApp.networkStatistics.get(input.getSwitchId()).get(currentSnapshotIndex);
+		if (snapshot.listOfFlows.containsKey(input.getFlowId())){
+			FlowStatsTuple flowTuple = snapshot.listOfFlows.get(input.getFlowId());
+			if (activeSdnApp.serverIPs.contains(flowTuple.srcIPAddress)){
+				status = "Server IP will not going to block";
+				output = builder.setStatus(status).build();
+				return RpcResultBuilder.success(output).buildFuture();
+			}
+			InstallFlowRuleInputBuilder flowRuleInputBuilder = new InstallFlowRuleInputBuilder();
+			
+			flowRuleInputBuilder.setInPortId((long)0);
+			flowRuleInputBuilder.setSwitchId(input.getSwitchId());
+			flowRuleInputBuilder.setSrcIpAddress(flowTuple.srcIPAddress);
+			flowRuleInputBuilder.setDstIpAddress(flowTuple.dstIPAddress);
+			flowRuleInputBuilder.setFlowPriority(300);
+			flowRuleInputBuilder.setIdleTimeout(0);
+			flowRuleInputBuilder.setHardTimeout(0);
+			//This will set the output port to Drop so that packet belongs to this flow will be immediately dropped.
+			flowRuleInputBuilder.setActionOutputPort(DROP);
+			if (input.getType().equals("UDP")){
+				flowRuleInputBuilder.setTypeOfTraffic(TrafficType.UDP);
+				this.installFlowRule(flowRuleInputBuilder.build());
+			}
+			else if (input.getType().equals("Elephant")){
+				flowRuleInputBuilder.setTypeOfTraffic(TrafficType.TCP);
+				this.installFlowRule(flowRuleInputBuilder.build());
+			}
+			else if (input.getType().equals("NewComers")){
+				if (flowTuple.traffic != null){
+					if (flowTuple.traffic == TrafficProtocolType.ICMP){
+						flowRuleInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
+					}
+					else if (flowTuple.traffic == TrafficProtocolType.TCP){
+						flowRuleInputBuilder.setTypeOfTraffic(TrafficType.TCP);
+					}
+					else if (flowTuple.traffic == TrafficProtocolType.UDP){
+						//LOG.debug("UDP flow rule found ");
+						flowRuleInputBuilder.setTypeOfTraffic(TrafficType.UDP);						
+					}
+				}	
+				this.installFlowRule(flowRuleInputBuilder.build());
+			}
+		
+			if (!activeSdnApp.blockedIPs.contains(flowTuple.srcIPAddress)){
+				LOG.debug("Source IP {} is blocked.", flowTuple.srcIPAddress);
+				activeSdnApp.blockedIPs.add(flowTuple.srcIPAddress);
+			}
+		}
+		
+		status = "Flow successfully blocked";
+		output = builder.setStatus(status).build();
+		return RpcResultBuilder.success(output).buildFuture();
+	}
+
+	@Override
+	public Future<RpcResult<FindPotentialFloodedLinkOutput>> findPotentialFloodedLink(
+			FindPotentialFloodedLinkInput input) {
+
+		String criticalLink = "";
+		activeSdnApp.criticalLinks.clear();
+
+		for (List<String> path : activeSdnApp.getInstalledPaths().values()) {
+			for (int index = 1; index < path.size() - 2; index++) {
+				// Currently I have made this to ensure that I find Critical
+				// link in the middle of the network
+				// and not with the edge routers
+				String link = path.get(index) + ":" + path.get(index + 1);
+				String revLink = path.get(index + 1) + ":" + path.get(index);
+				if (activeSdnApp.criticalLinks.containsKey(link)) {
+					activeSdnApp.criticalLinks.put(link, activeSdnApp.criticalLinks.get(link) + 1);
+				} else if (activeSdnApp.criticalLinks.containsKey(revLink)) {
+					activeSdnApp.criticalLinks.put(revLink, activeSdnApp.criticalLinks.get(revLink) + 1);
+				} else {
+					activeSdnApp.criticalLinks.put(link, 1);
+				}
+			}
+		}
+
+		int maxValue = (Collections.max(activeSdnApp.criticalLinks.values())); // This will return max value in the Hashmap
+
+		for (Entry<String, Integer> entry : activeSdnApp.criticalLinks.entrySet()) { // Iterate through hashmap
+			// if (entry.getKey().contains("11") ||
+			// entry.getKey().contains("5")) {continue;}
+			if (entry.getValue() == maxValue) {
+				LOG.debug("     ^^^^^^^^^^^^^^==============================^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^     ");
+				LOG.debug("                    Critical Link = {} ",
+						entry.getKey());
+				LOG.debug("     ^^^^^^^^^^^^^^==============================^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^     ");
+				criticalLink = entry.getKey();
+				break;
+			}
+		}
+		
+		int leftSwitch = Integer.parseInt(criticalLink.split(":")[0]);
+		int rightSwitch = Integer.parseInt(criticalLink.split(":")[1]);
+		LinkInfo link = activeSdnApp.getTopology().findLink(leftSwitch, rightSwitch);
+		
+		FindPotentialFloodedLinkOutput output;
+		FindPotentialFloodedLinkOutputBuilder builder = new FindPotentialFloodedLinkOutputBuilder();
+		builder.setCriticalLink(criticalLink);
+		builder.setLeftSwitch(leftSwitch);
+		builder.setLeftSwitchPort(link.getLeftSwitchPortNumber());
+		builder.setRightSwitch(rightSwitch);
+		builder.setRightSwitchPort(link.getRightSwitchPortNumber());
+		output = builder.build();
+		return RpcResultBuilder.success(output).buildFuture();
+	}
+
+	
+
+//	@Override
+//	public Future<RpcResult<FindPotentialFloodedLinkOutput>> findPotentialFloodedLink(
+//			FindPotentialFloodedLinkInput input) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 }

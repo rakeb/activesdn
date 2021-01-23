@@ -15,7 +15,6 @@
         <configfile finalname="etc/opendaylight/karaf/${tapapp.configfile}">mvn:org.sdnhub.odl.tutorial.tapapp/tapapp-config/${tapapp.version}/xml/config</configfile>
     </feature>
     <feature name="jgrapht-core" description="Package for Graph Handling" version="1.0">
-    <bundle>wrap:http://repo1.maven.org/maven2/org/jgrapht/jgrapht-core/1.0.0/jgrapht-core-1.0.0.jar</bundle>
+    <bundle>wrap:http://insecure.repo1.maven.org/maven2/org/jgrapht/jgrapht-core/1.0.0/jgrapht-core-1.0.0.jar</bundle>
     </feature>
-
 </features>

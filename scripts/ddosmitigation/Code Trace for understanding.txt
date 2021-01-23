@@ -1,0 +1,449 @@
+DDoS call sequence:
+
+findCriticalLink
+subscribeForStatsFromSwitch -2 times  --> listOfSwitchesForStats
+subscribeForLinkFloodingCheck --> listOfSwitchPortsForStats
+onFlowsStatisticsUpdate
+onQueueStatisticsUpdate
+onIsLinkFlooded
+ddosMitigation
+
+
+
+
+
+logs:
+-------------
+2021-01-21 22:46:55,246 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:46:55,318 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:46:55,318 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:46:55,319 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:47:05,151 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:47:05,152 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:6 and DstNodeConnector host:2a:14:54:c7:43:7f
+2021-01-21 22:47:05,152 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:47:05,152 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:47:05,152 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:2a:14:54:c7:43:7f and DstNodeConnector openflow:6
+2021-01-21 22:47:05,152 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:47:05,206 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:47:05,207 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:47:05,207 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:47:15,149 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:47:15,149 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:5e:1e:64:1a:21:19 and DstNodeConnector openflow:7
+2021-01-21 22:47:15,149 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:47:15,149 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:47:15,149 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:5e:1e:64:1a:21:19
+2021-01-21 22:47:15,149 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:47:15,188 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:47:15,188 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:47:15,188 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:47:15,319 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      ^^^^^^^^^^^^^^==============================^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^     
+2021-01-21 22:47:15,319 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |                     Critical Link = 1:9 
+2021-01-21 22:47:15,319 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      ^^^^^^^^^^^^^^==============================^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^     
+2021-01-21 22:47:15,321 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Switch ID 1 is subscribed for statistic collection
+2021-01-21 22:47:15,322 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Switch ID 9 is subscribed for statistic collection
+2021-01-21 22:47:15,322 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Port ID 4 of Switch 1 is subscribed for statistics.
+2021-01-21 22:47:24,171 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:47:24,172 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:7e:f2:a5:4d:d9:7c and DstNodeConnector openflow:7
+2021-01-21 22:47:24,172 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:47:24,173 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:47:24,173 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:7e:f2:a5:4d:d9:7c
+2021-01-21 22:47:24,173 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:47:24,223 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:47:24,223 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:47:24,223 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:47:29,014 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Fetching statistics from the subscribed switches and links in the network ....
+2021-01-21 22:47:34,735 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:47:34,735 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | SwitchID 1 , LinkID 4
+2021-01-21 22:47:34,735 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Dropped Packets 17969
+2021-01-21 22:47:34,735 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Transmitted Packets 465
+2021-01-21 22:47:34,735 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ------------------------------
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------- IsLinkFloodedNotification is called -----
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | *************************************************************
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |       Port 4 of Switch 1 is flooded
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | *************************************************************
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ----DDoSMitigation function is called ------
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Checking high rate UDP/ICMP flows .....
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |  .... Not found ...
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Checking Elephant Flows ......................
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Elephant flows are found ....
+2021-01-21 22:47:34,737 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Elephant Flow ID 75
+2021-01-21 22:47:34,771 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:47:34,784 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | &&&&&&&&&&  Source IP 10.0.0.4/32 is blocked. &&&&&&&&&&
+2021-01-21 22:47:34,784 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:47:57,044 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:47:57,045 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:1 and DstNodeConnector openflow:9
+2021-01-21 22:47:57,045 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:20,160 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Fetching statistics from the subscribed switches and links in the network ....
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | SwitchID 1 , LinkID 4
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Dropped Packets 52007
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Transmitted Packets 2187
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ------------------------------
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------- IsLinkFloodedNotification is called -----
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | *************************************************************
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |       Port 4 of Switch 1 is flooded
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | *************************************************************
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ----DDoSMitigation function is called ------
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Checking high rate UDP/ICMP flows .....
+2021-01-21 22:48:26,162 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | High rate UDP/ICMP flow found ....
+2021-01-21 22:48:26,165 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:48:26,165 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | &&&&&&&&&&  Source IP 10.0.0.5/32 is blocked. &&&&&&&&&&
+2021-01-21 22:48:26,165 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:48:44,701 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:44,704 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:06:38:b9:09:08:8d and DstNodeConnector openflow:6
+2021-01-21 22:48:44,704 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:44,704 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:44,704 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:6 and DstNodeConnector host:06:38:b9:09:08:8d
+2021-01-21 22:48:44,704 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:44,751 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:44,752 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:48:44,752 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:46,700 | DEBUG | on-dispatcher-45 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:46,700 | DEBUG | on-dispatcher-45 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:4e:77:94:d6:eb:1d
+2021-01-21 22:48:46,700 | DEBUG | on-dispatcher-45 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:46,700 | DEBUG | on-dispatcher-45 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:46,700 | DEBUG | on-dispatcher-45 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:4e:77:94:d6:eb:1d and DstNodeConnector openflow:7
+2021-01-21 22:48:46,700 | DEBUG | on-dispatcher-45 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:46,792 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:46,792 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:48:46,792 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:48,704 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:48,704 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:6 and DstNodeConnector host:56:b1:99:5b:6a:42
+2021-01-21 22:48:48,704 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:48,704 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:48,704 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:56:b1:99:5b:6a:42 and DstNodeConnector openflow:6
+2021-01-21 22:48:48,704 | DEBUG | on-dispatcher-41 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:48,788 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:48,789 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:48:48,789 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:50,684 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:50,684 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:da:05:89:75:0a:a9 and DstNodeConnector openflow:7
+2021-01-21 22:48:50,684 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:50,684 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:50,684 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:da:05:89:75:0a:a9
+2021-01-21 22:48:50,684 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:50,726 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:50,726 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:48:50,726 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:52,211 | DEBUG | on-dispatcher-35 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:52,211 | DEBUG | on-dispatcher-35 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:6 and DstNodeConnector host:fe:d1:14:aa:57:51
+2021-01-21 22:48:52,211 | DEBUG | on-dispatcher-35 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:52,211 | DEBUG | on-dispatcher-35 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:52,211 | DEBUG | on-dispatcher-35 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:fe:d1:14:aa:57:51 and DstNodeConnector openflow:6
+2021-01-21 22:48:52,211 | DEBUG | on-dispatcher-35 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:52,261 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:52,261 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:48:52,261 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:53,701 | DEBUG | on-dispatcher-63 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:53,703 | DEBUG | on-dispatcher-63 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:6 and DstNodeConnector host:fa:7b:90:5a:68:9d
+2021-01-21 22:48:53,703 | DEBUG | on-dispatcher-63 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:53,703 | DEBUG | on-dispatcher-63 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:53,703 | DEBUG | on-dispatcher-63 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:fa:7b:90:5a:68:9d and DstNodeConnector openflow:6
+2021-01-21 22:48:53,703 | DEBUG | on-dispatcher-63 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:53,797 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:53,797 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:48:53,797 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:55,220 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:55,220 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:8a:fb:14:73:58:c3 and DstNodeConnector openflow:6
+2021-01-21 22:48:55,220 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:55,220 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:55,220 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:6 and DstNodeConnector host:8a:fb:14:73:58:c3
+2021-01-21 22:48:55,220 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:55,274 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:55,274 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:48:55,274 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:56,732 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:56,732 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:fa:c8:3b:6a:ad:8c and DstNodeConnector openflow:6
+2021-01-21 22:48:56,732 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:56,732 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:56,732 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:6 and DstNodeConnector host:fa:c8:3b:6a:ad:8c
+2021-01-21 22:48:56,732 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:56,794 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:56,794 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:48:56,794 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:58,191 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:58,191 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:6 and DstNodeConnector host:ca:cb:36:08:bf:66
+2021-01-21 22:48:58,191 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:58,191 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:58,191 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:ca:cb:36:08:bf:66 and DstNodeConnector openflow:6
+2021-01-21 22:48:58,191 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:58,251 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:58,251 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:48:58,251 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:59,727 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:59,727 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:6 and DstNodeConnector host:f2:97:14:55:5a:5d
+2021-01-21 22:48:59,727 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:59,727 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:48:59,727 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:f2:97:14:55:5a:5d and DstNodeConnector openflow:6
+2021-01-21 22:48:59,727 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:48:59,765 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:48:59,766 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:48:59,766 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:01,195 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:01,196 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:22:6e:f0:4c:4e:02 and DstNodeConnector openflow:6
+2021-01-21 22:49:01,196 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:01,196 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:01,196 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:6 and DstNodeConnector host:22:6e:f0:4c:4e:02
+2021-01-21 22:49:01,196 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:01,236 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:01,236 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:49:01,236 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:02,747 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:02,747 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:6 and DstNodeConnector host:be:88:94:e7:00:75
+2021-01-21 22:49:02,747 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:02,747 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:02,747 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:be:88:94:e7:00:75 and DstNodeConnector openflow:6
+2021-01-21 22:49:02,747 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:02,785 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:02,785 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:49:02,785 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:04,221 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:04,221 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:de:eb:02:2b:34:43 and DstNodeConnector openflow:6
+2021-01-21 22:49:04,221 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:04,221 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:04,221 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:6 and DstNodeConnector host:de:eb:02:2b:34:43
+2021-01-21 22:49:04,221 | DEBUG | on-dispatcher-46 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:04,264 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:04,264 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [6, 4, 1, 9, 11]
+2021-01-21 22:49:04,264 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:05,719 | DEBUG | on-dispatcher-47 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:05,721 | DEBUG | on-dispatcher-47 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:2e:6b:88:c7:ed:dd and DstNodeConnector openflow:7
+2021-01-21 22:49:05,721 | DEBUG | on-dispatcher-47 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:05,721 | DEBUG | on-dispatcher-47 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:05,721 | DEBUG | on-dispatcher-47 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:2e:6b:88:c7:ed:dd
+2021-01-21 22:49:05,721 | DEBUG | on-dispatcher-47 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:05,767 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:05,767 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:49:05,768 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:07,208 | DEBUG | on-dispatcher-38 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:07,208 | DEBUG | on-dispatcher-38 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:32:8f:68:fb:1f:75 and DstNodeConnector openflow:7
+2021-01-21 22:49:07,208 | DEBUG | on-dispatcher-38 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:07,208 | DEBUG | on-dispatcher-38 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:07,208 | DEBUG | on-dispatcher-38 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:32:8f:68:fb:1f:75
+2021-01-21 22:49:07,208 | DEBUG | on-dispatcher-38 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:07,252 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:07,252 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:49:07,252 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:08,734 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:08,734 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:d2:b3:0e:b4:33:60
+2021-01-21 22:49:08,734 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:08,734 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:08,734 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:d2:b3:0e:b4:33:60 and DstNodeConnector openflow:7
+2021-01-21 22:49:08,734 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:08,766 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:08,766 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:49:08,766 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:10,219 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:10,219 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:f6:7c:ce:55:89:6f and DstNodeConnector openflow:7
+2021-01-21 22:49:10,219 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:10,219 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:10,219 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:f6:7c:ce:55:89:6f
+2021-01-21 22:49:10,219 | DEBUG | on-dispatcher-44 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:10,264 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:10,264 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:49:10,264 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:11,164 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Fetching statistics from the subscribed switches and links in the network ....
+2021-01-21 22:49:11,740 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:11,740 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:f2:b8:8f:03:3d:29
+2021-01-21 22:49:11,740 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:11,740 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:11,740 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:f2:b8:8f:03:3d:29 and DstNodeConnector openflow:7
+2021-01-21 22:49:11,740 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:11,768 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:11,768 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:49:11,769 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:13,223 | DEBUG | on-dispatcher-45 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:13,223 | DEBUG | on-dispatcher-45 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:f2:4c:21:62:e9:64
+2021-01-21 22:49:13,223 | DEBUG | on-dispatcher-45 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:13,223 | DEBUG | on-dispatcher-45 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:13,223 | DEBUG | on-dispatcher-45 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:f2:4c:21:62:e9:64 and DstNodeConnector openflow:7
+2021-01-21 22:49:13,223 | DEBUG | on-dispatcher-45 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:13,260 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:13,261 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:49:13,261 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:14,806 | DEBUG | on-dispatcher-47 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:14,806 | DEBUG | on-dispatcher-47 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:6e:9a:a7:6f:a6:41
+2021-01-21 22:49:14,806 | DEBUG | on-dispatcher-47 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:14,806 | DEBUG | on-dispatcher-47 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:14,806 | DEBUG | on-dispatcher-47 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:6e:9a:a7:6f:a6:41 and DstNodeConnector openflow:7
+2021-01-21 22:49:14,806 | DEBUG | on-dispatcher-47 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:14,844 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:14,844 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:49:14,844 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:16,241 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:16,241 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:06:e0:85:5c:e2:cf
+2021-01-21 22:49:16,241 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:16,241 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:16,241 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:06:e0:85:5c:e2:cf and DstNodeConnector openflow:7
+2021-01-21 22:49:16,241 | DEBUG | on-dispatcher-34 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:16,310 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:16,310 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:49:16,310 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | SwitchID 1 , LinkID 4
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Dropped Packets 2902
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Transmitted Packets 2704
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ------------------------------
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------- IsLinkFloodedNotification is called -----
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | *************************************************************
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |       Port 4 of Switch 1 is flooded
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | *************************************************************
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ----DDoSMitigation function is called ------
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Checking high rate UDP/ICMP flows .....
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |  .... Not found ...
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Checking Elephant Flows ......................
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |  .... Not found ...
+2021-01-21 22:49:17,512 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Checking for ratio of new comers ....
+2021-01-21 22:49:17,790 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:17,790 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:7e:27:78:8e:f2:b9 and DstNodeConnector openflow:7
+2021-01-21 22:49:17,790 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:17,790 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:17,790 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:7e:27:78:8e:f2:b9
+2021-01-21 22:49:17,790 | DEBUG | on-dispatcher-49 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:17,852 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:17,852 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:49:17,852 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:19,262 | DEBUG | on-dispatcher-42 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:19,262 | DEBUG | on-dispatcher-42 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:7 and DstNodeConnector host:e6:06:df:61:20:b3
+2021-01-21 22:49:19,262 | DEBUG | on-dispatcher-42 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:19,262 | DEBUG | on-dispatcher-42 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:49:19,262 | DEBUG | on-dispatcher-42 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector host:e6:06:df:61:20:b3 and DstNodeConnector openflow:7
+2021-01-21 22:49:19,262 | DEBUG | on-dispatcher-42 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:49:19,327 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:49:19,327 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |      Path found is [7, 5, 1, 9, 11]
+2021-01-21 22:49:19,327 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ==================================================================     
+2021-01-21 22:50:02,500 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Fetching statistics from the subscribed switches and links in the network ....
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | SwitchID 1 , LinkID 4
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Dropped Packets 474
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Transmitted Packets 3486
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ------------------------------
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------- IsLinkFloodedNotification is called -----
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | *************************************************************
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |       Port 4 of Switch 1 is flooded
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | *************************************************************
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ----DDoSMitigation function is called ------
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Checking high rate UDP/ICMP flows .....
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |  .... Not found ...
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Checking Elephant Flows ......................
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |  .... Not found ...
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Checking for ratio of new comers ....
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Found high ratio of new comers ....
+2021-01-21 22:50:08,509 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,612 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,612 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.25/32 is Throttled. 
+2021-01-21 22:50:08,612 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,627 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,627 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.22/32 is Throttled. 
+2021-01-21 22:50:08,627 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,665 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,665 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.24/32 is Throttled. 
+2021-01-21 22:50:08,665 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,692 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,692 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.23/32 is Throttled. 
+2021-01-21 22:50:08,692 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,722 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,722 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.21/32 is Throttled. 
+2021-01-21 22:50:08,722 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,744 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,744 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.20/32 is Throttled. 
+2021-01-21 22:50:08,744 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,792 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,792 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.17/32 is Throttled. 
+2021-01-21 22:50:08,792 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,818 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,818 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.18/32 is Throttled. 
+2021-01-21 22:50:08,818 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,860 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,860 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.16/32 is Throttled. 
+2021-01-21 22:50:08,860 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,877 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,877 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.19/32 is Throttled. 
+2021-01-21 22:50:08,877 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,897 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,897 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.3/32 is Throttled. 
+2021-01-21 22:50:08,897 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,913 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,913 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.13/32 is Throttled. 
+2021-01-21 22:50:08,913 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,937 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,937 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.14/32 is Throttled. 
+2021-01-21 22:50:08,937 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,960 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,960 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.6/32 is Throttled. 
+2021-01-21 22:50:08,960 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:08,978 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:08,978 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.26/32 is Throttled. 
+2021-01-21 22:50:08,981 | DEBUG | on-dispatcher-42 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------------------------------------------------
+2021-01-21 22:50:08,981 | DEBUG | on-dispatcher-42 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ADDED Link between SourceNodeConnector openflow:1 and DstNodeConnector openflow:9
+2021-01-21 22:50:08,981 | DEBUG | on-dispatcher-42 | TapServiceImpl                   | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ---------------------------------------------------
+2021-01-21 22:50:53,502 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Fetching statistics from the subscribed switches and links in the network ....
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | SwitchID 1 , LinkID 4
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Dropped Packets 31
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Transmitted Packets 4062
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ------------------------------
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | --------- IsLinkFloodedNotification is called -----
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | *************************************************************
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |       Port 4 of Switch 1 is flooded
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | *************************************************************
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ----DDoSMitigation function is called ------
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Checking high rate UDP/ICMP flows .....
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |  .... Not found ...
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Checking Elephant Flows ......................
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT |  .... Not found ...
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Checking for ratio of new comers ....
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Found high ratio of new comers ....
+2021-01-21 22:50:59,521 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:59,548 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:59,552 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.31/32 is Throttled. 
+2021-01-21 22:50:59,552 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:59,569 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:59,569 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.33/32 is Throttled. 
+2021-01-21 22:50:59,569 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:59,578 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:59,578 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.28/32 is Throttled. 
+2021-01-21 22:50:59,578 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:59,594 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:59,594 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.30/32 is Throttled. 
+2021-01-21 22:50:59,594 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:59,620 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:59,620 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.32/32 is Throttled. 
+2021-01-21 22:50:59,620 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:59,642 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:59,642 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.34/32 is Throttled. 
+2021-01-21 22:50:59,642 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:59,663 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:59,663 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.29/32 is Throttled. 
+2021-01-21 22:50:59,663 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | New Comer IP
+2021-01-21 22:50:59,683 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:50:59,683 | DEBUG | pool-22-thread-1 | ActiveSDNAssignment              | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Source IP 10.0.0.27/32 is Throttled. 
+2021-01-21 22:51:44,801 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Fetching statistics from the subscribed switches and links in the network ....
+2021-01-21 22:51:50,802 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:51:50,802 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | SwitchID 1 , LinkID 4
+2021-01-21 22:51:50,802 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Dropped Packets 0
+2021-01-21 22:51:50,802 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Transmitted Packets 4198
+2021-01-21 22:51:50,802 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ------------------------------
+2021-01-21 22:52:36,115 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Fetching statistics from the subscribed switches and links in the network ....
+2021-01-21 22:52:42,137 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | 
+2021-01-21 22:52:42,137 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | SwitchID 1 , LinkID 4
+2021-01-21 22:52:42,137 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Dropped Packets 0
+2021-01-21 22:52:42,137 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | Transmitted Packets 4310
+2021-01-21 22:52:42,137 | DEBUG | pool-22-thread-1 | ActivesdnServiceImpl             | 160 - org.sdnhub.odl.tutorial.tapapp.impl - 1.0.0.SNAPSHOT | ------------------------------
+^C
+

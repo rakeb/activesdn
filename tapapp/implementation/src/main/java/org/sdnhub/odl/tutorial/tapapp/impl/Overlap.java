@@ -34,6 +34,4 @@ public class Overlap {
 	public void setOverlapValue(String overlapValue) {
 		this.overlapValue = overlapValue;
 	}
-	
-	
 }
