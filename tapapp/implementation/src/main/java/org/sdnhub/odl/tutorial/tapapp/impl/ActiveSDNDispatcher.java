@@ -1,3 +1,8 @@
+/**
+ * @author Md Mazharul Islam
+ * @email mislam7@uncc.edu, rakeb.mazharul@gmail.com
+ */
+
 package org.sdnhub.odl.tutorial.tapapp.impl;
 
 import java.util.ArrayList;
@@ -83,7 +88,7 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
     boolean rhmExperiment = false;
     public boolean isSpecialMutationStarted = false;
     public boolean isPathMutationStarted = false;
-	private List<String> inspectionPath;
+	private List<String> rPath;
     
     public static final int FLOW_PRIORITY = 300;
     /////////////////////////////////////////////////////////////////
@@ -136,10 +141,11 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 			LOG.debug("     ==================================================================     ");
 			
 			if (payload.contains("malicious")){
-				LOG.debug("		We have found malicious string");
+				LOG.debug("		We have found malicious string, packet will be dropped");
+				return;
 			}
 			else {
-				LOG.debug("		We Couldn't find malicious string");
+				LOG.debug("		We Couldn't find malicious string. Packet transmitted");
 			}
 		}
 		else {
@@ -147,7 +153,7 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 		}
 		
 		SendPacketOutInputBuilder packetOutBuilder = new SendPacketOutInputBuilder();
-		packetOutBuilder.setSwitchId(Integer.parseInt(inspectionPath.get(1))); // 1 because the first switch generates packet in and second switch is the next hop
+		packetOutBuilder.setSwitchId(Integer.parseInt(rPath.get(1))); // 1 because the first switch generates packet in and second switch is the next hop
 		packetOutBuilder.setInPortNumber(-1);
 		packetOutBuilder.setPayload(notification.getPayload()); // This sets the payload as received during PacketIn
 		packetOutBuilder.setOutputPort(TABLE);
@@ -173,9 +179,12 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 	/**
 	 * Checks whether path is already installed or not. If not then install a path for TCP, UDP and ICMP protocol
 	 * @param packetHeaderFields
+	 * @param udp 
+	 * @param icmp 
+	 * @param tcp 
 	 * @return Return <code>false</code> if install nothing, <code>true</code> if installs a path.
 	 */
-	private boolean installPath(Ipv4PacketHeaderFields packetHeaderFields) {
+	private boolean installPath(Ipv4PacketHeaderFields packetHeaderFields, TrafficType tcp, TrafficType icmp, TrafficType udp) {
 		ConnectedHostInfo srcHost = hostTable.get(packetHeaderFields.getSourceAddress());
 		ConnectedHostInfo dstHost = hostTable.get(packetHeaderFields.getDestinationAddress());
 		String forwardPathKey = srcHost.getHostIP() + ":" + dstHost.getHostIP();
@@ -212,15 +221,19 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 				pathInputBuilder.setSwitchesInPath(pathNodes);
 				installedPaths.put(forwardPathKey, path);
 			}
-			pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
-			this.activeSDNService.installNetworkPath(pathInputBuilder.build());
 			
-//			pathInputBuilder.setTypeOfTraffic(TrafficType.TCP);
-//			this.activeSDNService.installNetworkPath(pathInputBuilder.build());
-//			
-			pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
-			this.activeSDNService.installNetworkPath(pathInputBuilder.build());
-			
+			if (tcp != null) {
+				pathInputBuilder.setTypeOfTraffic(TrafficType.TCP);
+				this.activeSDNService.installNetworkPath(pathInputBuilder.build());
+			}
+			if (icmp != null) {
+				pathInputBuilder.setTypeOfTraffic(TrafficType.ICMP);
+				this.activeSDNService.installNetworkPath(pathInputBuilder.build());
+			}
+			if (udp != null) {
+				pathInputBuilder.setTypeOfTraffic(TrafficType.UDP);
+				this.activeSDNService.installNetworkPath(pathInputBuilder.build());
+			}
 			return true;
 		}
 	}
@@ -228,11 +241,6 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 	@Override
 	public void onEventTriggered(EventTriggered notification) {
 		boolean isPathAlreadyExist = false;
-//		LOG.debug("     ==================================================================     ");
-//		LOG.debug("                    Event Triggered is called.");
-//		LOG.debug("     ==================================================================     ");
-		
-		// check if the destination exist and report if it does not
 		if (notification.getPacketType() instanceof Ipv4PacketType) {
 			Ipv4PacketType ipv4Packet = (Ipv4PacketType) notification.getPacketType();
 			if (!(hostTable.containsKey(ipv4Packet.getSourceAddress()) && 
@@ -292,7 +300,7 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 				LOG.debug("IPV4 packet found in On Event Triggered");
 				Ipv4PacketType ipv4Packet = (Ipv4PacketType) notification.getPacketType();
 				
-				isPathAlreadyExist = !installPath(ipv4Packet);
+				isPathAlreadyExist = !installPath(ipv4Packet, TrafficType.TCP, TrafficType.ICMP, TrafficType.UDP);
 				sendingPacketOut(notification);
 				
 				if (isPathAlreadyExist) {
@@ -312,9 +320,13 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 				String destination = tcpPacketType.getDestinationAddress();
 				
 				if ((source.equals(tsrc) && destination.equals(tdst)) || (source.equals(tdst) && destination.equals(tsrc))){
-					inspectByController(notification);
+					if (installPath(tcpPacketType, null, TrafficType.ICMP, TrafficType.UDP)) { // if no path available between src-dst
+						simpleRedirect(notification);										   // then this block executes and redirection for TCP happens
+					}
+					inspectByController(notification); // inspect and send packet out or drop based on inspection results
+					
 				} else { // to handle to TCP packets that going between other nodes other than "10.0.0.1/32" and "10.0.0.12/32";
-					installPath(tcpPacketType);
+					installPath(tcpPacketType, TrafficType.TCP, TrafficType.ICMP, TrafficType.UDP);
 					sendingPacketOut(notification);
 				}
 			}
@@ -326,18 +338,18 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 				IcmpPacketType icmpPacket = (IcmpPacketType) notification.getPacketType();
 				
 				
-				// example of redirect
-				// trigger "10.0.0.1/32" --> "10.0.0.11/32"
-				String tsrc = "10.0.0.1/32";
-				String tdst = "10.0.0.12/32";
-				IcmpPacketType icmpPacketType = (IcmpPacketType) notification.getPacketType();
-				String source = icmpPacketType.getSourceAddress();
-				String destination = icmpPacketType.getDestinationAddress();
-				
-				if ((source.equals(tsrc) && destination.equals(tdst)) || (source.equals(tdst) && destination.equals(tsrc))){
-					simpleRedirect(notification);
-				}
-				installPath(icmpPacket);
+//				// example of redirect
+//				// trigger "10.0.0.1/32" --> "10.0.0.11/32"
+//				String tsrc = "10.0.0.1/32";
+//				String tdst = "10.0.0.12/32";
+//				IcmpPacketType icmpPacketType = (IcmpPacketType) notification.getPacketType();
+//				String source = icmpPacketType.getSourceAddress();
+//				String destination = icmpPacketType.getDestinationAddress();
+//				
+//				if ((source.equals(tsrc) && destination.equals(tdst)) || (source.equals(tdst) && destination.equals(tsrc))){
+//					simpleRedirect(notification);
+//				}
+				installPath(icmpPacket, TrafficType.TCP, TrafficType.ICMP, TrafficType.UDP);
 				sendingPacketOut(notification);
 			} /// End of ICMP Packet
 		} /// End of ControllerEVentIF
@@ -374,10 +386,10 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 		LOG.debug("     Redirect called " );
 		LOG.debug("     ==================================================================     ");
 		
-		IcmpPacketType icmpPacketType = (IcmpPacketType) notification.getPacketType();
+		TcpPacketType tcpPacketType = (TcpPacketType) notification.getPacketType();
 		
-		String source = icmpPacketType.getSourceAddress();
-		String destination = icmpPacketType.getDestinationAddress();
+		String source = tcpPacketType.getSourceAddress();
+		String destination = tcpPacketType.getDestinationAddress();
 		
 		ConnectedHostInfo srcHost = hostTable.get(source);
 		ConnectedHostInfo dstHost = hostTable.get(destination);
@@ -390,13 +402,13 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 		
 		List<Integer> pathNodes = Lists.newArrayList();
 		
-		inspectionPath = topology.findShortestPath(srcHost.getSwitchConnectedTo(), dstHost.getSwitchConnectedTo());
+		rPath = topology.findShortestPath(srcHost.getSwitchConnectedTo(), dstHost.getSwitchConnectedTo());
 		
-		if (inspectionPath != null) {
+		if (rPath != null) {
 			LOG.debug("     ==================================================================     ");
-			LOG.debug("     Redirection path: {}, from src: {} to inspector: {}", inspectionPath.toString(), srcHost.getHostIP(), dstHost.getHostIP());
+			LOG.debug("     Redirection path: {}, from src: {} to inspector: {}", rPath.toString(), srcHost.getHostIP(), dstHost.getHostIP());
 			LOG.debug("     ==================================================================     ");
-			for (String node : inspectionPath){
+			for (String node : rPath){
 				pathNodes.add(Integer.parseInt(node));
 			}
 			redirectInputBuilder.setSwitchesInPath(pathNodes);

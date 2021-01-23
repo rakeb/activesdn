@@ -137,3 +137,32 @@ $ cd distribution/opendaylight-karaf/target/assembly
 $ ./bin/karaf
 karaf>feature:install sdnhub-XYZ
 ```
+
+# Some important stuffs
+Important tutiorial: https://www.youtube.com/watch?v=3nF7xWMniwY
+
+To view the topology: feature:install odl_delux_core, feature:install odl-dlux-yangui
+
+The IP address example: http://172.16.178.128:8181/index.html#/topology
+
+For REST API: feature: feature:install odl-restconf-all
+
+To view flow rules in a switch: watch -n3 sudo ovs-ofctl dump-flows -OOpenFlow13 s1
+
+Restconf example:
+http://172.16.178.128:8181/restconf/operations/activesdn:path-mutate
+{"input": {
+    "src": ["10.0.0.3/32"],
+    "dst": ["10.0.0.9/32"],
+    "pattern": 5
+  }
+}
+
+# How to simulate the example
+
+1. From a terminal (activsdn terminal), goto: /home/ubuntu/Downloads/activesdn 
+2. Run the compiler using command: ./compile_and_execute_controller.sh
+3. From another terminal (mininet terminal), create a topology : ./create_topology.sh
+4. From the mininet terminal, run: xterm h1 h12
+5. From the xterm h12 terminal, run: cd /home/ubuntu/Downloads/activesdn/scripts/redirect/ and then run: ./host12.sh
+6. From the xterm h1 terminal, run: cd /home/ubuntu/Downloads/activesdn/scripts/redirect/ and then run: ./host1_send_traffic_to_h12.sh
