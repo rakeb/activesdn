@@ -387,7 +387,7 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 				
 				Future<RpcResult<SubscribeEventOutput>> subOutput = subscribeToBlockICMPEvent(icmpPacketType);
 				try {
-					eventManager.put(subOutput.get().getResult().getEventId(), EVENT_ACTION_BLOCK_ICMP); // setting the event ID
+					eventManager.put(subOutput.get().getResult().getEventId(), EVENT_ACTION_BLOCK_ICMP); // setting the event ID to match an event action
 				} catch (InterruptedException | ExecutionException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

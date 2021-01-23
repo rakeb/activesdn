@@ -160,7 +160,10 @@ http://172.16.178.128:8181/restconf/operations/activesdn:path-mutate
 
 # How to simulate the example
 
+Description: This redirect example redirects all TCP trafic form Host x (10.0.0.1) to host y (10.0.0.12) to the controller for payload inspection. The redirection is done by the closes (edge) switch to the source. If the inspected packets pass the test, it will be forwared to the next switch, otherwise the packet will be dropped. Any other TCP or UDP flows will forwared to its destination by installing the shortest path.
+
 Example 1: redirect
+
 
 1. From a terminal, goto: /home/ubuntu/Downloads/activesdn 
 2. Run ActiveSDN controller using command: ./compile_and_execute_controller.sh
