@@ -43,10 +43,16 @@ module activesdn {
         leaf type-of-traffic {
             type tap:traffic-type;
         }
-        leaf src-port {
+        leaf tcp-src-port {
         	type int32;
         }
-        leaf dst-port {
+        leaf tcp-dst-port {
+        	type int32;
+        }
+        leaf udp-src-port {
+        	type int32;
+        }
+        leaf udp-dst-port {
         	type int32;
         }
 		leaf flow-priority {

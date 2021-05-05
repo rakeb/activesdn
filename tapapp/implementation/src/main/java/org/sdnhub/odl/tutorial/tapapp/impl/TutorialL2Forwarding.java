@@ -727,8 +727,8 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
             	//LOG.debug("Packet_IN is called because of NoMatch Reason");
             	//LOG.debug("         ---------------------------------------------------------------------     ");
             	eventBuilder.setTriggeredEventType(TriggeredEventType.NoFlowRuleEvent);
-        		//this.notificationService.publish(eventBuilder.build());
-        		this.activeSDNAssignment.onEventTriggered(eventBuilder.build());
+        		this.notificationService.publish(eventBuilder.build());
+//        		this.activeSDNAssignment.onEventTriggered(eventBuilder.build());
             	
             }
             else if (notification.getPacketInReason().getName().
@@ -786,7 +786,8 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
 	              	        eventBuilder.setTriggeredEventType(TriggeredEventType.SubscribedEvent);
 	              	        eventBuilder.setEventId(eventMap.get(cookieId).getFlowId());
 	              	        this.currentWait = 0;
-	              	        this.activeSDNAssignment.onEventTriggered(eventBuilder.build());
+//	              	        this.activeSDNAssignment.onEventTriggered(eventBuilder.build());
+	              	        this.notificationService.publish(eventBuilder.build());
               	        }
              		}
              		//End of If it should be blocked or report 
@@ -823,8 +824,8 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
                          eventMap.get(cookieId).resetEventCounter(second);
              			eventBuilder.setTriggeredEventType(TriggeredEventType.SubscribedEvent);
              			eventBuilder.setEventId(eventMap.get(cookieId).getFlowId());
-                		//this.notificationService.publish(eventBuilder.build());
-                		this.activeSDNAssignment.onEventTriggered(eventBuilder.build());
+                		this.notificationService.publish(eventBuilder.build());
+//                		this.activeSDNAssignment.onEventTriggered(eventBuilder.build());
              		} // End of Else part of the If whether it should be blocked or reported
              		else if (eventMap.get(cookieId).getRateLimit() == true){
              			InstanceIdentifier<Tap> tapIID = InstanceIdentifier.builder(TapSpec.class)
@@ -907,8 +908,8 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
                 	 //LOG.debug("         ---------------------------------------------------------------------     ");
                 	 eventBuilder.setTriggeredEventType(TriggeredEventType.ControllerFlowRuleEvent);
                 	 eventBuilder.setEventId(cookieId);
-                	 //this.notificationService.publish(eventBuilder.build());
-             		 this.activeSDNAssignment.onEventTriggered(eventBuilder.build());
+                	 this.notificationService.publish(eventBuilder.build());
+//             		 this.activeSDNAssignment.onEventTriggered(eventBuilder.build());
                  }
                  else {
                 	 tapId = cookie.getTapid();
@@ -973,7 +974,8 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
 	                  	        eventBuilder.setTriggeredEventType(TriggeredEventType.SubscribedEvent);
 	                  	        eventBuilder.setEventId(eventMap.get(cookieId).getFlowId());
 	                  	        this.currentWait = 0;
-	                  	        this.activeSDNAssignment.onEventTriggered(eventBuilder.build());
+//	                  	        this.activeSDNAssignment.onEventTriggered(eventBuilder.build());
+	                  	        this.notificationService.publish(eventBuilder.build());
                   	        }
                   	        
                   		} else if (eventMap.get(cookieId).getNotifyValue() == true){
@@ -1009,8 +1011,8 @@ public class TutorialL2Forwarding  implements AutoCloseable, PacketProcessingLis
                             eventMap.get(cookieId).resetEventCounter(second);
                  			eventBuilder.setTriggeredEventType(TriggeredEventType.SubscribedEvent);
                  			eventBuilder.setEventId(eventMap.get(cookieId).getFlowId());
-                 			//this.notificationService.publish(eventBuilder.build());
-                    		this.activeSDNAssignment.onEventTriggered(eventBuilder.build());
+                 			this.notificationService.publish(eventBuilder.build());
+//                    		this.activeSDNAssignment.onEventTriggered(eventBuilder.build());
                  		} // End of Else part of the If whether it should be blocked or reported
                  		else if (eventMap.get(cookieId).getRateLimit() == true){
                         	 InstanceIdentifier<Flow> flowIID = InstanceIdentifier.builder(Nodes.class)

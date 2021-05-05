@@ -150,6 +150,7 @@ import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.flow.a
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.install.flow.input.AssociatedActions;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.install.flow.input.AssociatedActionsBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.install.flow.input.NewFlowBuilder;
+import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.match.CustomInfoBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.mutate.ip.input.mutation.end.BothCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.mutate.ip.input.mutation.end.DstOnlyCaseBuilder;
 import org.opendaylight.yang.gen.v1.urn.sdnhub.tutorial.odl.tap.rev150601.mutate.ip.input.mutation.end.SourceOnlyCaseBuilder;
@@ -204,7 +205,7 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
     public Timer timer;
     public boolean hasTimerStarted = false;
     
-    private ActiveSDNDispatcher activeSdnApp = TapServiceImpl.getActiveSDNAssignment();
+    private ActiveSDNDispatcher activeSdnApp = TapServiceImpl.getActiveSDNDispatcher();
     
 	public ActivesdnServiceImpl(DataBroker dataBroker, NotificationProviderService notificationService, RpcProviderRegistry rpcProviderRegistry) {
 		//Store the data broker for reading/writing from inventory store
@@ -265,6 +266,12 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 		if (input.getInPortId() != 0){
 			newFlowBuilder.setInPort(InventoryUtils.getNodeConnectorId(nodeId, input.getInPortId()));
 		}
+		
+		newFlowBuilder.setTcpSrcPort((input.getTcpSrcPort() != null ? input.getTcpSrcPort() : null));
+		newFlowBuilder.setTcpDstPort((input.getTcpDstPort() != null ? input.getTcpDstPort() : null));
+		
+		newFlowBuilder.setUdpSrcPort((input.getUdpSrcPort() != null ? input.getUdpSrcPort() : null));
+		newFlowBuilder.setUdpDstPort((input.getUdpDstPort() != null ? input.getUdpDstPort() : null));
 		
 		newFlowBuilder.setDstIpAddress((input.getDstIpAddress() != null ? 
 				new Ipv4Prefix(input.getDstIpAddress()) : null));
@@ -1436,11 +1443,11 @@ public class ActivesdnServiceImpl implements ActivesdnService, OpendaylightFlowS
 			        	if (flow.getMatch().getLayer4Match() != null) {
 			        		TcpMatch tcpMatch = (TcpMatch) flow.getMatch().getLayer4Match();
 			        		if (tcpMatch.getTcpDestinationPort() != null) {
-			        			flowBuilder.setDstPort(tcpMatch.getTcpDestinationPort().getValue());
+			        			flowBuilder.setTcpDstPort(tcpMatch.getTcpDestinationPort().getValue());
 			        			//LOG.debug("Dst Port {}", flowBuilder.getDstPort());
 			        		}
 			        		if (tcpMatch.getTcpSourcePort() != null) {
-			        			flowBuilder.setSrcPort(tcpMatch.getTcpSourcePort().getValue());
+			        			flowBuilder.setTcpSrcPort(tcpMatch.getTcpSourcePort().getValue());
 			        			//LOG.debug("Src Port {}", flowBuilder.getSrcPort());
 			        		}
 			        	}

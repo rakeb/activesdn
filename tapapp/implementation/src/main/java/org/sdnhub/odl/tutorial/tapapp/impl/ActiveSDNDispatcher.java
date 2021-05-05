@@ -364,7 +364,7 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 				String destination = tcpPacketType.getDestinationAddress();
 				
 				if ((source.equals(tsrc) && destination.equals(tdst)) || (source.equals(tdst) && destination.equals(tsrc))){
-					if (installPath(tcpPacketType, null, null, TrafficType.UDP)) { // if no path available between src-dst
+					if (installPath(tcpPacketType, TrafficType.TCP, null, TrafficType.UDP)) { // if no path available between src-dst
 						simpleRedirect(notification);										   // then this block executes and redirection for TCP happens
 					}
 					inspectByController(notification); // inspect and send packet out or drop based on inspection results
@@ -517,7 +517,7 @@ public class ActiveSDNDispatcher implements ActivesdnListener{
 		
 		redirectInputBuilder.setSrcIpAddress(source);
 		redirectInputBuilder.setDstIpAddress(destination);
-		redirectInputBuilder.setFlowPriority(FLOW_PRIORITY);
+		redirectInputBuilder.setFlowPriority(FLOW_PRIORITY + 1);
 		
 		List<Integer> pathNodes = Lists.newArrayList();
 		

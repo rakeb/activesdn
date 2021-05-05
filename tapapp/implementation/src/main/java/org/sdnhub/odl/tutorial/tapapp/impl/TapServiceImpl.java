@@ -237,7 +237,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
     private HashMap<String, List<String>> allInstalledFlows = new HashMap<>();
     private TutorialL2Forwarding tutorialL2Forwarding;
     private ActivesdnServiceImpl activeSDNApi;
-	private static ActiveSDNDispatcher activeSDNAssignment;
+	private static ActiveSDNDispatcher activeSDNDispatcher;
 	private NetworkGraph topology;
 	private HashMap<NodeConnectorId, NodeId> linkNeighbor = new HashMap<NodeConnectorId, NodeId>();
 	private boolean pathRule = false;
@@ -247,8 +247,8 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
     		
     public TapServiceImpl(DataBroker dataBroker, NotificationProviderService notificationService, RpcProviderRegistry rpcProviderRegistry) {
     	topology = new NetworkGraph();
-    	TapServiceImpl.activeSDNAssignment = new ActiveSDNDispatcher(dataBroker, notificationService, rpcProviderRegistry, topology);
-    	this.tutorialL2Forwarding = new TutorialL2Forwarding(dataBroker, notificationService, rpcProviderRegistry, TapServiceImpl.activeSDNAssignment);
+    	TapServiceImpl.activeSDNDispatcher = new ActiveSDNDispatcher(dataBroker, notificationService, rpcProviderRegistry, topology);
+    	this.tutorialL2Forwarding = new TutorialL2Forwarding(dataBroker, notificationService, rpcProviderRegistry, TapServiceImpl.activeSDNDispatcher);
     	this.activeSDNApi = new ActivesdnServiceImpl(dataBroker, notificationService, rpcProviderRegistry);
     	
         //Store the data broker for reading/writing from inventory store
@@ -755,7 +755,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
             }
         	tapsInstalled.remove(nodeId);
         }
-        TapServiceImpl.activeSDNAssignment.clearConfiguration();
+        TapServiceImpl.activeSDNDispatcher.clearConfiguration();
         this.tutorialL2Forwarding.clearConfiguration();
     }
     /////////////////////////////////////////////////////////////////////////////////////
@@ -1061,7 +1061,10 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
         if (flow.getTrafficMatch() != null) {
             Integer dlType = null;
             Short nwProto = null;
-            Integer tpPort = null;
+            Integer tcpSrcPort = null;
+            Integer tcpDstPort = null;
+            Integer udpSrcPort = null;
+            Integer udpDstPort = null;
             switch (flow.getTrafficMatch()) {
             case ARP:
                 dlType = 0x806;
@@ -1080,16 +1083,18 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
                 idleTimeOut = 0;
                 hardTimeOut = 0;
                 priority = 3000;
+                tcpSrcPort = flow.getTcpSrcPort();
+                tcpDstPort = flow.getTcpDstPort();
                 break;
             case HTTP:
                 dlType = 0x800;
                 nwProto = 6;
-                tpPort = 80;
+                tcpDstPort = 80;
                 break;
             case HTTPS:
                 dlType = 0x800;
                 nwProto = 6;
-                tpPort = 443;
+                tcpDstPort = 443;
                 break;
             case UDP:
                 dlType = 0x800;
@@ -1097,33 +1102,54 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
                 idleTimeOut = 0;
                 hardTimeOut = 0;
                 priority = 3000;
+                udpSrcPort = flow.getUdpSrcPort();
+                udpDstPort = flow.getUdpDstPort();
                 break;
             case DNS:
                 dlType = 0x800;
                 nwProto = 0x11;
-                tpPort = 53;
+                udpDstPort = 53;
                 break;
             case DHCP:
                 dlType = 0x800;
                 nwProto = 0x11;
-                tpPort = 67;
+                udpDstPort = 67;
                 break;
             case CUSTOM:
             	dlType = flow.getCustomInfo().getDlType();
             	nwProto = flow.getCustomInfo().getNwProto();
-            	tpPort = flow.getCustomInfo().getTpDst();
+//            	tpPort = flow.getCustomInfo().getTpDst();
             	break;
             }
             if (dlType != null) {
                 MatchUtils.createEtherTypeMatch(matchBuilder, dlType.longValue());
             }
+//            if (nwProto != null) {
+//                MatchUtils.createIpProtocolMatch(matchBuilder, nwProto);
+//                if (tpPort != null && nwProto == 6) { // nwProto == 6 means TCP, HTTP and HTTPS
+//                    MatchUtils.createSetDstTcpMatch(matchBuilder, new PortNumber(tpPort));
+//                } else if (tpPort != null && nwProto == 17) {
+//                    MatchUtils.createSetDstUdpMatch(matchBuilder, new PortNumber(tpPort));
+//                }
+//            }
             if (nwProto != null) {
-                MatchUtils.createIpProtocolMatch(matchBuilder, nwProto);
-                if (tpPort != null && nwProto == 6) {
-                    MatchUtils.createSetDstTcpMatch(matchBuilder, new PortNumber(tpPort));
-                } else if (tpPort != null && nwProto == 17) {
-                    MatchUtils.createSetDstUdpMatch(matchBuilder, new PortNumber(tpPort));
-                }
+            	MatchUtils.createIpProtocolMatch(matchBuilder, nwProto);
+            }
+            
+            if (tcpSrcPort != null) {
+            	MatchUtils.createSetSrcTcpMatch(matchBuilder, new PortNumber(tcpSrcPort));
+            }
+            
+            if (tcpDstPort != null) {
+            	MatchUtils.createSetDstTcpMatch(matchBuilder, new PortNumber(tcpDstPort));
+            }
+            
+            if (udpSrcPort != null) {
+            	MatchUtils.createSetSrcUdpMatch(matchBuilder, new PortNumber(udpSrcPort));
+            }
+            
+            if (udpDstPort != null) {
+            	MatchUtils.createSetDstUdpMatch(matchBuilder, new PortNumber(udpDstPort));
             }
         }
         
@@ -1889,7 +1915,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 		LOG.debug("==============---------------=================----------------------");
     	LOG.debug("calling update installed paths function");
     	LOG.debug("==============---------------=================----------------------");
-		TapServiceImpl.activeSDNAssignment.updateInstalledPaths(sourceId, neighborId, null);
+		TapServiceImpl.activeSDNDispatcher.updateInstalledPaths(sourceId, neighborId, null);
 	}
 	private void populateANeighor(Link link){
 		
@@ -4259,7 +4285,7 @@ public class TapServiceImpl implements AutoCloseable, DataChangeListener, Openda
 		}
 	}
 
-	public static ActiveSDNDispatcher getActiveSDNAssignment() {
-		return activeSDNAssignment;
+	public static ActiveSDNDispatcher getActiveSDNDispatcher() {
+		return activeSDNDispatcher;
 	}
 }

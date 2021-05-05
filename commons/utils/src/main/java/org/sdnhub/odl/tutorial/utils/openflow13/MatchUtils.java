@@ -36,7 +36,9 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._3.match.ArpMatchBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._3.match.Ipv4Match;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._3.match.Ipv4MatchBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._4.match.TcpMatch;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._4.match.TcpMatchBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._4.match.UdpMatch;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.match.layer._4.match.UdpMatchBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.model.match.types.rev131026.vlan.match.fields.VlanIdBuilder;
 import org.slf4j.Logger;
@@ -351,20 +353,51 @@ public class MatchUtils {
      */
     public static MatchBuilder createSetSrcTcpMatch(MatchBuilder matchBuilder, PortNumber tcpport) {
 
-        EthernetMatchBuilder ethType = new EthernetMatchBuilder();
         EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
         ethTypeBuilder.setType(new EtherType(IPV4_LONG));
-        ethType.setEthernetType(ethTypeBuilder.build());
-        matchBuilder.setEthernetMatch(ethType.build());
 
-        IpMatchBuilder ipmatch = new IpMatchBuilder();
-        ipmatch.setIpProtocol((short) 6);
-        matchBuilder.setIpMatch(ipmatch.build());
+        EthernetMatchBuilder emBuilder = new EthernetMatchBuilder();
+        if (matchBuilder.getEthernetMatch() != null){
+        	if (matchBuilder.getEthernetMatch().getEthernetSource() != null){
+        		emBuilder.setEthernetSource(matchBuilder.getEthernetMatch().getEthernetSource());
+        	}
+        	if (matchBuilder.getEthernetMatch().getEthernetDestination() != null){
+        		emBuilder.setEthernetDestination(matchBuilder.getEthernetMatch().getEthernetDestination());
+        	}
+        }
+        
+        emBuilder.setEthernetType(ethTypeBuilder.build());
+        matchBuilder.setEthernetMatch(emBuilder.build());
+
+        IpMatchBuilder imBuilder = new IpMatchBuilder();
+        
+        if (matchBuilder.getIpMatch() != null) {
+        	IpMatch ipMatch = matchBuilder.getIpMatch();
+        	if (ipMatch.getIpDscp() != null) {
+        		imBuilder.setIpDscp(ipMatch.getIpDscp());
+        	}
+        	if (ipMatch.getIpEcn() != null) {
+        		imBuilder.setIpEcn(ipMatch.getIpEcn());
+        	}
+        	if (ipMatch.getIpProto() != null) {
+        		imBuilder.setIpProto(ipMatch.getIpProto());
+        	}
+        }
+        imBuilder.setIpProtocol((short) 6);
+        matchBuilder.setIpMatch(imBuilder.build());
         
 
-        TcpMatchBuilder tcpmatch = new TcpMatchBuilder();
-        tcpmatch.setTcpSourcePort(tcpport);
-        matchBuilder.setLayer4Match(tcpmatch.build());
+        TcpMatchBuilder tmBuilder = new TcpMatchBuilder();
+        
+        if(matchBuilder.getLayer4Match() != null) {
+        	TcpMatch tMatch = (TcpMatch) matchBuilder.getLayer4Match();
+        	if (tMatch.getTcpDestinationPort() != null) {
+        		tmBuilder.setTcpDestinationPort(tMatch.getTcpDestinationPort());
+        	}
+        }
+        
+        tmBuilder.setTcpSourcePort(tcpport);
+        matchBuilder.setLayer4Match(tmBuilder.build());
 
         return matchBuilder;
 
@@ -395,13 +428,35 @@ public class MatchUtils {
         ethBuilder.setEthernetType(ethTypeBuilder.build());
         matchBuilder.setEthernetMatch(ethBuilder.build());
 
-        IpMatchBuilder ipmatch = new IpMatchBuilder();
-        ipmatch.setIpProtocol((short) 6);
-        matchBuilder.setIpMatch(ipmatch.build());
-
-        TcpMatchBuilder tcpmatch = new TcpMatchBuilder();
-        tcpmatch.setTcpDestinationPort(tcpDstPort);
-        matchBuilder.setLayer4Match(tcpmatch.build());
+        IpMatchBuilder imBuilder = new IpMatchBuilder();
+        
+        if (matchBuilder.getIpMatch() != null) {
+        	IpMatch ipMatch = matchBuilder.getIpMatch();
+        	if (ipMatch.getIpDscp() != null) {
+        		imBuilder.setIpDscp(ipMatch.getIpDscp());
+        	}
+        	if (ipMatch.getIpEcn() != null) {
+        		imBuilder.setIpEcn(ipMatch.getIpEcn());
+        	}
+        	if (ipMatch.getIpProto() != null) {
+        		imBuilder.setIpProto(ipMatch.getIpProto());
+        	}
+        }
+        imBuilder.setIpProtocol((short) 6);
+        matchBuilder.setIpMatch(imBuilder.build());
+        
+        TcpMatchBuilder tmBuilder = new TcpMatchBuilder();
+        
+        if(matchBuilder.getLayer4Match() != null) {
+        	TcpMatch tMatch = (TcpMatch) matchBuilder.getLayer4Match();
+        	if (tMatch.getTcpSourcePort() != null) {
+        		tmBuilder.setTcpSourcePort(tMatch.getTcpSourcePort());
+        	}
+        }
+        
+        tmBuilder.setTcpDestinationPort(tcpDstPort);
+        matchBuilder.setLayer4Match(tmBuilder.build());
+        
 
         return matchBuilder;
     }
@@ -454,22 +509,53 @@ public class MatchUtils {
      */
     public static MatchBuilder createSetSrcUdpMatch(MatchBuilder matchBuilder, PortNumber udpport) {
 
-        EthernetMatchBuilder ethType = new EthernetMatchBuilder();
         EthernetTypeBuilder ethTypeBuilder = new EthernetTypeBuilder();
         ethTypeBuilder.setType(new EtherType(IPV4_LONG));
+        
+        EthernetMatchBuilder ethType = new EthernetMatchBuilder();
+        if (matchBuilder.getEthernetMatch() != null){
+        	if (matchBuilder.getEthernetMatch().getEthernetSource() != null){
+        		ethType.setEthernetSource(matchBuilder.getEthernetMatch().getEthernetSource());
+        	}
+        	if (matchBuilder.getEthernetMatch().getEthernetDestination() != null){
+        		ethType.setEthernetDestination(matchBuilder.getEthernetMatch().getEthernetDestination());
+        	}
+        }
+        
         ethType.setEthernetType(ethTypeBuilder.build());
         matchBuilder.setEthernetMatch(ethType.build());
+        
+        IpMatchBuilder imBuilder = new IpMatchBuilder();
+        
+        if (matchBuilder.getIpMatch() != null) {
+        	IpMatch ipMatch = matchBuilder.getIpMatch();
+        	if (ipMatch.getIpDscp() != null) {
+        		imBuilder.setIpDscp(ipMatch.getIpDscp());
+        	}
+        	if (ipMatch.getIpEcn() != null) {
+        		imBuilder.setIpEcn(ipMatch.getIpEcn());
+        	}
+        	if (ipMatch.getIpProto() != null) {
+        		imBuilder.setIpProto(ipMatch.getIpProto());
+        	}
+        }
+        imBuilder.setIpProtocol((short) 17);
+        matchBuilder.setIpMatch(imBuilder.build());
+        
 
-        IpMatchBuilder ipmatch = new IpMatchBuilder();
-        ipmatch.setIpProtocol((short) 17);
-        matchBuilder.setIpMatch(ipmatch.build());
-
-        UdpMatchBuilder udpmatch = new UdpMatchBuilder();
-        udpmatch.setUdpSourcePort(udpport);
-        matchBuilder.setLayer4Match(udpmatch.build());
+        UdpMatchBuilder uBuilder = new UdpMatchBuilder();
+        
+        if(matchBuilder.getLayer4Match() != null) {
+        	UdpMatch uMatch = (UdpMatch) matchBuilder.getLayer4Match();
+        	if(uMatch.getUdpDestinationPort() != null) {
+        		uBuilder.setUdpDestinationPort(uMatch.getUdpDestinationPort());
+        	}
+        }
+        
+        uBuilder.setUdpSourcePort(udpport);
+        matchBuilder.setLayer4Match(uBuilder.build());
 
         return matchBuilder;
-
     }
 
     /**
@@ -497,13 +583,34 @@ public class MatchUtils {
         ethBuilder.setEthernetType(ethTypeBuilder.build());
         matchBuilder.setEthernetMatch(ethBuilder.build());
 
-        IpMatchBuilder ipmatch = new IpMatchBuilder();
-        ipmatch.setIpProtocol((short) 17);
-        matchBuilder.setIpMatch(ipmatch.build());
+        IpMatchBuilder imBuilder = new IpMatchBuilder();
+        
+        if (matchBuilder.getIpMatch() != null) {
+        	IpMatch ipMatch = matchBuilder.getIpMatch();
+        	if (ipMatch.getIpDscp() != null) {
+        		imBuilder.setIpDscp(ipMatch.getIpDscp());
+        	}
+        	if (ipMatch.getIpEcn() != null) {
+        		imBuilder.setIpEcn(ipMatch.getIpEcn());
+        	}
+        	if (ipMatch.getIpProto() != null) {
+        		imBuilder.setIpProto(ipMatch.getIpProto());
+        	}
+        }
+        imBuilder.setIpProtocol((short) 17);
+        matchBuilder.setIpMatch(imBuilder.build());
 
-        UdpMatchBuilder udpmatch = new UdpMatchBuilder();
-        udpmatch.setUdpDestinationPort(udpDstPort);
-        matchBuilder.setLayer4Match(udpmatch.build());
+        
+        UdpMatchBuilder uBuilder = new UdpMatchBuilder();
+        if(matchBuilder.getLayer4Match() != null) {
+        	UdpMatch uMatch = (UdpMatch) matchBuilder.getLayer4Match();
+        	if(uMatch.getUdpSourcePort() != null) {
+        		uBuilder.setUdpSourcePort(uMatch.getUdpSourcePort());
+        	}
+        }
+        
+    	uBuilder.setUdpDestinationPort(udpDstPort);
+        matchBuilder.setLayer4Match(uBuilder.build());
 
         return matchBuilder;
     }

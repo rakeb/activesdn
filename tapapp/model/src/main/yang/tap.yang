@@ -250,6 +250,27 @@ module tap {
         leaf traffic-match {
             type traffic-type;
         }
+        
+        leaf tcp-src-port {
+            type uint16;
+            description "tcp source port";
+    	}
+        
+        leaf tcp-dst-port {
+            type uint16;
+            description "tcp destination port";
+    	}
+        
+        leaf udp-src-port {
+            type uint16;
+            description "udp source port";
+    	}
+        
+        leaf udp-dst-port {
+            type uint16;
+            description "udp destination port";
+    	}
+        
         leaf flow-priority {
 			default 200;
 			type int32;
